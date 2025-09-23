@@ -2,14 +2,13 @@
 name = "pgturbo"
 description = "A fast moving zero-boilerplate 2D games framework"
 readme = "README.rst"
-version = "1.3.5"
 requires-python = ">=3.6"
 dependencies = [
     "pygame>=2.1",
     "numpy",
     "pyfxr",
 ]
-#dynamic = ["version"]
+dynamic = ["version"]
 
 [project.urls]
 Documentation = "https://pgturbo.readthedocs.io/"
