@@ -11,7 +11,7 @@ original Pygame Zero, check below.
 This was the initial fork from Pygame Zero with different PRs being
 integrated to create the first state of Pygame Turbo.
 
-Since Turbo was forked from Pygame Zero during its unrelease version 1.3
+Since Turbo was forked from Pygame Zero during its unreleased version 1.3
 stage, its version numbering starts from 1.3.5 to avoid confusion.
 
 
@@ -50,13 +50,13 @@ Bug fixes
 
 
 Pygame Zero Changelog
-=====================
+---------------------
 
 The following is the changelog of Pygame Zero leading up to the forking of
 Pygame Turbo:
 
 1.3 - unreleased
-----------------
+''''''''''''''''
 
 * New: :ref:`Actors can be made transparent <transparency>` by assigning to
   ``actor.opacity`` (based on work by Rhys Puddephatt and charlesej)
@@ -68,7 +68,7 @@ Pygame Turbo:
 
 
 1.2 - 2018-02-24
-----------------
+''''''''''''''''
 
 * New: :ref:`Actors can be rotated <rotation>` by assigning to ``actor.angle``
 * New: Actors now have :meth:`~Actor.angle_to()` and
@@ -97,7 +97,7 @@ Pygame Turbo:
   ``centre`` attribute aliases on ZRect (because they are not Rect-compatible).
 
 1.1 - 2015-08-03
-----------------
+''''''''''''''''
 
 * Added a spell checker that will point out hook or parameter names that have
   been misspelled when the program starts.
@@ -117,12 +117,12 @@ Pygame Turbo:
 * Added additional example games in the ``examples/`` directory.
 
 1.0.2 - 2015-06-04
-------------------
+''''''''''''''''
 
 * Fix: ensure compatibility with Python 3.2
 
 1.0.1 - 2015-05-31
-------------------
+''''''''''''''''
 
 This is a bugfix release.
 
@@ -149,7 +149,7 @@ This is a bugfix release.
 
 
 1.0 - 2015-05-29
-----------------
+''''''''''''''''
 
 * New: Added ``anchor`` parameter to Actor, offering control over where its
   ``pos`` attribute refers to. By default it now refers to the center.
@@ -164,6 +164,6 @@ This is a bugfix release.
 
 
 1.0beta1 - 2015-05-19
----------------------
+''''''''''''''''
 
 Initial public (preview) release.
