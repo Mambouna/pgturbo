@@ -6,7 +6,7 @@ aren't provided with a normal installation of Pygame Turbo but they're available
 in the source code repository. To download them, follow the following steps:
 
 - Download the source code of Pygame Turbo on the
-  `GitHub repository <https://github.com/lordmauve/pgturbo>`_ by clicking in the
+  `GitHub repository <https://github.com/Mambouna/pgturbo>`_ by clicking in the
   big green button and choosing **Download ZIP**
 - Copy the ``examples`` folder whatever you want.
 - Delete the ZIP and the source code if you want to save space on your disk.

@@ -34,7 +34,7 @@ Gamepad Support
     Turbo however, meaning that it will likely be added to Turbo in the near
     future.
 
-Github Issue: `#70 <https://github.com/lordmauve/pgturbo/issues/70>`_
+Github Issue: `#70 <https://github.com/lordmauve/pgzero/issues/70>`_
 
 SNES-style gamepads are now extremely cheap. For example, they are sold for
 a few pounds from the `Pi Hut`_, in packs of 2 at Amazon_, and even in some
@@ -60,7 +60,7 @@ Surface juggling
     This roadmap item comes from Pygame Zero, meaning the link to the relevant
     issue also leads to the GitHub for Pygame Zero, not Pygame Turbo.
 
-Github Issue: `#71 <https://github.com/lordmauve/pgturbo/issues/71>`_
+Github Issue: `#71 <https://github.com/lordmauve/pgzero/issues/71>`_
 
 Pygame experts make lots of use of off-screen surfaces to create interesting
 effects.
