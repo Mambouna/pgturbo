@@ -1,6 +1,6 @@
-"""Tests for Pygame Zero's runner system.
+"""Tests for Pygame Turbo's runner system.
 
-This module is also a Pygame Zero game so that we can run it with pgturbo.
+This module is also a Pygame Turbo game so that we can run it with pgturbo.
 
 """
 import sys
