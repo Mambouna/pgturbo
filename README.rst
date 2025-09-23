@@ -4,7 +4,8 @@ Pygame Turbo
 A quicker moving fork of the zero-boilerplate games programming framework
 Pygame Zero, based on Pygame.
 
-The documentation for Pygame Turbo is found here [TODO].
+The documentation for Pygame Turbo is found here:
+https://pgturbo.readthedocs.io/
 
 The documentation for Pygame Zero is found here:
 https://pygame-zero.readthedocs.io/en/stable/index.html
