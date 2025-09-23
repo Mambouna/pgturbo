@@ -5,10 +5,10 @@ import types
 from time import perf_counter, sleep
 
 import pygame
-import pgzero.clock
-import pgzero.keyboard
-import pgzero.screen
-import pgzero.loaders
+import pgturbo.clock
+import pgturbo.keyboard
+import pgturbo.screen
+import pgturbo.loaders
 
 from . import constants
 
@@ -50,7 +50,7 @@ class PGZeroGame:
         mod: types.ModuleType,
         fps: bool = False
     ):
-        """Construct a game loop given the pgzero module mod.
+        """Construct a game loop given the pgturbo module mod.
 
         If fps is True, show a FPS count at the bottom left of the window.
         """
@@ -61,8 +61,8 @@ class PGZeroGame:
         self.title = None
         self.icon = None
         self.fps = fps
-        self.keyboard = pgzero.keyboard.keyboard
-        self.mouse = pgzero.mouse.mouse_instance
+        self.keyboard = pgturbo.keyboard.keyboard
+        self.mouse = pgturbo.mouse.mouse_instance
         self.handlers = {}
 
     def reinit_screen(self) -> bool:
@@ -87,7 +87,7 @@ class PGZeroGame:
                 DISPLAY_FLAGS,
                 vsync=1
             )
-            pgzero.screen.screen_instance._set_surface(self.screen)
+            pgturbo.screen.screen_instance._set_surface(self.screen)
 
             # Set the global screen that actors blit to
             screen = self.screen
@@ -117,7 +117,7 @@ class PGZeroGame:
         if icon is DEFAULTICON:
             self.show_default_icon()
         else:
-            pygame.display.set_icon(pgzero.loaders.images.load(icon))
+            pygame.display.set_icon(pgturbo.loaders.images.load(icon))
         self.icon = icon
 
     EVENT_HANDLERS = {
@@ -148,7 +148,7 @@ class PGZeroGame:
                 self.handlers[type] = self.prepare_handler(handler)
 
     def prepare_handler(self, handler):
-        """Adapt a pgzero game's raw handler function to take a Pygame Event.
+        """Adapt a pgturbo game's raw handler function to take a Pygame Event.
 
         Returns a one-argument function of the form ``handler(event)``.
         This will ensure that the correct arguments are passed to the raw
@@ -309,7 +309,7 @@ class PGZeroGame:
                 handler(event)
                 updated = True
 
-        clock = pgzero.clock.clock
+        clock = pgturbo.clock.clock
         clock.tick(dt)
         updated |= clock.fired
 

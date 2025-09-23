@@ -1,3 +1,3 @@
-from pgzero.runner import main
+from pgturbo.runner import main
 
 main()

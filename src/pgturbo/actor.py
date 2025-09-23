@@ -573,7 +573,7 @@ class Actor:
         intercept_point = target_pos + target_vel * intercept_time
         intercept_vec = (intercept_point - self_pos).normalize() * speed
 
-        # Since Vector2s aren't used in pgzero directly, return as a tuple.
+        # Since Vector2s aren't used in pgturbo directly, return as a tuple.
         return tuple(intercept_vec)
 
     def _create_mask(self):

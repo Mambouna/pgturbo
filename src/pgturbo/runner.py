@@ -54,7 +54,7 @@ def _substitute_full_framework_python():
     os.environ['PYTHONPATH'] = ':'.join(venv_paths + [
         os.environ.get('PYTHONPATH', '')]).rstrip(':')
     # Pass command line args to the new process
-    os.execv(framework_python, ['python', '-m', 'pgzero'] + sys.argv[1:])
+    os.execv(framework_python, ['python', '-m', 'pgturbo'] + sys.argv[1:])
 
 
 def main():
@@ -105,7 +105,7 @@ def load_and_run(path, *, fps: bool = False):
     * `run_game.py`
     * `<name>.py` where `<name>` is the basename of the directory
 
-    Note that the 'import pgzrun' IDE mode doesn't pass through this entry
+    Note that the 'import pgtrun' IDE mode doesn't pass through this entry
     point, as the module is already loaded.
 
     """
@@ -133,12 +133,12 @@ def load_and_run(path, *, fps: bool = False):
             raise NoMainModule(f"""\
 Error: {path} is a directory.
 
-To run a directory with pgzrun, it must contain a file named __main__.py,
+To run a directory with pgtrun, it must contain a file named __main__.py,
 main.py, run_game.py, or a .py file with the same name as the directory.
 
 You can also run a specific file with:
 
-    pgzrun path/to/your/file.py
+    pgtrun path/to/your/file.py
 """)
     else:
         name, _ = os.path.splitext(os.path.basename(path))
@@ -149,9 +149,9 @@ You can also run a specific file with:
     mod.__name__ = name
     sys.modules[name] = mod
 
-    # Indicate that we're running with the pgzrun runner
-    # This disables the 'import pgzrun' module
-    sys._pgzrun = True
+    # Indicate that we're running with the pgtrun runner
+    # This disables the 'import pgtrun' module
+    sys._pgtrun = True
 
     prepare_mod(mod)
     with temp_window():
@@ -219,10 +219,10 @@ def prepare_mod(mod):
     storage.storage._set_filename_from_path(mod.__file__)
     loaders.set_root(mod.__file__)
 
-    # Copy pgzero builtins into system builtins
-    from . import builtins as pgzero_builtins
+    # Copy pgturbo builtins into system builtins
+    from . import builtins as pgturbo_builtins
     import builtins as python_builtins
-    for k, v in vars(pgzero_builtins).items():
+    for k, v in vars(pgturbo_builtins).items():
         python_builtins.__dict__.setdefault(k, v)
 
 

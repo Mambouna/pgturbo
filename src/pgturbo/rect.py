@@ -81,7 +81,7 @@ class ZRect:
     def _handle_one_arg(self, arg):
         """Handle -- possibly recursively -- the case of one parameter
 
-        Pygame -- and consequently pgzero -- is very accommodating when constructing
+        Pygame -- and consequently pgturbo -- is very accommodating when constructing
         a rect. You can pass four integers, two pairs of 2-tuples, or one 4-tuple.
 
         Also, you can pass an existing Rect-like object, or an object with a .rect

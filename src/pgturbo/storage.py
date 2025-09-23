@@ -15,11 +15,11 @@ class JSONEncodingException(Exception):
     """The data in the storage is corrupted."""
 
 
-def _get_platform_pgzero_path():
-    r"""Get the storage directory for pgzero save data.
+def _get_platform_pgturbo_path():
+    r"""Get the storage directory for pgturbo save data.
 
-    Under Windows, return %APPDATA%\pgzero. Under Linux/MacOS, return
-    ~/.config/pgzero/saves.
+    Under Windows, return %APPDATA%\pgturbo. Under Linux/MacOS, return
+    ~/.config/pgturbo/saves.
 
     """
     if platform.system() == 'Windows':
@@ -30,8 +30,8 @@ def _get_platform_pgzero_path():
                 "Couldn't find the AppData directory for Pygame Zero save "
                 "data. Please set the %APPDATA% environment variable."
             )
-        return os.path.join(appdata, 'pgzero')
-    return os.path.expanduser(os.path.join('~', '.config/pgzero/saves'))
+        return os.path.join(appdata, 'pgturbo')
+    return os.path.expanduser(os.path.join('~', '.config/pgturbo/saves'))
 
 
 class Storage(dict):
@@ -42,7 +42,7 @@ class Storage(dict):
     has a unique save file.
 
     """
-    STORAGE_DIR = _get_platform_pgzero_path()
+    STORAGE_DIR = _get_platform_pgturbo_path()
 
     # Keep a reference to all defined storages
     storages = []
