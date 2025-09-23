@@ -2,19 +2,19 @@ Migrating from Scratch
 ======================
 
 This tutorial will compare an implementation of Flappy Bird written in Scratch
-with one written in Pygame Zero. The Scratch and Pygame Zero programs are
+with one written in Pygame Turbo. The Scratch and Pygame Turbo programs are
 similar to a remarkable extent.
 
-The `Pygame Zero version`__ can be found in Pygame Zero repository.
+The `Pygame Turbo version`__ can be found in Pygame Turbo repository.
 
-.. __: https://github.com/lordmauve/pgzero/blob/master/examples/flappybird/flappybird.py
+.. __: https://github.com/Mambouna/pgturbo/blob/master/examples/flappybird/flappybird.py
 
 You can also download the `Scratch 1.4 version`__ and `Scratch 3 version`__ from the repository.
 
-.. __: https://github.com/lordmauve/pgzero/raw/master/examples/flappybird/Flappy%20Bird.sb
-.. __: https://github.com/lordmauve/pgzero/raw/master/examples/flappybird/Flappy%20Bird.sb3
+.. __: https://github.com/Mambouna/pgturbo/raw/master/examples/flappybird/Flappy%20Bird.sb
+.. __: https://github.com/Mambouna/pgturbo/raw/master/examples/flappybird/Flappy%20Bird.sb3
 
-The Pygame Zero version includes scoring logic, which is omitted in the code
+The Pygame Turbo version includes scoring logic, which is omitted in the code
 examples on this page to make it a closer comparison.
 
 The Python code shown below is re-arranged for clarity within the examples.
@@ -30,14 +30,14 @@ Here's how the stage is laid out in our Scratch program:
 There are just three objects, aside from the background: the bird, and the top
 and bottom pipes.
 
-This corresponds to the Pygame Zero code setting these objects up as
+This corresponds to the Pygame Turbo code setting these objects up as
 ``Actors``::
 
    bird = Actor('bird1', (75, 200))
    pipe_top = Actor('top', anchor=('left', 'bottom'))
    pipe_bottom = Actor('bottom', anchor=('left', 'top'))
 
-In Pygame Zero we also have to ensure we draw these objects. In principle this
+In Pygame Turbo we also have to ensure we draw these objects. In principle this
 gives a little more flexibility about how to draw the scene::
 
    def draw():
@@ -71,7 +71,7 @@ To summarise what's happening here:
 * The ``set y position to pipe height +/- 230`` sets one pipe to be above
   ``pipe_height`` and the other pipe below ``pipe_height``.
 
-This code becomes much simpler in Pygame Zero. We could write a single function
+This code becomes much simpler in Pygame Turbo. We could write a single function
 that updates both pipes. In fact I split it a different way to make it clear
 that the reset actions go together::
 
@@ -101,11 +101,11 @@ the gap between the two pipes simply by changing ``GAP``.
 The biggest thing that differs is that there is no ``forever`` loop in Python
 code.  This is the big difference between Scratch and most text-based
 programming languages: you must update the game by one animation step and then
-return.  Returning gives Pygame Zero a chance to do things like processing
+return.  Returning gives Pygame Turbo a chance to do things like processing
 input or redrawing the screen. Loop forever and the game would just sit there,
 so any loops need to finish quickly.
 
-Pygame Zero calls an ``update()`` function when it wants you to update the
+Pygame Turbo calls an ``update()`` function when it wants you to update the
 animation by one step, so we just need to add a call to ``update_pipes()``::
 
    def update():
@@ -142,7 +142,7 @@ This is a simple gravity formula:
 
 To represent this we need to track a variable ``bird.vy``, which is the bird's
 velocity in the ``y`` direction. This is a new variable that we are defining,
-not something that Pygame Zero provides for us.
+not something that Pygame Turbo provides for us.
 
 * Gravity means constant acceleration downwards: ``GRAVITY`` is greater than 0.
 * Acceleration is change in velocity: ``GRAVITY`` gets added to ``bird.vy``
@@ -196,7 +196,7 @@ Again, this needs to be called every frame, so we add it to ``update()``::
       update_bird()
 
 The final part of the bird logic is that it has to respond to player control.
-When we press a key, the bird flaps upwards. Pygame Zero will call an
+When we press a key, the bird flaps upwards. Pygame Turbo will call an
 ``on_key_down()`` function - if you've defined one - whenever a key is
 pressed::
 
@@ -207,7 +207,7 @@ pressed::
            bird.vy = FLAP_VELOCITY
 
 Here, if the bird is not dead, we set its ``vy`` to a negative number: in
-Pygame Zero this means it starts moving upwards.
+Pygame Turbo this means it starts moving upwards.
 
 You should be able to find a lot of parallels between the Python code and this
 Scratch code:
@@ -216,11 +216,11 @@ Scratch code:
 .. image:: _static/scratch/flappybird-bird-space.png
 
 
-The biggest differences between Scratch and Pygame Zero are these:
+The biggest differences between Scratch and Pygame Turbo are these:
 
-* You cannot loop forever in Pygame Zero - just update for one frame and then
+* You cannot loop forever in Pygame Turbo - just update for one frame and then
   return.
-* The coordinates are different. In Pygame Zero, the top left of the screen is
+* The coordinates are different. In Pygame Turbo, the top left of the screen is
   ``x = 0, y = 0``. The ``x`` direction goes from left to right as before, but
   ``y`` goes down the screen! This is why ``GRAVITY`` is a positive number and
   ``FLAP_VELOCITY`` is a negative number in Python.
@@ -232,12 +232,12 @@ Summary
 -------
 
 Many of the concepts available in Scratch can be translated directly into
-Pygame Zero.
+Pygame Turbo.
 
 Here are some comparisons:
 
 +----------------------------+--------------------------------------------+
-| In Scratch                 | In Pygame Zero                             |
+| In Scratch                 | In Pygame Turbo                            |
 +============================+============================================+
 | ``change y by 1`` (up)     | ``bird.y -= 1``                            |
 +----------------------------+--------------------------------------------+
@@ -266,7 +266,7 @@ Here are some comparisons:
 In some cases, the code is simpler in Python because it can be
 organised in a way that helps it make sense when you read it.
 
-The power of Pygame Zero's actors also makes the coordinate manipulation
+The power of Pygame Turbo's actors also makes the coordinate manipulation
 easier. We used the ``anchor`` position to position the pipes, and we were able
 to see if a pipe was off-screen by checking ``pipe_top.right < 0`` rather than
 ``if x position < -240``.

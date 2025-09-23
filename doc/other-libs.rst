@@ -1,8 +1,8 @@
-Other libraries like Pygame Zero
-================================
+Other libraries like Pygame Turbo
+=================================
 
-Pygame Zero started a trend for Python "zero" libraries. Our friends have
-created these great libraries. Some of these can be combined with Pygame Zero!
+Pygame Turbo started a trend for Python "zero" libraries. Our friends have
+created these great libraries. Some of these can be combined with Pygame Turbo!
 
 
 Network Zero
@@ -13,9 +13,9 @@ on one machine discovering each other and talking across a network.
 
 .. caution::
 
-    If you want to use Network Zero with Pygame Zero, make sure you don't let
+    If you want to use Network Zero with Pygame Turbo, make sure you don't let
     it **block** (stop everything while waiting for messages). This will
-    interrupt Pygame Zero so that it stops animating the screen or even
+    interrupt Pygame Turbo so that it stops animating the screen or even
     responding to input.  Always set the ``wait_for_s`` or ``wait_for_reply_s``
     options to ``0`` seconds.
 
@@ -29,7 +29,7 @@ GUI Zero
 `GUI Zero`_ is a library for creating Graphical User Interfaces (GUIs) with
 windows, buttons, sliders, textboxes and so on.
 
-Because GUI Zero and Pygame Zero both provide different approaches for drawing
+Because GUI Zero and Pygame Turbo both provide different approaches for drawing
 to the screen, they are not usable together.
 
 
@@ -43,12 +43,12 @@ GPIO Zero
 Purpose Input/Output (GPIO) pins on a `Raspberry Pi`_.
 
 GPIO Zero generally runs in its own thread, meaning that it will usually work
-very well with Pygame Zero.
+very well with Pygame Turbo.
 
 .. caution::
 
     When copying GPIO Zero examples, do not copy the ``time.sleep()`` function
-    calls or ``while True:`` loops, as these will stop Pygame Zero animating
+    calls or ``while True:`` loops, as these will stop Pygame Turbo animating
     the screen or responding to input. Use :ref:`clock` functions instead to
     call functions periodically, or the :func:`update()` function to check a
     value every frame.
@@ -65,9 +65,9 @@ write (and which doesn't do everything for you!).
 
 Writing text-based games requires a very different set of skills to writing
 graphical games. Adventurelib is pitched at a slightly more advanced level of
-Python programmer than Pygame Zero.
+Python programmer than Pygame Turbo.
 
-Adventurelib cannot currently be combined with Pygame Zero.
+Adventurelib cannot currently be combined with Pygame Turbo.
 
 
 .. _Adventurelib: https://adventurelib.readthedocs.io/
@@ -80,13 +80,13 @@ Blue Dot
 an Android device as a Bluetooth remote.
 
 Blue Dot generally runs in its own thread, meaning that it will usually work
-very well with Pygame Zero.
+very well with Pygame Turbo.
 
 .. caution::
 
     Avoid ``time.sleep()`` function calls, ``while True:`` loops and Blue Dot's
     blocking ``wait_for_press`` and ``wait_for_release`` methods, as these will
-    stop Pygame Zero animating the screen or responding to input. Use
+    stop Pygame Turbo animating the screen or responding to input. Use
     :ref:`clock` functions instead to call functions periodically, or the
     :func:`update()` function to check a value every frame.
 
@@ -98,5 +98,5 @@ very well with Pygame Zero.
 
     Know of another library that belongs here?
 
-    `Open an issue <https://github.com/lordmauve/pgzero/issues/new>`_ on the
+    `Open an issue <https://github.com/lordmauve/pgturbo/issues/new>`_ on the
     issue tracker to let us know!

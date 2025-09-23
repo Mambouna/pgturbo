@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# PGZero documentation build configuration file, created by
+# PGTurbo documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr 14 16:09:10 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -49,7 +49,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Pygame Zero'
+project = 'Pygame Turbo'
 copyright = '2015, Daniel Pope'
 author = 'Daniel Pope'
 
@@ -209,7 +209,7 @@ html_show_sourcelink = False
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PGZerodoc'
+htmlhelp_basename = 'PGTurbodoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -231,7 +231,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'PGZero.tex', 'Pygame Zero Documentation',
+  (master_doc, 'PGTurbo.tex', 'Pygame Turbo Documentation',
    'Daniel Pope', 'manual'),
 ]
 
@@ -261,7 +261,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pgzero', 'Pygame Zero Documentation',
+    (master_doc, 'pgturbo', 'Pygame Turbo Documentation',
      [author], 1)
 ]
 
@@ -275,8 +275,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'PGZero', 'Pygame Zero Documentation',
-   author, 'PGZero', 'One line description of project.',
+  (master_doc, 'PGTurbo', 'Pygame Turbo Documentation',
+   author, 'PGTurbo', 'One line description of project.',
    'Miscellaneous'),
 ]
 

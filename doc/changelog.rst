@@ -23,7 +23,7 @@ Changelog
   methods/properties. However they are now provided with floating point
   precision.
 * New: ``tone.play()`` function to allow playing musical notes.
-* New: ``pgzrun.go()`` to allow running Pygame Zero from an IDE (see
+* New: ``pgtrun.go()`` to allow running Pygame Turbo from an IDE (see
   :doc:`ide-mode`).
 * New: show joypad icon by default
 * Examples: add Asteroids example game (thanks to Ian Salmons)

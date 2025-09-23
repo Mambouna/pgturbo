@@ -3,7 +3,7 @@
 Pygame Colors
 =============
 
-Below is a list of the 135 colour names supported in Pygame [1]_ .
+Below is a list of the 140 colour names supported in Pygame [1]_ .
 
 
 
@@ -471,6 +471,16 @@ Yellows
 .. raw:: html
 
     <div class="color-swatch"
+         style="color: white; background-color: #808000;
+                border-color: #404000">
+        olive<br>
+        <code>#808000</code>
+    </div>
+
+
+.. raw:: html
+
+    <div class="color-swatch"
          style="color: black; background-color: #f5f5dc;
                 border-color: #7a7a6e">
         beige<br>
@@ -657,7 +667,7 @@ Greens
     <div class="color-swatch"
          style="color: black; background-color: #00ff00;
                 border-color: #008000">
-        green<br>
+        green / lime<br>
         <code>#00ff00</code>
     </div>
 
@@ -779,6 +789,16 @@ Turquoises
 .. raw:: html
 
     <div class="color-swatch"
+         style="color: white; background-color: #008080;
+                border-color: #004040">
+        teal<br>
+        <code>#008080</code>
+    </div>
+
+
+.. raw:: html
+
+    <div class="color-swatch"
          style="color: white; background-color: #008b8b;
                 border-color: #004545">
         darkcyan<br>
@@ -821,7 +841,7 @@ Turquoises
     <div class="color-swatch"
          style="color: black; background-color: #00ffff;
                 border-color: #008080">
-        cyan<br>
+        aqua / cyan<br>
         <code>#00ffff</code>
     </div>
 
@@ -1117,6 +1137,16 @@ Purples
 .. raw:: html
 
     <div class="color-swatch"
+         style="color: white; background-color: #4b0082;
+                border-color: #250041">
+        indigo<br>
+        <code>#4b0082</code>
+    </div>
+
+
+.. raw:: html
+
+    <div class="color-swatch"
          style="color: white; background-color: #a020f0;
                 border-color: #501078">
         purple<br>
@@ -1199,7 +1229,7 @@ Purples
     <div class="color-swatch"
          style="color: white; background-color: #ff00ff;
                 border-color: #800080">
-        magenta<br>
+        fuchsia / magenta<br>
         <code>#ff00ff</code>
     </div>
 
@@ -1287,6 +1317,16 @@ Purples
 .. raw:: html
 
     <div class="color-swatch"
+         style="color: white; background-color: #dc143c;
+                border-color: #6e0a1e">
+        crimson<br>
+        <code>#dc143c</code>
+    </div>
+
+
+.. raw:: html
+
+    <div class="color-swatch"
          style="color: black; background-color: #ffc0cb;
                 border-color: #806065">
         pink<br>
@@ -1351,6 +1391,16 @@ Greys
 .. raw:: html
 
     <div class="color-swatch"
+         style="color: black; background-color: #c0c0c0;
+                border-color: #606060">
+        silver<br>
+        <code>#c0c0c0</code>
+    </div>
+
+
+.. raw:: html
+
+    <div class="color-swatch"
          style="color: black; background-color: #d3d3d3;
                 border-color: #696969">
         lightgray / lightgrey<br>
@@ -1393,3 +1443,4 @@ Greys
        digits appended, eg. ``antiquewhite1``. Because the differences are small, and
        there are so many colours without these, these variants have been
        omitted here.
+

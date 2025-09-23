@@ -1,7 +1,7 @@
 Built-in Objects
 ================
 
-Pygame Zero provides useful built-in objects to help you make games easily.
+Pygame Turbo provides useful built-in objects to help you make games easily.
 
 
 .. _screen:
@@ -122,7 +122,7 @@ Resource Loading
 
 The ``images`` and ``sounds`` objects can be used to load images and sounds
 from files stored in the ``images`` and ``sounds`` subdirectories respectively.
-Pygame Zero will handle loading of these resources on demand and will cache
+Pygame Turbo will handle loading of these resources on demand and will cache
 them to avoid reloading them.
 
 You generally need to ensure that your images are named with lowercase letters,
@@ -155,7 +155,7 @@ Example::
 Images
 ''''''
 
-Pygame Zero can load images in ``.png``, ``.gif``, and ``.jpg`` formats. PNG is
+Pygame Turbo can load images in ``.png``, ``.gif``, and ``.jpg`` formats. PNG is
 recommended: it will allow high quality images with transparency.
 
 We need to ensure an images directory is set up. If your project contains the
@@ -231,7 +231,7 @@ to query the size of the image in pixels:
 Sounds
 ''''''
 
-Pygame Zero can load sounds in ``.wav`` and ``.ogg`` formats. WAV is great for
+Pygame Turbo can load sounds in ``.wav`` and ``.ogg`` formats. WAV is great for
 small sound effects, while OGG is a compressed format that is more suited to
 music. You can find free .ogg and .wav files online that can be used in your
 game.
@@ -661,7 +661,7 @@ referring to a time value and not a count of things.)
         ``schedule_interval()``.
 
 
-Note that the Pygame Zero clock only holds weak references to each callback
+Note that the Pygame Turbo clock only holds weak references to each callback
 you give it. It will not fire scheduled events if the objects and methods are
 not referenced elsewhere. This can help prevent the clock keeping objects
 alive and continuing to fire unexpectedly after they are otherwise dead.
@@ -849,7 +849,7 @@ Angle Movement
 
 If an actor is rotated and should move based on its rotation, doing so by
 adjusting X and Y coordinates manually can be complicated. To make moving
-actors around their rotation easier, Pygame Zero provides built-in functions.
+actors around their rotation easier, Pygame Turbo provides built-in functions.
 
 .. method:: Actor.move_towards_angle(angle, distance)
 
@@ -1002,7 +1002,7 @@ This diagram shows the scale; the grey checkerboard is used to give the sense
 of transparency:
 
 .. image:: _static/opacity.svg
-    :alt: The opacity scale in Pygame Zero.
+    :alt: The opacity scale in Pygame Turbo.
 
 .. tip::
 
@@ -1183,7 +1183,7 @@ Tone Generator
 
 .. versionadded:: 1.2
 
-Pygame Zero can play tones using a built-in synthesizer.
+Pygame Turbo can play tones using a built-in synthesizer.
 
 .. function:: tone.play(pitch, duration)
 
@@ -1211,7 +1211,7 @@ your game down while it is running:
 
     The arguments are as for play(), above.
 
-This could be used in a Pygame Zero program like this::
+This could be used in a Pygame Turbo program like this::
 
     beep = tone.create('A3', 0.5)
 

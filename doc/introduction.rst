@@ -1,5 +1,5 @@
-Introduction to Pygame Zero
-===========================
+Introduction to Pygame Turbo
+============================
 
 .. highlight:: python
     :linenothreshold: 5
@@ -11,9 +11,9 @@ First, create an empty file called ``intro.py``.
 
 Verify that this runs and creates a blank window by running ::
 
-    pgzrun intro.py
+    pgtrun intro.py
 
-Everything in Pygame Zero is optional; a blank file is a valid Pygame Zero
+Everything in Pygame Turbo is optional; a blank file is a valid Pygame Turbo
 script!
 
 You can quit the game by clicking on the window's close button or by pressing
@@ -24,7 +24,7 @@ may need to terminate it by pressing ``Ctrl-C`` in your Terminal window.
 Drawing a background
 --------------------
 
-Next, let's add a :func:`draw` function and set window dimensions. Pygame Zero
+Next, let's add a :func:`draw` function and set window dimensions. Pygame Turbo
 will call this function whenever it needs to paint the screen.
 
 In ``intro.py``, add the following::
@@ -35,7 +35,7 @@ In ``intro.py``, add the following::
     def draw():
         screen.fill((128, 0, 0))
 
-Re-run ``pgzrun intro.py`` and the screen should now be a reddish square!
+Re-run ``pgtrun intro.py`` and the screen should now be a reddish square!
 
 What is this code doing?
 
@@ -72,12 +72,12 @@ alien's space helmet until it is shown in the game).
     `Platformer Art Deluxe pack
     <https://kenney.nl/assets/platformer-art-deluxe>`_.
 
-You need to save the file in the right place so that Pygame Zero can find it.
+You need to save the file in the right place so that Pygame Turbo can find it.
 Create a directory called ``images`` and save the image into it as
-``alien.png``. Both of those must be lower case. Pygame Zero will complain
+``alien.png``. Both of those must be lower case. Pygame Turbo will complain
 otherwise, to alert you to a potential cross-platform compatibility pitfall.
 
-If the alien sprite is showing a WEBP file extension when you download it, use the file from `Github <https://github.com/lordmauve/pgzero/blob/master/doc/_static/alien.png>`_ instead.
+If the alien sprite is showing a WEBP file extension when you download it, use the file from `Github <https://github.com/lordmauve/pgturbo/blob/master/doc/_static/alien.png>`_ instead.
 
 If you've done that, your project should look like this:
 
@@ -88,7 +88,7 @@ If you've done that, your project should look like this:
     │   └── alien.png
     └── intro.py
 
-``images/`` is the standard directory that Pygame Zero will look in to find
+``images/`` is the standard directory that Pygame Turbo will look in to find
 your images.
 
 There's a built-in class called :class:`Actor` that you can use to represent a
@@ -132,7 +132,7 @@ code to the bottom of the file::
         if alien.left > WIDTH:
             alien.right = 0
 
-Pygame Zero will call your :func:`update` function once every frame. Moving the
+Pygame Turbo will call your :func:`update` function once every frame. Moving the
 alien a small number of pixels every frame will cause it to slide across the
 screen. Once it slides off the right-hand side of the screen, we reset it back
 to the left.
@@ -158,8 +158,8 @@ code::
 
 You should run the game and try clicking on and off the alien.
 
-Pygame Zero is smart about how it calls your functions. If you don't define
-your function to take a ``pos`` parameter, Pygame Zero will call it without
+Pygame Turbo is smart about how it calls your functions. If you don't define
+your function to take a ``pos`` parameter, Pygame Turbo will call it without
 a position. There's also a ``button`` parameter for ``on_mouse_down``. So we
 could have written::
 
@@ -196,7 +196,7 @@ Your project should now look like this:
     │   └── eep.wav
     └── intro.py
 
-``sounds/`` is the standard directory that Pygame Zero will look in to find
+``sounds/`` is the standard directory that Pygame Turbo will look in to find
 your sound files.
 
 Now let's change the ``on_mouse_down`` function to use these new resources::
@@ -233,7 +233,7 @@ we need to return from ``on_mouse_down``, and let the game work out when to
 reset the alien as part of its normal processing, all the while running your
 ``draw()`` and ``update()`` methods.
 
-This is not difficult with Pygame Zero, because it has a built-in
+This is not difficult with Pygame Turbo, because it has a built-in
 :class:`Clock` that can schedule functions to be called later.
 
 First, let's "refactor" (ie. re-organise the code). We can create functions to
@@ -282,6 +282,6 @@ use the built-in clock.
 You might like to expand the game to keep score, or make the alien move more
 erratically.
 
-There are lots more features built in to make Pygame Zero easy to use. Check
+There are lots more features built in to make Pygame Turbo easy to use. Check
 out the :doc:`built in objects <builtins>` to learn how to use the rest of the
 API.

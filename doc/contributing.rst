@@ -1,11 +1,11 @@
-Contributing to Pygame Zero
-===========================
+Contributing to Pygame Turbo
+============================
 
 .. highlight:: none
 
-The Pygame Zero project is hosted on GitHub:
+The Pygame Turbo project is hosted on GitHub:
 
-    https://github.com/lordmauve/pgzero
+    https://github.com/lordmauve/pgturbo
 
 .. _report-issue:
 
@@ -20,18 +20,18 @@ Here are some things to bear in mind before you do this:
 * It might not just be you! You should check if someone has already reported
   the issue by searching through the existing issues - both open and closed.
 
-* The developers need to know what version of Pygame Zero you are using, and
+* The developers need to know what version of Pygame Turbo you are using, and
   what operating system you are running (Windows, Mac, Linux etc) and version
   (Windows 10, Ubuntu 16.04, etc).
 
 
-.. _`Github issue tracker`: https://github.com/lordmauve/pgzero/issues
+.. _`Github issue tracker`: https://github.com/Mambouna/pgturbo/issues
 
 
 How to do a pull request
 ------------------------
 
-You can make changes to Pygame Zero by creating a pull request.
+You can make changes to Pygame Turbo by creating a pull request.
 
 It's a good idea to :ref:`report an issue <report-issue>` first, so that we can
 discuss whether your change makes sense.
@@ -42,11 +42,11 @@ version:
 .. __: https://help.github.com/articles/creating-a-pull-request/
 
 1. Make sure you are logged into Github.
-2. Go to the `Github page for Pygame Zero`_.
+2. Go to the `Github page for Pygame Turbo`_.
 3. Click "Fork" to create your own fork of the repository.
 4. Clone this fork to your own computer::
 
-        git clone git@github.com:yourusername/pgzero.git
+        git clone git@github.com:yourusername/pgturbo.git
 
    Remember to change ``yourusername`` to your Github username.
 
@@ -58,7 +58,7 @@ version:
 6. Make the changes you want.
 7. Add the files that you want to commit::
 
-        git add pgzero
+        git add pgturbo
 
 8. Commit the files with a clear commit message::
 
@@ -74,7 +74,7 @@ version:
     button.
 
 
-.. _`Github page for Pygame Zero`: https://github.com/lordmauve/pgzero
+.. _`Github page for Pygame Turbo`: https://github.com/Mambouna/pgturbo
 
 
 Development installation
@@ -88,11 +88,11 @@ The installed version will now reflect any local changes you make.
 
 Alternatively, if you don't want to install it at all, it may be run with:
 
-   python3 -m pgzero <name of pgzero script>
+   python3 -m pgturbo <name of pgturbo script>
 
 For example:
 
-   python3 -m pgzero examples/basic/demo1.py
+   python3 -m pgturbo examples/basic/demo1.py
 
 
 How to run tests
@@ -108,7 +108,7 @@ The tests can be run with
 Helping to translate the documentation
 --------------------------------------
 
-Pygame Zero's APIs will always be English, but we can bring Pygame Zero to more
+Pygame Turbo's APIs will always be English, but we can bring Pygame Turbo to more
 users around the world if the documentation is available in their language.
 
 If you are fluent in another language, please consider contributing by
@@ -123,20 +123,20 @@ Creating a translation is done by creating a separate repository on Github with
 a copy of the documentation, rewritten (at least in part) into the language you
 would like to support. One advantage of this is that you can work on
 translations at your own pace, without having to submit pull requests back to
-the ``pgzero`` project itself. Please see the `translation guide`_ on Read The
+the ``pgturbo`` project itself. Please see the `translation guide`_ on Read The
 Docs for details.
 
 If this sounds like something you could tackle, here's how you might go about
 it:
 
-1. First, open an issue on the `pgzero issue tracker`_. You should search for
+1. First, open an issue on the `pgturbo issue tracker`_. You should search for
    an existing issue covering the translation you want to do, before opening a
    new one. This will help ensure that you don't do translation work that has
    already been done by someone else (perhaps you can collaborate instead).
-2. Create a new Github repository under your user, called pgzero-*language*,
-   eg. ``pgzero-spanish`` if you're going to translate into Spanish.
+2. Create a new Github repository under your user, called pgturbo-*language*,
+   eg. ``pgturbo-spanish`` if you're going to translate into Spanish.
 3. Clone the repository to your own computer.
-4. Download the Pygame Zero ``doc/`` directory and commit it in your project.
+4. Download the Pygame Turbo ``doc/`` directory and commit it in your project.
    You can do this by extracting them from `repository ZIP file`_. You only
    need the ``doc/`` directory from the ZIP file. You can delete the other
    files.
@@ -149,18 +149,18 @@ it:
    interested.
 7. `Set up the documentation to build on Read The Docs`__. Again, post a
    comment on the Github issue when you have this working.
-8. We can then link up the new, translated documentation with the Pygame Zero
+8. We can then link up the new, translated documentation with the Pygame Turbo
    documentation.
 
 .. _reStructuredText: http://www.sphinx-doc.org/en/master/rest.html
 .. _`translation guide`: https://docs.readthedocs.io/en/latest
                          /localization.html#project-with-multiple-translations
-.. _`pgzero issue tracker`: https://github.com/lordmauve/pgzero/issues/new
-.. _`repository ZIP file`: https://github.com/lordmauve/pgzero/archive/master.zip
+.. _`pgturbo issue tracker`: https://github.com/lordmauve/pgturbo/issues/new
+.. _`repository ZIP file`: https://github.com/lordmauve/pgturbo/archive/master.zip
 
 .. __: https://docs.readthedocs.io/en/latest/getting_started.html#import-your-docs
 
-Note that Pygame Zero will have updates, and the documentation will be changed
+Note that Pygame Turbo will have updates, and the documentation will be changed
 accordingly. Using Git it is possible to see a diff of what changed in the
 English documentation, so that you can make corresponding changes in the
 translated documentation.

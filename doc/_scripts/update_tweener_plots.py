@@ -3,7 +3,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-from pgzero import animation
+from pgturbo import animation
 
 IMAGE_SIZE = 64, 64
 

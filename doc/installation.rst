@@ -1,12 +1,12 @@
-Installing Pygame Zero
-======================
+Installing Pygame Turbo
+=======================
 
 On desktop systems
 ~~~~~~~~~~~~~~~~~~
 
 ::
 
-    pip install pgzero
+    pip install pgturbo
 
 This will also install Pygame. Pre-compiled Pygame packages are available to pip
 for Windows & Linux (32-bit and 64-bit), and for Mac OS (64-bit only). If you
@@ -20,7 +20,7 @@ In a Terminal window, type
 
 ::
 
-   pip install pgzero
+   pip install pgturbo
 
 
 Note that there are currently no Wheels for Pygame that support python 3.4 for Mac,
@@ -37,13 +37,13 @@ In a terminal window, type
 
 ::
 
-   sudo pip install pgzero
+   sudo pip install pgturbo
 
 
 Some Linux systems call it ``pip3``; if the above command printed something
 like ``sudo: pip: command not found`` then try::
 
-    sudo pip3 install pgzero
+    sudo pip3 install pgturbo
 
 Sometimes pip is not installed and needs to be installed. If so try this before
 running the above commands again::
@@ -55,16 +55,16 @@ running the above commands again::
 On Raspberry Pi
 ~~~~~~~~~~~~~~~
 
-pgzero has been installed by default since the release of Raspbian Jessie in
+pgturbo has been installed by default since the release of Raspbian Jessie in
 September 2015!
 
 
 For flake8/pyflakes
 ~~~~~~~~~~~~~~~~~~~
 
-Checkers like Pyflakes are unaware of Pygame Zero's extra builtins.
+Checkers like Pyflakes are unaware of Pygame Turbo's extra builtins.
 
-If you use ``flake8``, you can add Pygame Zero's list of builtins to your
+If you use ``flake8``, you can add Pygame Turbo's list of builtins to your
 `flake8 configuration file <https://flake8.pycqa.org/en/latest/user/configuration.html>`_:
 
 .. code-block:: ini

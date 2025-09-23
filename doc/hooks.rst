@@ -1,7 +1,7 @@
 Event Hooks
 ===========
 
-Pygame Zero will automatically pick up and call event hooks that you define.
+Pygame Turbo will automatically pick up and call event hooks that you define.
 This approach saves you from having to implement the event loop machinery
 yourself.
 
@@ -15,17 +15,17 @@ A typical game loop looks a bit like this::
         update()
         draw()
 
-Input processing is a bit more complicated, but Pygame Zero allows you to
+Input processing is a bit more complicated, but Pygame Turbo allows you to
 easily define the ``update()`` and ``draw()`` functions within your game
 module.
 
 .. function:: draw()
 
-    Called by Pygame Zero when it needs to redraw your game window.
+    Called by Pygame Turbo when it needs to redraw your game window.
 
     ``draw()`` must take no arguments.
 
-    Pygame Zero attempts to work out when the game screen needs to be redrawn
+    Pygame Turbo attempts to work out when the game screen needs to be redrawn
     to avoid redrawing if nothing has changed. On each step of the game loop
     it will draw the screen in the following situations:
 
@@ -52,7 +52,7 @@ module.
 
 .. function:: update() or update(dt)
 
-    Called by Pygame Zero to step your game logic. This will be called
+    Called by Pygame Turbo to step your game logic. This will be called
     repeatedly, 60 times a second.
 
     There are two different approaches to writing an update function.
@@ -69,7 +69,7 @@ module.
     grow larger.
 
     To use a time-based approach, you can change the update function to take a
-    single parameter. If your update function takes an argument, Pygame Zero
+    single parameter. If your update function takes an argument, Pygame Turbo
     will pass it the elapsed time in seconds. You can use this to scale your
     movement calculations.
 
@@ -77,12 +77,12 @@ module.
 Event Handling Hooks
 --------------------
 
-Similar to the game loop hooks, your Pygame Zero program can respond to input
+Similar to the game loop hooks, your Pygame Turbo program can respond to input
 events by defining functions with specific names.
 
-Somewhat like in the case of ``update()``, Pygame Zero will inspect your
+Somewhat like in the case of ``update()``, Pygame Turbo will inspect your
 event handler functions to determine how to call them. So you don't need to
-make your handler functions take arguments. For example, Pygame Zero will
+make your handler functions take arguments. For example, Pygame Turbo will
 be happy to call any of these variations of an ``on_mouse_down`` function::
 
     def on_mouse_down():

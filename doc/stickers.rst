@@ -2,7 +2,7 @@ Laptop Stickers
 ===============
 
 `Sticker Mule`_ have graciously offered to provide a number of stickers for
-Pygame Zero users for free.
+Pygame Turbo users for free.
 
 .. _`Sticker Mule`: https://www.stickermule.com/supports/opensource
 
@@ -13,7 +13,7 @@ Pygame Zero users for free.
     :target: https://www.stickermule.com/supports/opensource
 
 Laptop stickers are a great way to encourage students to continue tinkering and
-learning, as well as spreading the word about Pygame Zero.
+learning, as well as spreading the word about Pygame Turbo.
 
 The stickers should look a little like this (not to scale):
 
@@ -24,7 +24,7 @@ The stickers should look a little like this (not to scale):
 For learners
 ------------
 
-Due to the costs of distribution, and because Pygame Zero is a free community
+Due to the costs of distribution, and because Pygame Turbo is a free community
 library, **we don't have a way of getting stickers directly to you yet.**
 
 It may be possible to obtain stickers at conferences and meet-ups. Please
@@ -48,7 +48,7 @@ For developers
 --------------
 
 Free stickers are primarily intended for learners. However, if a pull request
-you make to Pygame Zero or a translation is accepted, we would be very happy to
+you make to Pygame Turbo or a translation is accepted, we would be very happy to
 give you a free laptop sticker if the opportunity arises.
 
 Please request a sticker in your Pull Request comments (or make yourself known

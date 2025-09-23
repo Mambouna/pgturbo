@@ -1,12 +1,12 @@
-.. PGZero documentation master file, created by
+.. PGTurbo documentation master file, created by
    sphinx-quickstart on Tue Apr 14 16:09:10 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Pygame Zero
-======================
+Welcome to Pygame Turbo
+=======================
 
-Pygame Zero is for creating games without boilerplate.
+Pygame Turbo is for creating games without boilerplate.
 
 It is intended for use in education, so that teachers can teach basic
 programming without needing to explain the Pygame API or write an event loop.
@@ -56,7 +56,7 @@ Stickers by |Sticker Mule|
     :height: 40
     :target: https://www.stickermule.com/supports/opensource
 
-`Sticker Mule`_ have graciously offered to provide Pygame Zero laptop stickers
+`Sticker Mule`_ have graciously offered to provide Pygame Turbo laptop stickers
 for learners.
 
 .. _`Sticker Mule`: https://www.stickermule.com/supports/opensource
@@ -67,8 +67,8 @@ for learners.
     stickers
 
 
-Improving Pygame Zero
----------------------
+Improving Pygame Turbo
+----------------------
 
 .. toctree::
     :maxdepth: 2
