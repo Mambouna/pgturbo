@@ -1,8 +1,3 @@
-.. PGTurbo documentation master file, created by
-   sphinx-quickstart on Tue Apr 14 16:09:10 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to Pygame Turbo
 =======================
 
@@ -10,6 +5,9 @@ Pygame Turbo is for creating games without boilerplate.
 
 It is intended for use in education, so that teachers can teach basic
 programming without needing to explain the Pygame API or write an event loop.
+
+Pygame Turbo is a fast moving fork of the Pygame Zero framework created by
+Daniel Pope.
 
 
 Courses

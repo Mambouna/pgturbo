@@ -114,6 +114,12 @@ the window based on the height of the alien.
 The ``alien.draw()`` method draws the sprite to the screen at its current
 position.
 
+.. tip::
+
+    Actors look best when they have images! If you don't have those yet though,
+    you can also create Actors from simple shapes. Check out :ref:`simple-shapes`
+    to learn how.
+
 
 Moving the alien
 ----------------

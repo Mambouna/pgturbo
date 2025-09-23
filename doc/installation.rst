@@ -52,13 +52,6 @@ running the above commands again::
     sudo python3 -m ensurepip
 
 
-On Raspberry Pi
-~~~~~~~~~~~~~~~
-
-pgturbo has been installed by default since the release of Raspbian Jessie in
-September 2015!
-
-
 For flake8/pyflakes
 ~~~~~~~~~~~~~~~~~~~
 
