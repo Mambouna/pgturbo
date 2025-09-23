@@ -242,9 +242,6 @@ class Actor:
         # with the appropriate shape.
         s = pygame.Surface((width, height), pygame.SRCALPHA)
         match kind:
-            case "__SHAPE_CIRCLE__":
-                pygame.draw.circle(s, color, (width / 2, height / 2),
-                                   width / 2)
             case "__SHAPE_ELLIPSE__":
                 pygame.draw.ellipse(s, color,
                                     pygame.Rect((0, 0), (width, height)))
@@ -260,25 +257,10 @@ class Actor:
         return name
 
     @classmethod
-    def Square(self, side, color, pos=POS_TOPLEFT, anchor=ANCHOR_CENTER,
-               **kwargs):
-        """Creates an actor with a square as an image."""
-        name = self._make_shape_image("__SHAPE_SQUARE__", side, side, color)
-        return Actor(name, pos, anchor, **kwargs)
-
-    @classmethod
     def Rectangle(self, width, height, color, pos=POS_TOPLEFT,
                   anchor=ANCHOR_CENTER, **kwargs):
         """Creates an actor with a rectangle as an image."""
         name = self._make_shape_image("__SHAPE_RECTANGLE__", width, height,
-                                      color)
-        return Actor(name, pos, anchor, **kwargs)
-
-    @classmethod
-    def Circle(self, diameter, color, pos=POS_TOPLEFT, anchor=ANCHOR_CENTER,
-               **kwargs):
-        """Creates an actor with a circle as an image."""
-        name = self._make_shape_image("__SHAPE_CIRCLE__", diameter, diameter,
                                       color)
         return Actor(name, pos, anchor, **kwargs)
 

@@ -252,8 +252,8 @@ class ActorTest(unittest.TestCase):
     def test_actor_square(self):
         """The square image is created correctly and the result is a valid
         actor."""
-        square = Actor.Square(10, "red")
-        name = "__SHAPE_SQUARE__10x10_red"
+        square = Actor.Rectangle(10, 10, "red")
+        name = "__SHAPE_RECTANGLE__10x10_red"
         self.assertIn((name, (), ()), images._cache)
         surf = images.load(name)
         width, height = surf.get_size()
@@ -282,8 +282,8 @@ class ActorTest(unittest.TestCase):
     def test_actor_circle(self):
         """The circular image is created correctly and the result is a valid
         actor."""
-        square = Actor.Circle(5, "blue")
-        name = "__SHAPE_CIRCLE__5x5_blue"
+        square = Actor.Ellipse(5, 5, "blue")
+        name = "__SHAPE_ELLIPSE__5x5_blue"
         self.assertIn((name, (), ()), images._cache)
         surf = images.load(name)
         width, height = surf.get_size()
