@@ -1,9 +1,9 @@
 Other libraries like Pygame Turbo
 =================================
 
-Pygame Turbo started a trend for Python "zero" libraries. Our friends have
-created these great libraries. Some of these can be combined with Pygame Turbo!
-
+Pygame Zero is the project that sparked many Python "zero" libraries. Since
+Turbo is a fork from that project, some of the following examples work
+seamlessly with it as well, although that cannot be guaranteed.
 
 Network Zero
 ------------
@@ -60,15 +60,14 @@ very well with Pygame Turbo.
 Adventurelib
 ------------
 
-`Adventurelib`_ is a library for creating making text-based games easier to
-write (and which doesn't do everything for you!).
+`Adventurelib`_ is a library for making text-based games easier to write (and
+which doesn't do everything for you!).
 
 Writing text-based games requires a very different set of skills to writing
 graphical games. Adventurelib is pitched at a slightly more advanced level of
 Python programmer than Pygame Turbo.
 
 Adventurelib cannot currently be combined with Pygame Turbo.
-
 
 .. _Adventurelib: https://adventurelib.readthedocs.io/
 
@@ -90,7 +89,6 @@ very well with Pygame Turbo.
     :ref:`clock` functions instead to call functions periodically, or the
     :func:`update()` function to check a value every frame.
 
-
 .. _`Blue Dot`: https://bluedot.readthedocs.io/
 
 
@@ -98,5 +96,5 @@ very well with Pygame Turbo.
 
     Know of another library that belongs here?
 
-    `Open an issue <https://github.com/lordmauve/pgturbo/issues/new>`_ on the
+    `Open an issue <https://github.com/Mambouna/pgturbo/issues/new>`_ on the
     issue tracker to let us know!

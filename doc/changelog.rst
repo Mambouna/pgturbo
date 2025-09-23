@@ -1,6 +1,60 @@
 Changelog
 =========
 
+This changelog tracks changes to Pygame Turbo. For the changelog of the
+original Pygame Zero, check below.
+
+
+1.3.5 - 2025-09-23
+------------------
+
+This was the initial fork from Pygame Zero with different PRs being
+integrated to create the first state of Pygame Turbo.
+
+Since Turbo was forked from Pygame Zero during its unrelease version 1.3
+stage, its version numbering starts from 1.3.5 to avoid confusion.
+
+
+New features
+''''''''''''
+
+* A proper ``mouse`` builtin to get the state of different mouse properties
+  like positions, relative movements, state of buttons being pressed and
+  more. Also allows changing of visibility, cursor shape and others.
+
+
+Feature enhancements
+''''''''''''''''''''
+
+* Pixel perfect collision check between two actors via
+  ``actor1.collidemask(actor2)``.
+* Angle and target-based movement functions for Actors, similar to what is
+  possible in Scratch and other environments.
+* Velocity property and movement function for Actors that only move in
+  straigth lines. Also includes an intercept function to calculate necessary
+  velocity to meet a target actor that also has a constant velocity.
+* Create Actors from simple shapes without needing an image, via
+  ``Actor.Rectangle(width, height, color)``,
+  ``Actor.Ellipse(width, height, color)`` and
+  ``Actor.Triangle(width, height, color)``.
+* Function to check if an actor is currently withing the screen bounds:
+  ``.is_onscreen()``.
+
+
+Bug fixes
+'''''''''
+
+* Fixed ``music.is_playing()`` requiring an argument.
+* Made actor ``width`` and ``height`` read-only properties while no solution
+  for scaling actors is implemented.
+
+
+Pygame Zero Changelog
+=====================
+
+The following is the changelog of Pygame Zero leading up to the forking of
+Pygame Turbo:
+
 1.3 - unreleased
 ----------------
 

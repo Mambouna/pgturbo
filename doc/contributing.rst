@@ -5,7 +5,7 @@ Contributing to Pygame Turbo
 
 The Pygame Turbo project is hosted on GitHub:
 
-    https://github.com/lordmauve/pgturbo
+    https://github.com/Mambouna/pgturbo
 
 .. _report-issue:
 
@@ -98,9 +98,9 @@ For example:
 How to run tests
 ----------------
 
-The tests can be run with
+The tests can be run with::
 
-    python3 setup.py test
+    python -m unittest
 
 
 .. _translating:
@@ -155,8 +155,8 @@ it:
 .. _reStructuredText: http://www.sphinx-doc.org/en/master/rest.html
 .. _`translation guide`: https://docs.readthedocs.io/en/latest
                          /localization.html#project-with-multiple-translations
-.. _`pgturbo issue tracker`: https://github.com/lordmauve/pgturbo/issues/new
-.. _`repository ZIP file`: https://github.com/lordmauve/pgturbo/archive/master.zip
+.. _`pgturbo issue tracker`: https://github.com/Mambouna/pgturbo/issues/new
+.. _`repository ZIP file`: https://github.com/Mambouna/pgturbo/archive/master.zip
 
 .. __: https://docs.readthedocs.io/en/latest/getting_started.html#import-your-docs
 

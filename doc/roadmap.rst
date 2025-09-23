@@ -25,6 +25,15 @@ help.
 Gamepad Support
 ---------------
 
+.. caution::
+
+    This roadmap item comes from Pygame Zero, meaning the link to the relevant
+    issue also leads to the GitHub for Pygame Zero, not Pygame Turbo.
+
+    Gamepad support is actively being worked on by the maintainer of Pygame
+    Turbo however, meaning that it will likely be added to Turbo in the near
+    future.
+
 Github Issue: `#70 <https://github.com/lordmauve/pgturbo/issues/70>`_
 
 SNES-style gamepads are now extremely cheap. For example, they are sold for
@@ -46,6 +55,11 @@ play any Pygame Turbo game, in order to follow the principle of
 Surface juggling
 ----------------
 
+.. caution::
+
+    This roadmap item comes from Pygame Zero, meaning the link to the relevant
+    issue also leads to the GitHub for Pygame Zero, not Pygame Turbo.
+
 Github Issue: `#71 <https://github.com/lordmauve/pgturbo/issues/71>`_
 
 Pygame experts make lots of use of off-screen surfaces to create interesting
@@ -60,23 +74,3 @@ curtain.
 
 We should look to smooth out this path to make Pygame Turbo Actors and Screen
 work better with custom surfaces.
-
-
-Storage
--------
-
-.. note::
-
-    A :ref:`storage API <data-storage>` has now been developed and is planned
-    for inclusion in Pygame Turbo 1.3.
-
-Github Issue: `#33 <https://github.com/lordmauve/pgturbo/issues/33>`_
-
-It would be useful for users to be able to save and load data.
-
-The obvious application is save games, but saving and loading whole games can
-be pretty hard to get right. The simpler application would just be saving
-settings, customisations, high scores, or the highest level reached.
-
-Python of course has APIs for reading and writing files, but this has
-additional complexity that teachers might not want to teach immediately.
