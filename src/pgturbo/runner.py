@@ -76,7 +76,7 @@ def main():
     )
     parser.add_argument(
         'game',
-        help="The Pygame Zero game to run (a Python file or directory)."
+        help="The Pygame Turbo game to run (a Python file or directory)."
     )
     args = parser.parse_args()
 
@@ -203,7 +203,7 @@ def temp_window():
 
 
 def prepare_mod(mod):
-    """Prepare to execute the module code for Pygame Zero.
+    """Prepare to execute the module code for Pygame Turbo.
 
     To allow the module to load assets, we configure the loader path to
     load relative to the module's __file__ path.

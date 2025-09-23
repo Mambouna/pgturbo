@@ -1,4 +1,4 @@
-"""Tone generator for Pygame Zero.
+"""Tone generator for Pygame Turbo.
 
 This tone generator is a wrapper for pyfxr, a custom Cython library for sound
 generation. Tones are kept in a LRU cache which in typical applications

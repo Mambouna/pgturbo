@@ -40,7 +40,7 @@ class DEFAULTICON:
 
 
 class PGZeroGame:
-    """The core game loop for Pygame Zero.
+    """The core game loop for Pygame Turbo.
 
     Dispatch events, call update functions, draw. Repeat.
     """
@@ -97,7 +97,7 @@ class PGZeroGame:
             # Dimensions changed, request a redraw
             changed = True
 
-        title = getattr(self.mod, 'TITLE', 'Pygame Zero Game')
+        title = getattr(self.mod, 'TITLE', 'Pygame Turbo Game')
         if title != self.title:
             pygame.display.set_caption(title)
             self.title = title
@@ -106,7 +106,7 @@ class PGZeroGame:
 
     @staticmethod
     def show_default_icon():
-        """Show a default icon loaded from Pygame Zero resources."""
+        """Show a default icon loaded from Pygame Turbo resources."""
         from io import BytesIO
         from pkgutil import get_data
         buf = BytesIO(get_data(__name__, 'data/icon.png'))
@@ -242,7 +242,7 @@ class PGZeroGame:
             pygame.mixer.quit()
 
     def inject_global_handlers(self):
-        """Inject handlers provide by the Pygame Zero system.
+        """Inject handlers provide by the Pygame Turbo system.
 
         Some of these wrap user handlers so must be injected later.
         """
@@ -321,7 +321,7 @@ class PGZeroGame:
         return updated
 
     def mainloop(self):
-        """Run the main loop of Pygame Zero."""
+        """Run the main loop of Pygame Turbo."""
         self.reinit_screen()
 
         update = self.get_update_func()

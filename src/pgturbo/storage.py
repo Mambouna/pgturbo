@@ -27,7 +27,7 @@ def _get_platform_pgturbo_path():
             appdata = os.environ['APPDATA']
         except KeyError:
             raise KeyError(
-                "Couldn't find the AppData directory for Pygame Zero save "
+                "Couldn't find the AppData directory for Pygame Turbo save "
                 "data. Please set the %APPDATA% environment variable."
             )
         return os.path.join(appdata, 'pgturbo')
