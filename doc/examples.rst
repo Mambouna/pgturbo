@@ -14,7 +14,7 @@ in the source code repository. To download them, follow the following steps:
 Now you can play with them as another game that you might created. For example,
 to run the pong game, you should run::
 
-    pgtrun examples/pong/pong.py
+    pgtrun examples/pong
 
 Reading & editing the source code is a great way to learn to code, so start
 hacking the code!
@@ -31,7 +31,7 @@ Asteroids
 
 To play, run::
 
-    pgtrun examples/asteroids/main.py
+    pgtrun examples/asteroids
 
 Basic
 ^^^^^
@@ -47,7 +47,7 @@ Flappybird
 
 To play, run::
 
-    pgtrun examples/flappybird/flappybird.py
+    pgtrun examples/flappybird
 
 Lander
 ^^^^^^
@@ -58,7 +58,7 @@ Lander
 
 To play, run::
 
-    pgtrun examples/lander/lander.py
+    pgtrun examples/lander
 
 Memory
 ^^^^^^
@@ -69,7 +69,7 @@ Memory
 
 To play, run::
 
-    pgtrun examples/memory/memory.py
+    pgtrun examples/memory
 
 Mines
 ^^^^^
@@ -80,7 +80,7 @@ Mines
 
 To play, run::
 
-    pgtrun examples/mines/mines.py
+    pgtrun examples/mines
 
 Pong
 ^^^^
@@ -91,7 +91,7 @@ Pong
 
 To play, run::
 
-    pgtrun examples/pong/pong.py
+    pgtrun examples/pong
 
 Snake
 ^^^^^
@@ -102,7 +102,7 @@ Snake
 
 To play, run::
 
-    pgtrun examples/snake/snake.py
+    pgtrun examples/snake
 
 Tetra puzzle
 ^^^^^^^^^^^^
@@ -113,7 +113,7 @@ Tetra puzzle
 
 To play, run::
 
-    pgtrun examples/tetra_puzzle/main.py
+    pgtrun examples/tetra_puzzle
 
 Tron
 ^^^^
@@ -124,4 +124,4 @@ Tron
 
 To play, run::
 
-    pgtrun examples/tron/tron.py
+    pgtrun examples/tron
