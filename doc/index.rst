@@ -48,25 +48,6 @@ User Guide
     changelog
 
 
-Stickers by |Sticker Mule|
---------------------------
-
-.. |Sticker Mule| image:: _static/sticker-mule.svg
-    :alt: Sticker Mule
-    :height: 40
-    :target: https://www.stickermule.com/supports/opensource
-
-`Sticker Mule`_ have graciously offered to provide Pygame Turbo laptop stickers
-for learners.
-
-.. _`Sticker Mule`: https://www.stickermule.com/supports/opensource
-
-.. toctree::
-    :maxdepth: 3
-
-    stickers
-
-
 Improving Pygame Turbo
 ----------------------
 
