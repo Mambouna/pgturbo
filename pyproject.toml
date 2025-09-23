@@ -15,7 +15,7 @@ Documentation = "https://pygame-zero.readthedocs.io/"
 Source = "https://github.com/Mambouna/pgturbo"
 
 [project.scripts]
-pgtrun = "pgtero.runner:main"
+pgtrun = "pgturbo.runner:main"
 
 [build-system]
 requires = ["setuptools>=64", "setuptools-scm>=8"]
