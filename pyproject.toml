@@ -1,6 +1,6 @@
 [project]
-name = "pgzero-turbo"
-description = "A zero-boilerplate 2D games framework"
+name = "pgturbo"
+description = "A fast moving zero-boilerplate 2D games framework"
 readme = "README.rst"
 requires-python = ">=3.6"
 dependencies = [
@@ -12,17 +12,17 @@ dynamic = ["version"]
 
 [project.urls]
 Documentation = "https://pygame-zero.readthedocs.io/"
-Source = "https://github.com/Mambouna/pgzero/tree/pgzero-turbo"
+Source = "https://github.com/Mambouna/pgturbo"
 
 [project.scripts]
-pgzrun = "pgzero.runner:main"
+pgtrun = "pgtero.runner:main"
 
 [build-system]
 requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "src/pgzero/_version.py"
+write_to = "src/pgturbo/_version.py"
 
 [tool.ruff]
 builtins = [
