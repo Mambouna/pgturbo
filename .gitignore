@@ -18,4 +18,4 @@ examples_dev
 /notebooks
 /test/failed-image
 __pycache__
-src/pgzero/_version.py
+src/pgturbo/_version.py
