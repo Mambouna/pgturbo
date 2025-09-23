@@ -82,17 +82,17 @@ Development installation
 
 It's possible to create a locally-editable install using pip. From the root directory of the checked out source, run::
 
-    pip3 install --editable .
+    pip install --editable .
 
 The installed version will now reflect any local changes you make.
 
-Alternatively, if you don't want to install it at all, it may be run with:
+Alternatively, if you don't want to install it at all, it may be run with::
 
-   python3 -m pgturbo <name of pgturbo script>
+   python -m pgturbo <name of pgturbo script>
 
-For example:
+For example::
 
-   python3 -m pgturbo examples/basic/demo1.py
+   python -m pgturbo examples/basic/demo1.py
 
 
 How to run tests
