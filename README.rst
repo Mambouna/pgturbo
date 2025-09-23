@@ -1,5 +1,5 @@
 Pygame Turbo
-===========
+============
 
 A quicker moving fork of the zero-boilerplate games programming framework
 Pygame Zero, based on Pygame.
