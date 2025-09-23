@@ -2,8 +2,8 @@ import unittest
 from unittest import mock
 from unittest.mock import patch
 
-from pgzero.storage import Storage
-from pgzero.rect import ZRect
+from pgturbo.storage import Storage
+from pgturbo.rect import ZRect
 
 
 class StorageStaticMethodsTest(unittest.TestCase):
@@ -40,12 +40,12 @@ class StorageStaticMethodsTest(unittest.TestCase):
 
         result = sorted(Storage._get_json_error_keys(obj))
         self.assertEqual(result, [
-            ("storage['items'][2]", 'pgzero.rect.ZRect'),
+            ("storage['items'][2]", 'pgturbo.rect.ZRect'),
         ])
 
 
 class StorageTest(unittest.TestCase):
-    @patch('pgzero.storage.os.path.exists')
+    @patch('pgturbo.storage.os.path.exists')
     def setUp(self, exists_mock):
         exists_mock.return_value = True
         self.storage = Storage('asdf')

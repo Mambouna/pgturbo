@@ -2,9 +2,9 @@ import unittest
 
 import pygame
 
-from pgzero.actor import Actor
-from pgzero.loaders import set_root
-from pgzero.rect import Rect
+from pgturbo.actor import Actor
+from pgturbo.loaders import set_root
+from pgturbo.rect import Rect
 
 # Check that Actor is compatible with PyGame Rect functions
 # Note that though the Rect module also contains ZRect, this has not yet been
@@ -29,7 +29,7 @@ from pgzero.rect import Rect
 # Note: as Actor should simply masquerade as a Rect, I'd presume that "in place"
 # methods will only modify the other rect *not* the Actor
 
-TEST_MODULE = "pgzero.actor"
+TEST_MODULE = "pgturbo.actor"
 TEST_DISP_W, TEST_DISP_H = (500, 500)
 
 

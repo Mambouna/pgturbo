@@ -4,8 +4,8 @@ from contextlib import contextmanager
 
 from pygame import locals
 
-from pgzero.constants import keys
-from pgzero.keyboard import keyboard
+from pgturbo.constants import keys
+from pgturbo.keyboard import keyboard
 
 
 @contextmanager

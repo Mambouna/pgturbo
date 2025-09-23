@@ -1,6 +1,6 @@
 from unittest import TestCase
 import pygame
-from pgzero.loaders import sounds, set_root, UnsupportedFormat
+from pgturbo.loaders import sounds, set_root, UnsupportedFormat
 
 pygame.init()
 

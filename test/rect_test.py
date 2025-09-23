@@ -1,6 +1,6 @@
 import unittest
 import pygame
-from pgzero.rect import ZRect as Rect
+from pgturbo.rect import ZRect as Rect
 
 
 class RectTypeTest(unittest.TestCase):
@@ -663,7 +663,7 @@ class PGZeroRectText(unittest.TestCase):
         self.assertEqual(r.h, 4)
 
     def test_constructor_from_PGZeroRect(self):
-        "Build a rect from another pgzero Rect"
+        "Build a rect from another pgturbo Rect"
         r = Rect(1, 2, 3, 4)
         r1 = Rect(r)
         self.assertEqual(r, r1)
@@ -727,7 +727,7 @@ class PGZeroRectText(unittest.TestCase):
         self.assertEqual(r.h, 7.8)
 
     def test_float_instance_as_PygameRect(self):
-        "Create a Pygame Rect from a pgzero floating-point Rect"
+        "Create a Pygame Rect from a pgturbo floating-point Rect"
         r = Rect(1.2, 3.4, 5.6, 7.8)
         r2 = pygame.Rect(r)
         self.assertEqual([int(i) for i in r], list(r2))

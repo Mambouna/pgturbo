@@ -1,14 +1,14 @@
 """Tests for Pygame Zero's runner system.
 
-This module is also a Pygame Zero game so that we can run it with pgzero.
+This module is also a Pygame Zero game so that we can run it with pgturbo.
 
 """
 import sys
 import unittest
 from pathlib import Path
 
-from pgzero.runner import load_and_run
-from pgzero import clock
+from pgturbo.runner import load_and_run
+from pgturbo import clock
 
 game_tests = Path(__file__).parent / 'game_tests'
 

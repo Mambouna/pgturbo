@@ -3,8 +3,8 @@ from types import SimpleNamespace
 import gc
 import weakref
 
-from pgzero.animation import animate
-from pgzero import clock
+from pgturbo.animation import animate
+from pgturbo import clock
 
 
 class TestObject:

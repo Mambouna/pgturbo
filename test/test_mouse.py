@@ -3,8 +3,8 @@ from collections import deque
 
 import pygame
 
-from pgzero.loaders import set_root
-from pgzero.mouse import mouse_instance as mouse
+from pgturbo.loaders import set_root
+from pgturbo.mouse import mouse_instance as mouse
 
 
 class MouseTest(unittest.TestCase):

@@ -9,9 +9,9 @@ import pygame
 import pygame.image
 import pygame.surfarray
 
-from pgzero.screen import Screen
-from pgzero.loaders import set_root, images
-from pgzero.rect import Rect, ZRect
+from pgturbo.screen import Screen
+from pgturbo.loaders import set_root, images
+from pgturbo.rect import Rect, ZRect
 
 
 ROOT = Path(__file__).parent
@@ -218,7 +218,7 @@ class ScreenTest(unittest.TestCase):
     def test_wrapped_gradient_text(self):
         """We can draw wrapped gradient text.
 
-        Relates to issue #165 https://github.com/lordmauve/pgzero/issues/165
+        Relates to issue #165 https://github.com/lordmauve/pgturbo/issues/165
 
         """
         self.screen.draw.text(

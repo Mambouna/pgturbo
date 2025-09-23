@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
-from pgzero.game import PGZeroGame
-from pgzero.constants import mouse
+from pgturbo.game import PGZeroGame
+from pgturbo.constants import mouse
 
 
 class Event:

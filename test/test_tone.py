@@ -1,7 +1,7 @@
 import re
 from unittest import TestCase
 
-from pgzero.tone import _convert_args
+from pgturbo.tone import _convert_args
 
 
 TEST_NOTES = {

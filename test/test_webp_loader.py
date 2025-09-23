@@ -2,8 +2,8 @@ import unittest
 
 import pygame
 
-from pgzero.actor import Actor
-from pgzero.loaders import set_root
+from pgturbo.actor import Actor
+from pgturbo.loaders import set_root
 
 
 TEST_DISP_W, TEST_DISP_H = (200, 100)

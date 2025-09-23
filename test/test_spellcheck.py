@@ -1,5 +1,5 @@
 from unittest import TestCase
-from pgzero import spellcheck
+from pgturbo import spellcheck
 
 
 class SuggestionTest(TestCase):

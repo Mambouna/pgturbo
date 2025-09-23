@@ -3,12 +3,12 @@ from unittest.mock import patch
 
 import pygame
 
-from pgzero.actor import calculate_anchor, Actor
-from pgzero.loaders import set_root
-from pgzero.loaders import images
+from pgturbo.actor import calculate_anchor, Actor
+from pgturbo.loaders import set_root
+from pgturbo.loaders import images
 
 
-TEST_MODULE = "pgzero.actor"
+TEST_MODULE = "pgturbo.actor"
 TEST_DISP_W, TEST_DISP_H = (200, 100)
 
 
@@ -151,9 +151,9 @@ class ActorTest(unittest.TestCase):
 
     # Since the tests don't create the proper screen, it must be mocked for
     # these test functions.
-    @patch("pgzero.actor.game.screen.get_height")
-    @patch("pgzero.actor.game.screen.get_width")
-    @patch("pgzero.actor.game.screen")
+    @patch("pgturbo.actor.game.screen.get_height")
+    @patch("pgturbo.actor.game.screen.get_width")
+    @patch("pgturbo.actor.game.screen")
     def test_onscreen(self, mock_screen, mock_get_width, mock_get_height):
         """We can check if the Actor is in the screen bounds."""
         mock_screen = pygame.surface.Surface((200, 100))
@@ -162,9 +162,9 @@ class ActorTest(unittest.TestCase):
         a = Actor("alien", (10, 10))
         self.assertTrue(a.is_onscreen())
 
-    @patch("pgzero.actor.game.screen.get_height")
-    @patch("pgzero.actor.game.screen.get_width")
-    @patch("pgzero.actor.game.screen")
+    @patch("pgturbo.actor.game.screen.get_height")
+    @patch("pgturbo.actor.game.screen.get_width")
+    @patch("pgturbo.actor.game.screen")
     def test_not_onscreen(self, mock_screen, mock_get_width, mock_get_height):
         """We can check if the Actor is not within the screen bounds."""
         a = Actor("alien", (10, 1000))
