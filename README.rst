@@ -7,6 +7,9 @@ Pygame Zero, based on Pygame.
 The documentation for Pygame Turbo is found here:
 https://pgturbo.readthedocs.io/
 
+The code repository for Pygame Turbo is found here:
+https://github.com/Mambouna/pgturbo
+
 The documentation for Pygame Zero is found here:
 https://pygame-zero.readthedocs.io/en/stable/index.html
 
