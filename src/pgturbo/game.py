@@ -365,7 +365,6 @@ class PGZeroGame:
             if user_joy_removed:
                 return user_joy_removed(event)
 
-
         self.handlers[pygame.KEYDOWN] = key_down
         self.handlers[pygame.KEYUP] = key_up
         self.handlers[pygame.MOUSEBUTTONDOWN] = mouse_down

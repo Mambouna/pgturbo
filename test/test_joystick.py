@@ -2,6 +2,7 @@ import unittest
 
 from pgturbo.joystick import JoystickManager, GenericJoystick, Joystick
 
+
 class JoystickTest(unittest.TestCase):
     def setUp(self):
         global joysticks

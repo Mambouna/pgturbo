@@ -510,21 +510,21 @@ class Actor:
     def is_onscreen(self):
         """Returns whether the Actor is within the screen bounds or not."""
         return not (self.right < 0 or self.left > game.screen.get_width() or
-               self.bottom < 0 or self.top > game.screen.get_height())
+                    self.bottom < 0 or self.top > game.screen.get_height())
 
     def move_by_vel(self, scale=1.0):
         """Moves the position of the actor by its velocity. scale can be set
         to slow down or quicken the movement, for example if the game's
         timescale is not 1."""
         if not isinstance(scale, (int, float)):
-            raise TypeError(f"The velocity scaling must be of type integer or"
-                             " float, not {type(scale)}.")
+            raise TypeError("The velocity scaling must be of type integer or"
+                            " float, not {}.".format(type(scale)))
         self.x += self._vx * scale
         self.y += self._vy * scale
 
     def intercept_velocity(self, target, speed):
         """Returns a vector with the given magnitude (movement speed) that will
-        intercept the target actor or point if it keeps moving along the same 
+        intercept the target actor or point if it keeps moving along the same
         direction."""
         # Convert values to pygame vectors for easier math.
         self_pos = pygame.math.Vector2(self.pos)
