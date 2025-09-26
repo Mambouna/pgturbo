@@ -132,7 +132,7 @@ def _get_mappings_from_guid(guid):
 
 
 class Joystick:
-    """PGZero wrapper class for joystick use."""
+    """PGTurbo wrapper class for joystick use."""
     def __init__(self, stick):
         self._stick = stick
         guid = stick.get_guid()
@@ -270,7 +270,7 @@ class Joystick:
         return (self._axis[self._axis_map.right_trigger] + 1) / 2
 
     def __repr__(self):
-        return ("<PGZero Joystick (Name: " + self.name + ", Instance ID: " +
+        return ("<PGTurbo Joystick (Name: " + self.name + ", Instance ID: " +
                 str(self.instance_id) + ")>")
 
     def __str__(self):
@@ -278,7 +278,7 @@ class Joystick:
 
 
 class GenericJoystick(Joystick):
-    """PGZero joystick wrapper with a predefined generic mapping."""
+    """PGTurbo joystick wrapper with a predefined generic mapping."""
     def __init__(self):
         self._btn_map = ButtonMap(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                                   15, 14)
@@ -295,7 +295,7 @@ class GenericJoystick(Joystick):
     @property
     def name(self):
         """Returns the human readable name of the controller."""
-        return "GENERIC PGZERO CONTROLLER"
+        return "GENERIC PGTURBO CONTROLLER"
 
     @property
     def guid(self):
@@ -574,7 +574,7 @@ class JoystickManager:
             return None
 
     def __repr__(self):
-        return f"<PGZero JoystickManager (Joysticks: {repr(self._sticks)})"
+        return f"<PGTurbo JoystickManager (Joysticks: {repr(self._sticks)})"
 
     def __str__(self):
         return str(self._sticks)
