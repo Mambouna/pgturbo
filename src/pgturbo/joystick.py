@@ -154,6 +154,14 @@ class Joystick:
             raise AttributeError("'Joystick' object has no attribute '{}'"
                                  .format(name))
 
+    # Since all the buttons and axes are no longer properties, we define more
+    # descriptive errors here to help if someone tries to write their values.
+    def __setattr__(self, name, value):
+        if name in BTN_NAMES or name in AXIS_NAMES:
+            raise AttributeError("The value of '{}' can't be changed directly,"
+                                 " since it always reports the physical state"
+                                 " of the connected device.".format(name))
+
     def _initialize_state_tracking(self):
         """Creates the dicts used to record the controller state and look up
         the association of a button or axis int with the semantic part."""
