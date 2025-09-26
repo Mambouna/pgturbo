@@ -327,12 +327,18 @@ class PGZeroGame:
                 if axis:
                     # Translating the axis int to the generic layout as done
                     # above for button events.
-                    event.axis = constants.joyaxis[axis]
+                    event.axis = constants.joyaxis[axis.upper()]
                 else:
                     event.axis = constants.joyaxis.UNKNOWN
                 # Since _set_axis enforces the axis deadzone, event.value is
                 # updated to reflect the now current value of the axis.
-                event.value = value
+                # Since the triggers report values in the range [0, 1], if the
+                # axis is a trigger, the value reported to the user function
+                # is updated.
+                if axis == "left_trigger" or axis == "right_trigger":
+                    event.value = (value + 1) / 2
+                else:
+                    event.value = value
                 return user_joy_move(event)
 
         def joy_hat(event):
