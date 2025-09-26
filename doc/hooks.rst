@@ -160,6 +160,57 @@ To handle mouse drags, use code such as the following::
     :param mod: A bitmask of modifier keys that were depressed.
 
 
+Game controllers also have their own events:
+
+.. _joystick-hooks:
+
+.. function:: on_joy_down([joybtn], [instance_id])
+
+    Called when a controller button is depressed.
+
+    :param joybtn: An integer indicating the button that was pressed (see
+                   :ref:`below <buttons-and-keys>`).
+    :param instance_id: An integer identifying the device on which the button
+                        was pressed. This can be used to distinguish controls
+                        for multiple controllers for example in co-op games.
+
+.. function:: on_joy_up([joybtn], [instance_id])
+
+    Called when a controller button is released.
+
+    :param joybtn: An integer indicating the button that was let go off (see
+                   :ref:`below <buttons-and-keys>`).
+    :param instance_id: An integer identifying the device on which the button
+                        was released.
+
+.. function:: on_joy_move([axis], [value], [instance_id])
+
+    Called when a controller axis is moved, for example the thumbsticks on a
+    typical console controller.
+
+    :param axis: An integer indicating the axis that had its value change
+                 (see :ref:`below <buttons-and-keys>`).
+    :param value: The new value of the changed axis. Values for thumbsticks
+                  range from -1 to 1 with 0 being centered while shoulder
+                  triggers range from 0 to 1 with 1 being fully pressed in.
+    :param instance_id: An integer identifying the device on which the axis
+                        value was changed.
+
+.. function:: on_joy_added([instance_id])
+
+    Called when a new controller is connected.
+
+    :param instance_id: An integer identifying the device that was just
+                        connected.
+
+.. function:: on_joy_removed([instance_id])
+
+    Called when a known controller is disconnected.
+
+    :param instance_id: An integer identifying the device that was just
+                        disconnected.
+
+
 .. function:: on_music_end()
 
     Called when a :ref:`music track <music>` finishes.
