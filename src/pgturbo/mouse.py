@@ -209,11 +209,21 @@ class Mouse:
         else:
             c_string = args
             hotspot = None
-        system_cursors = ["ARROW", "IBEAM", "WAIT", "CROSSHAIR", "HAND"]
+        if c_string == "DEFAULT":
+            pygame.mouse.set_cursor()
+            return
+        system_cursors = ["ARROW", "IBEAM", "WAIT", "CROSSHAIR", "WAITARROW",
+                          "SIZENWSE", "SIZENESW", "SIZEWE", "SIZENS",
+                          "SIZEALL", "NO", "HAND"]
         if c_string in system_cursors:
             self._cursor_image_name = None
-            exec("pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_"
-                 + c_string + ")")
+            try:
+                exec("pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_"
+                     + c_string + ")")
+            except Exception:
+                print("WARNING: Cursor could not be set. Not all platforms "
+                      "support all system cursors. Consider using a custom "
+                      "cursor from an image for cross-platform compatibility.")
             if hotspot:
                 print("WARNING: System cursors can't be given a hotspot"
                       " as they define their own. The given hotspot was"
