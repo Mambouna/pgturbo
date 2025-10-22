@@ -145,18 +145,29 @@ class MouseTest(unittest.TestCase):
         """We can check the cursor name."""
         self.assertEqual(mouse.cursor_name, "ARROW")
 
-    def test_available_cursors(self):
-        cursors = (pygame.SYSTEM_CURSOR_ARROW, pygame.SYSTEM_CURSOR_CROSSHAIR,
-                   pygame.SYSTEM_CURSOR_HAND, pygame.SYSTEM_CURSOR_IBEAM,
-                   pygame.SYSTEM_CURSOR_NO, pygame.SYSTEM_CURSOR_SIZEALL,
-                   pygame.SYSTEM_CURSOR_SIZENESW, pygame.SYSTEM_CURSOR_SIZENS,
-                   pygame.SYSTEM_CURSOR_SIZENWSE, pygame.SYSTEM_CURSOR_SIZEWE,
-                   pygame.SYSTEM_CURSOR_WAIT, pygame.SYSTEM_CURSOR_WAITARROW,)
+    def test_change_cursor(self):
+        """We can change the cursor."""
+        # Cursor is the default arrow at this point.
+        mouse.cursor = "CROSSHAIR"
+        # Since different platforms have different cursors available but no
+        # documentation seems to exist for what is valid where, we simply check
+        # if the change was either successful or if otherwise the safety
+        # kicked in and nothing was changed.
+        self.assertTrue("CROSSHAIR" in pygame.mouse.get_cursor().__repr__() or
+                        "ARROW" in pygame.mouse.get_cursor().__repr__())
 
-        for c in cursors:
-            print(c)
-            try:
-                pygame.mouse.set_cursor(c)
-            except TypeError as e:
-                print(f"FAILED for cursor {c}.")
-                print(e)
+    def test_default_cursor(self):
+        """We can change the cursor back to default."""
+        # We change the cursor to the text editing beam, which should hopefully
+        # be available on all platforms.
+        mouse.cursor = "IBEAM"
+        # We check that the first change actually worked or not (see note about
+        # available cursors above).
+        self.assertTrue("IBEAM" in pygame.mouse.get_cursor().__repr__() or
+                        "ARROW" in pygame.mouse.get_cursor().__repr__())
+        mouse.cursor = "DEFAULT"
+        self.assertTrue("ARROW" in pygame.mouse.get_cursor().__repr__())
+
+    def test_cursor_hotspot(self):
+        """We can check the hotspot of the cursor."""
+        self.assertIsNone(mouse.cursor_hotspot)
