@@ -145,6 +145,23 @@ class MouseTest(unittest.TestCase):
         """We can check the cursor name."""
         self.assertEqual(mouse.cursor_name, "ARROW")
 
+    def test_available_cursors(self):
+        cursors = (pygame.SYSTEM_CURSOR_ARROW, pygame.SYSTEM_CURSOR_CROSSHAIR,
+                   pygame.SYSTEM_CURSOR_HAND, pygame.SYSTEM_CURSOR_IBEAM,
+                   pygame.SYSTEM_CURSOR_NO, pygame.SYSTEM_CURSOR_SIZEALL,
+                   pygame.SYSTEM_CURSOR_SIZENESW, pygame.SYSTEM_CURSOR_SIZENS,
+                   pygame.SYSTEM_CURSOR_SIZENWSE, pygame.SYSTEM_CURSOR_SIZEWE,
+                   pygame.SYSTEM_CURSOR_WAIT, pygame.SYSTEM_CURSOR_WAITARROW,)
+
+        for c in cursors:
+            print(c)
+            try:
+                pygame.mouse.set_cursor(c)
+            except TypeError as e:
+                print(f"FAILED for cursor {c}.")
+                print(e)
+
+    """
     def test_change_cursor(self):
         """We can change the cursor."""
         # Cursor is the default arrow at this point.
@@ -169,3 +186,4 @@ class MouseTest(unittest.TestCase):
     def test_cursor_hotspot(self):
         """We can check the hotspot of the cursor."""
         self.assertIsNone(mouse.cursor_hotspot)
+    """

@@ -210,18 +210,26 @@ class Mouse:
             c_string = args
             hotspot = None
         if c_string == "DEFAULT":
-            pygame.mouse.set_cursor(pygame.cursors.Cursor())
+            pygame.mouse.set_cursor()
             return
-        system_cursors = ["ARROW", "IBEAM", "WAIT", "CROSSHAIR", "WAITARROW",
-                          "SIZENWSE", "SIZENESW", "SIZEWE", "SIZENS",
-                          "SIZEALL", "NO", "HAND"]
-        if c_string in system_cursors:
+        system_cursors = {"ARROW" : pygame.SYSTEM_CURSOR_ARROW,
+                          "IBEAM" : pygame.SYSTEM_CURSOR_IBEAM,
+                          "WAIT" : pygame.SYSTEM_CURSOR_WAIT,
+                          "CROSSHAIR" : pygame.SYSTEM_CURSOR_CROSSHAIR,
+                          "WAITARROW" : pygame.SYSTEM_CURSOR_WAITARROW,
+                          "SIZENWSE" : pygame.SYSTEM_CURSOR_SIZENWSE,
+                          "SIZENESW" : pygame.SYSTEM_CURSOR_SIZENESW,
+                          "SIZEWE" : pygame.SYSTEM_CURSOR_SIZEWE,
+                          "SIZENS" : pygame.SYSTEM_CURSOR_SIZENS,
+                          "SIZEALL" : pygame.SYSTEM_CURSOR_SIZEALL,
+                          "NO" : pygame.SYSTEM_CURSOR_NO,
+                          "HAND" : pygame.SYSTEM_CURSOR_HAND}
+        if c_string in system_cursors.keys():
             self._cursor_image_name = None
             try:
-                exec("pygame.mouse.set_cursor(pygame.cursors.Cursor(pygame."
-                     "SYSTEM_CURSOR_" + c_string + "))")
+                pygame.mouse.set_cursor(system_cursors[c_string])
             except Exception:
-                pygame.mouse.set_cursor(pygame.cursors.Cursor())
+                pygame.mouse.set_cursor()
                 print("WARNING: Cursor could not be set. Not all platforms "
                       "support all system cursors. Consider using a custom "
                       "cursor from an image for cross-platform compatibility."
