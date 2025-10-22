@@ -156,7 +156,6 @@ class ActorTest(unittest.TestCase):
     @patch("pgturbo.actor.game.screen")
     def test_onscreen(self, mock_screen, mock_get_width, mock_get_height):
         """We can check if the Actor is in the screen bounds."""
-        mock_screen = pygame.surface.Surface((200, 100))
         mock_get_width.return_value = 200
         mock_get_height.return_value = 100
         a = Actor("alien", (10, 10))
@@ -168,7 +167,6 @@ class ActorTest(unittest.TestCase):
     def test_not_onscreen(self, mock_screen, mock_get_width, mock_get_height):
         """We can check if the Actor is not within the screen bounds."""
         a = Actor("alien", (10, 1000))
-        mock_screen = pygame.surface.Surface((200, 100))
         mock_get_width.return_value = 200
         mock_get_height.return_value = 100
         self.assertFalse(a.is_onscreen())

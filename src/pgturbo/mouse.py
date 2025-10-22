@@ -209,11 +209,31 @@ class Mouse:
         else:
             c_string = args
             hotspot = None
-        system_cursors = ["ARROW", "IBEAM", "WAIT", "CROSSHAIR", "HAND"]
-        if c_string in system_cursors:
+        if c_string == "DEFAULT":
+            pygame.mouse.set_cursor()
+            return
+        system_cursors = {"ARROW": pygame.SYSTEM_CURSOR_ARROW,
+                          "IBEAM": pygame.SYSTEM_CURSOR_IBEAM,
+                          "WAIT": pygame.SYSTEM_CURSOR_WAIT,
+                          "CROSSHAIR": pygame.SYSTEM_CURSOR_CROSSHAIR,
+                          "WAITARROW": pygame.SYSTEM_CURSOR_WAITARROW,
+                          "SIZENWSE": pygame.SYSTEM_CURSOR_SIZENWSE,
+                          "SIZENESW": pygame.SYSTEM_CURSOR_SIZENESW,
+                          "SIZEWE": pygame.SYSTEM_CURSOR_SIZEWE,
+                          "SIZENS": pygame.SYSTEM_CURSOR_SIZENS,
+                          "SIZEALL": pygame.SYSTEM_CURSOR_SIZEALL,
+                          "NO": pygame.SYSTEM_CURSOR_NO,
+                          "HAND": pygame.SYSTEM_CURSOR_HAND}
+        if c_string in system_cursors.keys():
             self._cursor_image_name = None
-            exec("pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_"
-                 + c_string + ")")
+            try:
+                pygame.mouse.set_cursor(system_cursors[c_string])
+            except pygame.error:
+                pygame.mouse.set_cursor()
+                print("WARNING: Cursor could not be set. Not all platforms "
+                      "support all system cursors. Consider using a custom "
+                      "cursor from an image for cross-platform compatibility."
+                      " Cursor has been reset to default.")
             if hotspot:
                 print("WARNING: System cursors can't be given a hotspot"
                       " as they define their own. The given hotspot was"
@@ -250,7 +270,7 @@ class Mouse:
             return c.data[0]
         # Pygame doesn't have a way to give us the hotspot
         # for system cursors and bitmap cursors aren't
-        # supported for PGZero.
+        # supported for PGTurbo.
         else:
             return None
 
