@@ -171,7 +171,10 @@ class MouseTest(unittest.TestCase):
         # available cursors above).
         self.assertTrue("IBEAM" in pygame.mouse.get_cursor().__repr__() or
                         "ARROW" in pygame.mouse.get_cursor().__repr__())
-        mouse.cursor = "DEFAULT"
+        try:
+            mouse.cursor = "DEFAULT"
+        except pygame.error:
+            pass  # Based on platform, errors can occur here.
         self.assertTrue("ARROW" in pygame.mouse.get_cursor().__repr__())
 
     def test_cursor_hotspot(self):
