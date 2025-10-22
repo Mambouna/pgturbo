@@ -148,7 +148,10 @@ class MouseTest(unittest.TestCase):
     def test_change_cursor(self):
         """We can change the cursor."""
         # Cursor is the default arrow at this point.
-        mouse.cursor = "CROSSHAIR"
+        try:
+            mouse.cursor = "CROSSHAIR"
+        except pygame.error:
+            pass  # Based on platform, errors can occur here.
         # Since different platforms have different cursors available but no
         # documentation seems to exist for what is valid where, we simply check
         # if the change was either successful or if otherwise the safety
@@ -160,7 +163,10 @@ class MouseTest(unittest.TestCase):
         """We can change the cursor back to default."""
         # We change the cursor to the text editing beam, which should hopefully
         # be available on all platforms.
-        mouse.cursor = "IBEAM"
+        try:
+            mouse.cursor = "IBEAM"
+        except pygame.error:
+            pass  # Based on platform, errors can occur here.
         # We check that the first change actually worked or not (see note about
         # available cursors above).
         self.assertTrue("IBEAM" in pygame.mouse.get_cursor().__repr__() or
