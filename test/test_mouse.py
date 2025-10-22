@@ -160,30 +160,3 @@ class MouseTest(unittest.TestCase):
             except TypeError as e:
                 print(f"FAILED for cursor {c}.")
                 print(e)
-
-    """
-    def test_change_cursor(self):
-        """We can change the cursor."""
-        # Cursor is the default arrow at this point.
-        mouse.cursor = "CROSSHAIR"
-        # Since different platforms have different cursors available but no
-        # documentation seems to exist for what is valid where, we simply check
-        # if the change was either successful or if otherwise the safety
-        # kicked in and nothing was changed.
-        self.assertTrue("CROSSHAIR" in pygame.mouse.get_cursor().__repr__() or
-                        "ARROW" in pygame.mouse.get_cursor().__repr__())
-
-    def test_default_cursor(self):
-        """We can change the cursor back to default."""
-        # We change the cursor to the text editing beam, which should hopefully
-        # be available on all platforms.
-        mouse.cursor = "IBEAM"
-        # We check that the first change actually worked.
-        self.assertTrue("IBEAM" in pygame.mouse.get_cursor().__repr__())
-        mouse.cursor = "DEFAULT"
-        self.assertTrue("ARROW" in pygame.mouse.get_cursor().__repr__())
-
-    def test_cursor_hotspot(self):
-        """We can check the hotspot of the cursor."""
-        self.assertIsNone(mouse.cursor_hotspot)
-    """

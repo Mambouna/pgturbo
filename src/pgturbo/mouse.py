@@ -212,18 +212,18 @@ class Mouse:
         if c_string == "DEFAULT":
             pygame.mouse.set_cursor()
             return
-        system_cursors = {"ARROW" : pygame.SYSTEM_CURSOR_ARROW,
-                          "IBEAM" : pygame.SYSTEM_CURSOR_IBEAM,
-                          "WAIT" : pygame.SYSTEM_CURSOR_WAIT,
-                          "CROSSHAIR" : pygame.SYSTEM_CURSOR_CROSSHAIR,
-                          "WAITARROW" : pygame.SYSTEM_CURSOR_WAITARROW,
-                          "SIZENWSE" : pygame.SYSTEM_CURSOR_SIZENWSE,
-                          "SIZENESW" : pygame.SYSTEM_CURSOR_SIZENESW,
-                          "SIZEWE" : pygame.SYSTEM_CURSOR_SIZEWE,
-                          "SIZENS" : pygame.SYSTEM_CURSOR_SIZENS,
-                          "SIZEALL" : pygame.SYSTEM_CURSOR_SIZEALL,
-                          "NO" : pygame.SYSTEM_CURSOR_NO,
-                          "HAND" : pygame.SYSTEM_CURSOR_HAND}
+        system_cursors = {"ARROW": pygame.SYSTEM_CURSOR_ARROW,
+                          "IBEAM": pygame.SYSTEM_CURSOR_IBEAM,
+                          "WAIT": pygame.SYSTEM_CURSOR_WAIT,
+                          "CROSSHAIR": pygame.SYSTEM_CURSOR_CROSSHAIR,
+                          "WAITARROW": pygame.SYSTEM_CURSOR_WAITARROW,
+                          "SIZENWSE": pygame.SYSTEM_CURSOR_SIZENWSE,
+                          "SIZENESW": pygame.SYSTEM_CURSOR_SIZENESW,
+                          "SIZEWE": pygame.SYSTEM_CURSOR_SIZEWE,
+                          "SIZENS": pygame.SYSTEM_CURSOR_SIZENS,
+                          "SIZEALL": pygame.SYSTEM_CURSOR_SIZEALL,
+                          "NO": pygame.SYSTEM_CURSOR_NO,
+                          "HAND": pygame.SYSTEM_CURSOR_HAND}
         if c_string in system_cursors.keys():
             self._cursor_image_name = None
             try:
