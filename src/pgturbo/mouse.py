@@ -260,7 +260,7 @@ class Mouse:
             return c.data[0]
         # Pygame doesn't have a way to give us the hotspot
         # for system cursors and bitmap cursors aren't
-        # supported for PGZero.
+        # supported for PGTurbo.
         else:
             return None
 
