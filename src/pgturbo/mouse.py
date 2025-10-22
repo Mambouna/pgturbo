@@ -228,7 +228,7 @@ class Mouse:
             self._cursor_image_name = None
             try:
                 pygame.mouse.set_cursor(system_cursors[c_string])
-            except Exception:
+            except pygame.Error:
                 pygame.mouse.set_cursor()
                 print("WARNING: Cursor could not be set. Not all platforms "
                       "support all system cursors. Consider using a custom "
