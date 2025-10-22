@@ -25,7 +25,6 @@ class MouseTest(unittest.TestCase):
         mouse._press(mouse.MIDDLE)
         mouse._set_pos((10, 10))
         pygame.mouse.set_visible(False)
-        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
     def tearDown(self):
         mouse._null_rel()
@@ -144,7 +143,7 @@ class MouseTest(unittest.TestCase):
 
     def test_get_cursor_name(self):
         """We can check the cursor name."""
-        self.assertEqual(mouse.cursor_name, "HAND")
+        self.assertEqual(mouse.cursor_name, "ARROW")
 
     def test_change_cursor(self):
         """We can change the cursor."""
