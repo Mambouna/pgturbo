@@ -77,6 +77,14 @@ Bug fixes
 * Made actor ``width`` and ``height`` read-only properties while no solution
   for scaling actors is implemented.
 
+Dependencies
+''''''''''''
+
+* Switched the base dependency from ``pygame`` to ``pygame-ce`` as it is being
+  developed more actively and causes fewer installation problems.
+* Removed the dependency on ``pyfxr`` for tone synthesis. The same
+  functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
 Integrated changes
 ''''''''''''''''''
 
