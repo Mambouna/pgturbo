@@ -43,15 +43,16 @@ def note_to_hertz(note_string):
                          " pattern note chroma (F-A), an accidental (#/b) or "
                          "none and the octave (0-8).")
 
-    # TODO: VERY INEFFICIENT, IMPROVE
-    # How many times we need to double
+    # How many times we need to double or halve the frequency.
     octave_difference = int(octave_string) - 4
-    multiplier = 2 if octave_difference >= 0 else 0.5
-
-    hertz = CHROMAS[chroma_string]
-    for _ in range(abs(octave_difference)):
-        hertz = hertz * multiplier
-
+    # If the octave is higher, we double for each octave difference,
+    # otherwise halve.
+    base_multiplier = 2 if octave_difference >= 0 else 0.5
+    # Final adjustment necessary because of the octave difference.
+    final_multiplier = base_multiplier ** abs(octave_difference)
+    # Calculation of the actual hertz. First getting the frequency for octave 4
+    # and then adjusting for octave.
+    hertz = CHROMAS[chroma_string] * final_multiplier
     return hertz
 
 
