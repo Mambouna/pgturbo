@@ -1,2 +1,2 @@
 numpy
-pygame>=2.1
+pygame-ce>=2.1
