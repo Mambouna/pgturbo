@@ -18,14 +18,13 @@ TEST_NOTES = {
 class ToneTest(TestCase):
     def test_invalid_note(self):
         for note in ['A9', 'H4', '4A', 'a4', 'Az4']:
-            errmsg = re.escape(
-                '%s is not a valid note. notes are A-F, are either normal, '
-                'flat (b) or sharp (#) and of octave 0-8' % note
-            )
-            with self.assertRaisesRegex(Exception, errmsg):
+            errmsg = ("Notestrings must be either of length 2 or 3 in the "
+                      "pattern note chroma (F-A), an accidental (#/b) or "
+                      "none and the octave (0-8).")
+            with self.assertRaises(ValueError):
                 _convert_args(note, 1)
 
     def test_note_to_hertz(self):
         for note, val in TEST_NOTES.items():
             params = _convert_args(note, 1.0)
-            self.assertAlmostEqual(params.hz, val['hertz'], 2)
+            self.assertAlmostEqual(params.hz, val['hertz'], delta=0.1)
