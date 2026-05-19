@@ -1,13 +1,16 @@
 """Tone generator for Pygame Turbo.
 
-This tone generator is a wrapper for pyfxr, a custom Cython library for sound
-generation. Tones are kept in a LRU cache which in typical applications
+This tone generator uses numpy to generate sine waves to play through
+Pygames own mixer. Tones are kept in a LRU cache which in typical applications
 will reduce the number of times they need to be regenerated.
 
 To minimise the extent that pauses affect gameplay, the ``play()`` function
 offloads tone generation to a separate thread. Because tones are generated
 with numpy operations this should allow at least part of this work to happen
 on another CPU core, if present.
+
+NOTE: This module used to use the pyfxr package but this was replaced with
+custom code to remove the dependency.
 
 """
 from functools import lru_cache
