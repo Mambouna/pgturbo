@@ -1,4 +1,3 @@
-import re
 from unittest import TestCase
 
 from pgturbo.tone import _convert_args
@@ -18,9 +17,6 @@ TEST_NOTES = {
 class ToneTest(TestCase):
     def test_invalid_note(self):
         for note in ['A9', 'H4', '4A', 'a4', 'Az4']:
-            errmsg = ("Notestrings must be either of length 2 or 3 in the "
-                      "pattern note chroma (F-A), an accidental (#/b) or "
-                      "none and the octave (0-8).")
             with self.assertRaises(ValueError):
                 _convert_args(note, 1)
 
