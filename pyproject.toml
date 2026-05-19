@@ -6,7 +6,6 @@ requires-python = ">=3.6"
 dependencies = [
     "pygame>=2.1",
     "numpy",
-    "pyfxr",
 ]
 dynamic = ["version"]
 
