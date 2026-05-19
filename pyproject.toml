@@ -4,7 +4,7 @@ description = "A fast moving zero-boilerplate 2D games framework"
 readme = "README.rst"
 requires-python = ">=3.6"
 dependencies = [
-    "pygame>=2.1",
+    "pygame-ce>=2.1",
     "numpy",
 ]
 dynamic = ["version"]
