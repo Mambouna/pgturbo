@@ -1,7 +1,7 @@
 """Tone generator for Pygame Turbo.
 
-This tone generator is a wrapper for pyfxr, a custom Cython library for sound
-generation. Tones are kept in a LRU cache which in typical applications
+This tone generator uses numpy to generate sine waves to play through
+Pygames own mixer. Tones are kept in a LRU cache which in typical applications
 will reduce the number of times they need to be regenerated.
 
 To minimise the extent that pauses affect gameplay, the ``play()`` function
@@ -9,15 +9,51 @@ offloads tone generation to a separate thread. Because tones are generated
 with numpy operations this should allow at least part of this work to happen
 on another CPU core, if present.
 
+NOTE: This module used to use the pyfxr package but this was replaced with
+custom code to remove the dependency.
+
 """
 from functools import lru_cache
 from collections import namedtuple
 from threading import Thread, Lock
 from queue import Queue
-from enum import Enum
 
 import pygame
-import pyfxr
+
+# Valid octave characters, dumb but functional.
+OCTAVES = ("0", "1", "2", "3", "4", "5", "6", "7", "8")
+# The frequencies for all chromas at octave 4.
+CHROMAS = {"C": 261.63, "C#": 277.18, "Db": 277.18, "D": 293.66, "D#": 311.13,
+           "Eb": 311.13, "E": 329.63, "F": 349.23, "F#": 369.99, "Gb": 369.99,
+           "G": 392, "G#": 415.3, "Ab": 415.3, "A": 440.0, "A#": 466.16,
+           "Bb": 466.16, "B": 493.88}
+SAMPLERATE = 22050
+
+
+# Custom note string validation as that came from pyfxr before.
+def note_to_hertz(note_string):
+    length = len(note_string)
+    chroma_string = note_string[:-1]
+    octave_string = note_string[-1]
+
+    # Validation of note string in one step.
+    if (length < 2 or length > 3 or chroma_string not in CHROMAS
+            or octave_string not in OCTAVES):
+        raise ValueError("Notestrings must be either of length 2 or 3 in the"
+                         " pattern note chroma (F-A), an accidental (#/b) or "
+                         "none and the octave (0-8).")
+
+    # How many times we need to double or halve the frequency.
+    octave_difference = int(octave_string) - 4
+    # If the octave is higher, we double for each octave difference,
+    # otherwise halve.
+    base_multiplier = 2 if octave_difference >= 0 else 0.5
+    # Final adjustment necessary because of the octave difference.
+    final_multiplier = base_multiplier ** abs(octave_difference)
+    # Calculation of the actual hertz. First getting the frequency for octave 4
+    # and then adjusting for octave.
+    hertz = CHROMAS[chroma_string] * final_multiplier
+    return hertz
 
 
 __all__ = (
@@ -30,14 +66,7 @@ __all__ = (
 MAX_DURATION = 4
 
 
-class Waveform(Enum):
-    SIN = pyfxr.Wavetable.sine()
-    SQUARE = pyfxr.Wavetable.square()
-    SAW = pyfxr.Wavetable.saw()
-    TRIANGLE = pyfxr.Wavetable.triangle()
-
-
-ToneParams = namedtuple('ToneParams', 'hz duration waveform volume')
+ToneParams = namedtuple('ToneParams', 'hz duration volume')
 
 
 # lru_cache isn't threadsafe until Python 3.7, so protect it ourselves
@@ -75,30 +104,23 @@ def create(*args, **kwargs):
 @lru_cache()
 def _create(params):
     """Actually create a tone."""
-    # Construct a mono tone of the right length
-    tone = pyfxr.tone(
-        pitch=params.hz,
-        sustain=max(0, params.duration - 0.2),
-        wavetable=params.waveform.value,
-    )
-
-    # NB. pygame assumes that the sound format of any buffer object matches
-    # that of the current mixer settings. We use mixer.pre_init(22050, -16, 2)
-    # which means that it is expecting 22kHz audio stereo, but we're feeding it
-    # 44kHz mono - but, perhaps surprisingly, that works Ok. The extra samples
-    # get interpreted as the second channel.
-    #
-    # If we change the mixer to 44kHz we'd need to convert to stereo here by
-    # doubling samples.
-    #
-    # Really this is a mess and Pygame should support converting the format
-    # of buffers (as it does for .wav files).
-    snd = pygame.mixer.Sound(buffer=tone)
-    snd.set_volume(params.volume)
-    return snd
+    # Import numpy here so it doesn't hog resources if it's not used.
+    import numpy
+    # Numpy magic to generate a sine wave with the right parameters.
+    mono_tone = numpy.array([
+        4096 * numpy.sin(2.0 * numpy.pi * params.hz * x / SAMPLERATE)
+        for x in range(0, SAMPLERATE)
+    ]).astype(numpy.int16)
+    # The wave is mono but the next call expects stereo audio so we just
+    # put the same wave on both channels.
+    stereo_tone = numpy.c_[mono_tone, mono_tone]
+    # This generates the actual sound object from the waveform.
+    sound = pygame.sndarray.make_sound(stereo_tone)
+    sound.set_volume(params.volume)
+    return sound
 
 
-def _convert_args(pitch, duration, *, waveform=Waveform.SIN, volume=0.8):
+def _convert_args(pitch, duration, *, volume=0.8):
     """Convert the given arguments to _create parameters."""
     if duration > MAX_DURATION:
         raise ValueError(
@@ -108,8 +130,9 @@ def _convert_args(pitch, duration, *, waveform=Waveform.SIN, volume=0.8):
     if not duration:
         raise ValueError("Note has zero duration")
     if isinstance(pitch, str):
-        pitch = pyfxr.note_to_hertz(pitch)
-    return ToneParams(pitch, duration, Waveform(waveform), volume)
+        # Replaced pyfxr call with custom logic.
+        pitch = note_to_hertz(pitch)
+    return ToneParams(pitch, duration, volume)
 
 
 def play(*args, **kwargs):
