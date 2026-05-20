@@ -13,6 +13,18 @@ from contextlib import contextmanager
 pygame.mixer.pre_init(frequency=22050, size=-16, channels=2)
 pygame.init()
 
+# Before, running games in IDE mode would crash as image processing for actors
+# requires a display. Depending on where in the program an actor is created,
+# this could crash the game before it even started.
+# The lines below ensure there is a valid display created directly when the
+# import of pgtrun happens, meaning any Actor definitions or image operations
+# in the game code can run successfully.
+PGZeroGame.show_default_icon()
+pygame.display.set_mode(
+    (100, 100),
+    flags=(DISPLAY_FLAGS & ~pygame.SHOWN) | pygame.HIDDEN,
+)
+
 
 def _check_python_ok_for_pygame():
     """If we're on a Mac, is this a full Framework python?
