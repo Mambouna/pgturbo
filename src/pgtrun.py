@@ -9,6 +9,7 @@ __main__).
 
 """
 import sys
+import pygame # Import needed only to quit the current display.
 from pgturbo.runner import prepare_mod, run_mod
 
 
@@ -26,5 +27,11 @@ def go():
     """Run the __main__ module as a Pygame Turbo script."""
     if getattr(sys, '_pgtrun', None):
         return
+
+    # We quit the pygame display here because when running in IDE mode, a
+    # hidden window is created before to allow image operations. If this
+    # window is not closed, the game window will end up not centered on the
+    # screen when the proper window specifications are set.
+    pygame.display.quit()
 
     run_mod(mod)
