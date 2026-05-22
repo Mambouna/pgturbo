@@ -20,6 +20,7 @@ from __future__ import division
 
 from math import ceil, sin, cos, radians
 import pygame
+from .actor import validate_position_value
 
 DEFAULT_FONT_SIZE = 24
 REFERENCE_FONT_SIZE = 100
@@ -415,7 +416,13 @@ def draw(text, pos=None,
     if center:
         centerx, centery = center
 
-    x, y = pos or (None, None)
+    if pos:
+        validate_position_value(pos)
+        x, y = pos
+    else:
+        x, y = (None, None)
+
+    #x, y = pos or (None, None)
     hanchor, vanchor = anchor or (None, None)
     if left is not None:
         x, hanchor = left, 0

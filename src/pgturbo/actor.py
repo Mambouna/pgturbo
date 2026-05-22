@@ -23,6 +23,15 @@ ANCHORS = {
 }
 
 
+def validate_position_value(value):
+    if not (isinstance(value, tuple) and len(value) == 2
+              and isinstance(value[0], (int, float))
+              and isinstance(value[1], (int, float))):
+        raise ValueError("Positions must be tuples with two integer or "
+                        "float values for the X and Y coordinates, e.g. "
+                        "(10, 25).")
+
+
 def calculate_anchor(value, dim, total):
     if isinstance(value, str):
         try:
@@ -134,6 +143,8 @@ class Actor:
         self.__dict__["_rect"] = rect.ZRect((0, 0), (0, 0))
         # Initialise it at (0, 0) for size (0, 0).
         # We'll move it to the right place and resize it later
+
+        validate_position_value(pos)
 
         self.image = image
         self._init_position(pos, anchor, **kwargs)
@@ -350,6 +361,7 @@ class Actor:
 
     @pos.setter
     def pos(self, pos):
+        validate_position_value(pos)
         px, py = pos
         ax, ay = self._anchor
         self.topleft = px - ax, py - ay
