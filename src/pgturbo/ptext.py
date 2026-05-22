@@ -424,7 +424,6 @@ def draw(text, pos=None,
     else:
         x, y = (None, None)
 
-    #x, y = pos or (None, None)
     hanchor, vanchor = anchor or (None, None)
     if left is not None:
         x, hanchor = left, 0
