@@ -9,7 +9,7 @@ __main__).
 
 """
 import sys
-import pygame # Import needed only to quit the current display.
+import pygame   # Import needed only to quit the current display.
 from pgturbo.runner import prepare_mod, run_mod
 
 
