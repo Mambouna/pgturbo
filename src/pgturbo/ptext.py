@@ -416,6 +416,8 @@ def draw(text, pos=None,
     if center:
         centerx, centery = center
 
+    # If a position was set, we check that it is a valid one with the same
+    # function as in actor.py.
     if pos:
         validate_position_value(pos)
         x, y = pos
