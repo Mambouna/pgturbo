@@ -24,12 +24,13 @@ ANCHORS = {
 
 
 def validate_position_value(value):
-    if not (isinstance(value, tuple) and len(value) == 2
-              and isinstance(value[0], (int, float))
-              and isinstance(value[1], (int, float))):
-        raise ValueError("Positions must be tuples with two integer or "
-                        "float values for the X and Y coordinates, e.g. "
-                        "(10, 25).")
+    if not (isinstance(value, (tuple, list, pygame.math.Vector2))
+            and len(value) == 2
+            and isinstance(value[0], (int, float))
+            and isinstance(value[1], (int, float))):
+        raise ValueError("Positions must be tuples or lists with two integer "
+                         "or float values for the X and Y coordinates, e.g. "
+                         "(10, 25). You used: " + str(value))
 
 
 def calculate_anchor(value, dim, total):
@@ -144,7 +145,13 @@ class Actor:
         # Initialise it at (0, 0) for size (0, 0).
         # We'll move it to the right place and resize it later
 
-        validate_position_value(pos)
+        # If a value is provided for pos, check if it's a valid positional.
+        # We conciously only do this check with greater error clarity once here
+        # to avoid checking many conditions every frame for many actors. If
+        # that turns out to be desirable instead, simply move the function call
+        # without the conditional to the first line of the pos.setter function.
+        if pos:
+            validate_position_value(pos)
 
         self.image = image
         self._init_position(pos, anchor, **kwargs)
@@ -361,7 +368,6 @@ class Actor:
 
     @pos.setter
     def pos(self, pos):
-        validate_position_value(pos)
         px, py = pos
         ax, ay = self._anchor
         self.topleft = px - ax, py - ay
