@@ -137,10 +137,8 @@ class Actor:
         # We'll move it to the right place and resize it later
 
         # If a value is provided for pos, check if it's a valid positional.
-        # We conciously only do this check with greater error clarity once here
-        # to avoid checking many conditions every frame for many actors. If
-        # that turns out to be desirable instead, simply move the function call
-        # without the conditional to the first line of the pos.setter function.
+        # Only done here to not incur performance costs, though it could be
+        # moved to the pos.setter for better coverage.
         if pos:
             validate_position_value(pos)
 
