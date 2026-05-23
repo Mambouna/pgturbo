@@ -5,6 +5,7 @@ from . import game
 from . import loaders
 from . import rect
 from . import spellcheck
+from .validation import validate_position_value
 
 
 ANCHORS = {
@@ -21,16 +22,6 @@ ANCHORS = {
         'bottom': 1.0,
     }
 }
-
-
-def validate_position_value(value):
-    if not (isinstance(value, (tuple, list, pygame.math.Vector2))
-            and len(value) == 2
-            and isinstance(value[0], (int, float))
-            and isinstance(value[1], (int, float))):
-        raise ValueError("Positions must be tuples or lists with two integer "
-                         "or float values for the X and Y coordinates, e.g. "
-                         "(10, 25). You used: " + str(value))
 
 
 def calculate_anchor(value, dim, total):
