@@ -5,6 +5,7 @@ from . import game
 from . import loaders
 from . import rect
 from . import spellcheck
+from .validation import validate_position_value
 
 
 ANCHORS = {
@@ -134,6 +135,12 @@ class Actor:
         self.__dict__["_rect"] = rect.ZRect((0, 0), (0, 0))
         # Initialise it at (0, 0) for size (0, 0).
         # We'll move it to the right place and resize it later
+
+        # If a value is provided for pos, check if it's a valid positional.
+        # Only done here to not incur performance costs, though it could be
+        # moved to the pos.setter for better coverage.
+        if pos:
+            validate_position_value(pos)
 
         self.image = image
         self._init_position(pos, anchor, **kwargs)
