@@ -3,6 +3,7 @@ import re
 from operator import itemgetter
 
 from .game import PGZeroGame, positional_parameters
+from pygame import colordict
 
 
 def distance(a, b):
@@ -78,6 +79,21 @@ def compare(have, want):
             want.discard(s)
     have -= set(w for w, s in typos)
     return typos, have
+
+
+COLORNAMES = colordict.THECOLORS.keys()
+
+
+def check_color_name(color_str):
+    if color_str not in COLORNAMES:
+        sugs = suggest(color_str, COLORNAMES)
+        if len(sugs) > 0:
+            raise KeyError(
+                'No color called %s found, did you mean %s?'
+                % (color_str, sugs[0])
+            )
+        else:
+            raise KeyError('No color called %s found.' % color_str)
 
 
 # The list of hooks we support

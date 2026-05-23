@@ -245,6 +245,9 @@ class Actor:
         # Return without costly image creation if image already exists.
         if key in loaders.images._cache:
             return name
+        # If a color was given as a string, spellcheck it.
+        if isinstance(color, str):
+            spellcheck.check_color_name(color)
         # Creates the image with transparency (for non-rects) and fills them
         # with the appropriate shape.
         s = pygame.Surface((width, height), pygame.SRCALPHA)
