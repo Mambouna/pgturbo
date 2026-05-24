@@ -4,6 +4,7 @@ import pygame.draw
 from . import ptext
 from .rect import RECT_CLASSES, ZRect
 from . import loaders
+from . import spellcheck
 
 
 def round_pos(pos):
@@ -21,6 +22,8 @@ def round_pos(pos):
 def make_color(arg):
     if isinstance(arg, tuple):
         return arg
+    else:
+        spellcheck.check_color_name(arg)
     return tuple(pygame.Color(arg))
 
 

@@ -1,9 +1,9 @@
 from unittest import TestCase
-from pgturbo import spellcheck
+from pgturbo import spellcheck, game
 
 
 class SuggestionTest(TestCase):
-    HOOKS = spellcheck.HOOKS + spellcheck.EVENT_HOOKS
+    HOOKS = spellcheck.HOOKS + list(game.PGZeroGame.EVENT_HANDLERS.values())
 
     def assert_suggestions(self, w, candidates, expected):
         suggestions = spellcheck.suggest(w, candidates)
@@ -111,7 +111,9 @@ class SpellCheckerTest(TestCase):
         )
 
     def spellcheck(self, namespace):
-        spellcheck.spellcheck(namespace, self.result)
+        spellcheck.spellcheck(namespace,
+                              list(game.PGZeroGame.EVENT_HANDLERS.values()),
+                              self.result)
 
     def test_misspelled_mousedown(self):
         self.spellcheck({
@@ -150,3 +152,15 @@ class SpellCheckerTest(TestCase):
         })
         self.assert_has_handler_warning('on_key_press')
         self.assert_has_handler_warning('onKeyPress')
+
+
+class CheckColorNamesTest(TestCase):
+    def test_correct_color_name(self):
+        # On a correct color name, the function just returns nothing.
+        self.assertIsNone(spellcheck.check_color_name("blue"))
+
+    def test_wrong_color_name(self):
+        # On an incorrect one, a descriptive error is raised.
+        self.assertRaisesRegex(KeyError,
+                               "No color called read found, did you mean red?",
+                               spellcheck.check_color_name, "read")

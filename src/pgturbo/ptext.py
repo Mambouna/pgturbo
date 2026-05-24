@@ -21,6 +21,7 @@ from __future__ import division
 from math import ceil, sin, cos, radians
 import pygame
 from .validation import validate_position_value
+from . import spellcheck
 
 DEFAULT_FONT_SIZE = 24
 REFERENCE_FONT_SIZE = 100
@@ -183,6 +184,8 @@ def _resolvecolor(color, default):
         color = default
     if color is None:
         return None
+    if isinstance(color, str):
+        spellcheck.check_color_name(color)
     try:
         return tuple(pygame.Color(color))
     except ValueError:
