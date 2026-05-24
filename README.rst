@@ -50,6 +50,7 @@ New features
 * A proper ``mouse`` builtin to get the state of different mouse properties
   like positions, relative movements, state of buttons being pressed and
   more. Also allows changing of visibility, cursor shape and others.
+* Easy to use and feature rich controller support making coding games with controller controls easy while also allowing multiple controllers for multiplayer support with simple interfaces.
 
 
 Feature enhancements
@@ -68,6 +69,8 @@ Feature enhancements
   ``Actor.Triangle(width, height, color)``.
 * Function to check if an actor is currently withing the screen bounds:
   ``.is_onscreen()``.
+* More understandable error reporting for wrong positional values.
+* String color names are spellchecked to make fixing typos easier.
 
 
 Bug fixes
