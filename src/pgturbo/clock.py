@@ -109,7 +109,7 @@ class Clock:
         """Get the elapsed time since a mark was made or return None if it
         doesn't exist."""
         timestamp = self._marks.get(name)
-        if timestamp:
+        if timestamp is not None:
             return self.t - timestamp
         return None
 

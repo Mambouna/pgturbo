@@ -26,9 +26,13 @@ class ClockTest(unittest.TestCase):
     def test_get_mark_time(self):
         self.assertEqual(clock.get_mark_time("test_mark"), 5900.20)
         self.assertEqual(clock.get_mark_time("other_test_mark"), 22100.75)
+        self.assertIsNone(clock.get_mark_time("not_a_mark"))
 
     def test_time_since_mark(self):
         self.assertEqual(clock.time_since_mark("test_mark"), 16200.55)
+        clock.mark_time("test_mark")
+        self.assertEqual(clock.time_since_mark("test_mark"), 0)
+        self.assertIsNone(clock.time_since_mark("not_a_mark"))
 
     def test_get_all_marks(self):
         compare_dict = {"test_mark": 5900.20, "other_test_mark": 22100.75}

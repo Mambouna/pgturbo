@@ -846,6 +846,12 @@ When the round ends (when the opponent touches the player) we can then get the
 length of the round by calling ``clock.time_since_mark()`` with the name of the
 mark we set up before.
 
+Since times are returned in seconds, they are often long fractions of whole
+numbers. If you want to display time values in the game window, consider
+converting the timestamp to a whole number with ``int(timestamp)`` first.
+``int()`` from a ``float`` will always round down, which is usually desirable
+for displaying elapsed seconds.
+
 ``clock`` provides the following useful methods:
 
 .. class:: Clock
