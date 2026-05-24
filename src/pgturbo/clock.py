@@ -113,6 +113,12 @@ class Clock:
             return self.t - timestamp
         return None
 
+    def get_all_marks(self):
+        """Return a copy of the current state of the marks dictionary. A copy
+        is made to make sure users don't accidentally change the contents of
+        the actual marks dict."""
+        return self._marks.copy()
+
     def clear(self):
         """Remove all handlers from this clock."""
         self.events.clear()
@@ -220,6 +226,7 @@ time = clock.time
 mark_time = clock.mark_time
 get_mark_time = clock.get_mark_time
 time_since_mark = clock.time_since_mark
+get_all_marks = clock.get_all_marks
 tick = clock.tick
 schedule = clock.schedule
 schedule_interval = clock.schedule_interval

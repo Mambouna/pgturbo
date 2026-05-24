@@ -894,6 +894,8 @@ mark we set up before.
 
         Creates a record of the current elapsed time and saves it with the
         given `name`. Use this to save when something happened in the game.
+        Calling the function again overwrites the previous timestamp with the
+        new one.
 
         :param name: A string name for the time mark.
 
@@ -910,6 +912,12 @@ mark we set up before.
         does not exist (yet), returns ``None`` instead.
 
         :param name: A string name for the time mark.
+
+    .. method:: get_all_marks()
+
+        Returns a dictionary of all currently saved marks and their timestamps.
+        Note that changing this dictionary does not affect the underlying data
+        in clock.
 
 
 Note that the Pygame Turbo clock only holds weak references to each callback
