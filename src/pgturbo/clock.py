@@ -95,17 +95,17 @@ class Clock:
         """Simple function to return the total elapsed time."""
         return self.t
 
-    def mark_time(name):
+    def mark_time(self, name):
         """Save a timestamp with a name for later. Also returns that time."""
         self._marks[name] = self.t
         return self.t
 
-    def get_mark_time(name):
+    def get_mark_time(self, name):
         """Get the time saved with a mark name or return None if it doesn't
         exist."""
         return self._marks.get(name)
 
-    def time_since_mark(name):
+    def time_since_mark(self, name):
         """Get the elapsed time since a mark was made or return None if it
         doesn't exist."""
         timestamp = self._marks.get(name)
