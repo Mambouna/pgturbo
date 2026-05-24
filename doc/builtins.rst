@@ -822,6 +822,30 @@ not being called here! The clock will call it for us.
 ``1.0``. This makes it more obvious when you are reading it back, that you are
 referring to a time value and not a count of things.)
 
+Another use of clock is to keep track of elapsed time in different ways. If you
+just want to get the total time since the program started, ``clock.time()``
+will return how many seconds have passed. Often though, we are more interested
+in how much time has gone by since a certain starting moment like the start of
+a round for example::
+
+    def update():
+        if keyboard.space and round_over:
+            clock.mark_time("game_begin")
+            # ...
+        # ...
+        if opponent.colliderect(player) and not round_over:
+            time_played = clock.time_since_mark("game_begin")
+            # ...
+
+In the example, a round is started when the space key is pressed. Besides
+everything else that needs to happen to start the game, we remember when the
+game was started with ``clock.mark_time()``. We called the mark "game_begin" so
+that's what we need to use later again.
+
+When the round ends (when the opponent touches the player) we can then get the
+length of the round by calling ``clock.time_since_mark()`` with the name of the
+mark we set up before.
+
 ``clock`` provides the following useful methods:
 
 .. class:: Clock
@@ -861,6 +885,31 @@ referring to a time value and not a count of things.)
         it has been scheduled with ``schedule()`` and has not yet been called,
         or because it has been scheduled to repeat with
         ``schedule_interval()``.
+
+    .. method:: time()
+
+        Returns the total elapsed time since program start.
+
+    .. method:: mark_time(name)
+
+        Creates a record of the current elapsed time and saves it with the
+        given `name`. Use this to save when something happened in the game.
+
+        :param name: A string name for the time mark.
+
+    .. method:: get_mark_time(name)
+
+        Returns the timestamp that was saved under `name`. If the mark does not
+        exist (yet), returns ``None`` instead.
+
+        :param name: A string name for the time mark.
+
+    .. method:: time_since_mark(name)
+
+        Returns the time elapsed since the mark `name` was created. If the mark
+        does not exist (yet), returns ``None`` instead.
+
+        :param name: A string name for the time mark.
 
 
 Note that the Pygame Turbo clock only holds weak references to each callback
