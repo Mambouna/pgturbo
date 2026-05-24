@@ -101,12 +101,17 @@ class Clock:
         return self.t
 
     def get_mark_time(name):
-        """Get the time saved with a mark name."""
-        return self._marks[name]
+        """Get the time saved with a mark name or return None if it doesn't
+        exist."""
+        return self._marks.get(name)
 
     def time_since_mark(name):
-        """Get the elapsed time since a mark was made."""
-        return self.t - self._marks[name]
+        """Get the elapsed time since a mark was made or return None if it
+        doesn't exist."""
+        timestamp = self._marks.get(name)
+        if timestamp:
+            return self.t - timestamp
+        return None
 
     def clear(self):
         """Remove all handlers from this clock."""
