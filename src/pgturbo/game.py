@@ -148,7 +148,7 @@ class PGZeroGame:
 
     def load_handlers(self):
         from .spellcheck import spellcheck
-        spellcheck(vars(self.mod))
+        spellcheck(vars(self.mod), list(self.EVENT_HANDLERS.values()))
         self.handlers = {}
         for type, name in self.EVENT_HANDLERS.items():
             handler = getattr(self.mod, name, None)

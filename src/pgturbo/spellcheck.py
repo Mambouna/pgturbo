@@ -2,7 +2,6 @@ import re
 
 from operator import itemgetter
 
-from .game import PGZeroGame, positional_parameters
 from pygame import colordict
 
 
@@ -98,8 +97,6 @@ def check_color_name(color_str):
 
 # The list of hooks we support
 
-EVENT_HOOKS = list(PGZeroGame.EVENT_HANDLERS.values())
-
 HOOKS = [
     'draw',
     'update',
@@ -160,7 +157,7 @@ class SpellCheckResult:
         ))
 
 
-def spellcheck(namespace, result=SpellCheckResult()):
+def spellcheck(namespace, event_hooks, result=SpellCheckResult()):
     """Spell check the names in the given module.
 
     Where hooks are found, validate their positional parameters and offer
@@ -183,7 +180,7 @@ def spellcheck(namespace, result=SpellCheckResult()):
             found, suggestion
         )
 
-    typos, missing = compare(funcs, EVENT_HOOKS)
+    typos, missing = compare(funcs, event_hooks)
     maybe_hook = re.compile("on[A-Z_]")
     missing_hooks = [f for f in missing if re.match(maybe_hook, f)]
     result.warn_event_handlers(typos, missing_hooks)
@@ -202,7 +199,10 @@ def spellcheck(namespace, result=SpellCheckResult()):
         except KeyError:
             continue
         else:
-            param_names = positional_parameters(handler)
+            # Taken from game.positional_parameter to avoid circular import
+            # issues.
+            code = handler.__code__
+            param_names = code.co_varnames[:code.co_argcount]
             for param in param_names:
                 if param in valid:
                     continue
