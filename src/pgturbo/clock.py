@@ -89,10 +89,24 @@ class Clock:
         self.fired = False
         self.events = []
         self._each_tick = []
+        self._marks = {}
 
     def time(self):
         """Simple function to return the total elapsed time."""
         return self.t
+
+    def mark_time(name):
+        """Save a timestamp with a name for later. Also returns that time."""
+        self._marks[name] = self.t
+        return self.t
+
+    def get_mark_time(name):
+        """Get the time saved with a mark name."""
+        return self._marks[name]
+
+    def time_since_mark(name):
+        """Get the elapsed time since a mark was made."""
+        return self.t - self._marks[name]
 
     def clear(self):
         """Remove all handlers from this clock."""
@@ -198,6 +212,9 @@ class Clock:
 # One instance of a clock is available by default, to simplify the API
 clock = Clock()
 time = clock.time
+mark_time = clock.mark_time
+get_mark_time = clock.get_mark_time
+time_since_mark = clock.time_since_mark
 tick = clock.tick
 schedule = clock.schedule
 schedule_interval = clock.schedule_interval
