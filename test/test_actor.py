@@ -112,6 +112,128 @@ class ActorTest(unittest.TestCase):
             a.angle += 1.0
         self.assertEqual(a.pos, (100.0, 100.0))
 
+    def test_total_scale_number_no_scaling(self):
+        a = Actor("alien", (100, 100))
+        original_size = (a.width, a.height)
+        a.scale = 1
+        self.assertEqual((a.width, a.height) + a.pos, original_size + a.pos)
+
+    def test_total_scale_tuple_no_scaling(self):
+        a = Actor("alien", (100, 100))
+        original_size = (a.width, a.height)
+        a.scale = (1, 1)
+        self.assertEqual((a.width, a.height) + a.pos, original_size + a.pos)
+
+    def test_total_scale_number_scaling_down(self):
+        a = Actor("alien", (100, 100))
+        scale = 0.25
+        exp_size = (a.width * scale, a.height * scale)
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_tuple_scaling_down(self):
+        a = Actor("alien", (100, 100))
+        scale = (0.25, 0.25)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_number_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = 2.5
+        exp_size = (a.width * scale, a.height * scale)
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_tuple_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (2.5, 2.5)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_scaling_x_down(self):
+        a = Actor("alien", (100, 100))
+        scale = (0.25, 1.0)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_scaling_y_down(self):
+        a = Actor("alien", (100, 100))
+        scale = (1.0, 0.25)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_scaling_x_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (2.5, 1.0)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_scaling_y_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (1.0, 2.5)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_scaling_x_down_y_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (0.25, 2.5)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_total_scale_scaling_x_up_y_down(self):
+        a = Actor("alien", (100, 100))
+        scale = (2.5, 0.25)
+        exp_size = (a.width * scale[0], a.height * scale[1])
+        a.scale = scale
+        self.assertEqual((a.width, a.height) + a.pos, exp_size + a.pos)
+
+    def test_scale_x_no_scaling(self):
+        a = Actor("alien", (100, 100))
+        orig_size = (a.width, a.height)
+        a.scale_x = 1
+        self.assertEqual((a.width, a.height), orig_size)
+
+    def test_scale_x_scaling_down(self):
+        a = Actor("alien", (100, 100))
+        scale = 0.25
+        exp_size = (a.width * scale, a.height)
+        a.scale_x = scale
+        self.assertEqual((a.width, a.height), exp_size)
+
+    def test_scale_x_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = 2.5
+        exp_size = (a.width * scale, a.height)
+        a.scale_x = scale
+        self.assertEqual((a.width, a.height), exp_size)
+
+    def test_scale_y_no_scaling(self):
+        a = Actor("alien", (100, 100))
+        orig_size = (a.width, a.height)
+        a.scale_y = 1
+        self.assertEqual((a.width, a.height), orig_size)
+
+    def test_scale_y_scaling_down(self):
+        a = Actor("alien", (100, 100))
+        scale = 0.25
+        eyp_size = (a.width, a.height * scale)
+        a.scale_y = scale
+        self.assertEqual((a.width, a.height), eyp_size)
+
+    def test_scale_y_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = 2.5
+        eyp_size = (a.width, a.height * scale)
+        a.scale_y = scale
+        self.assertEqual((a.width, a.height), eyp_size)
+
     def test_opacity_default(self):
         """Ensure opacity is initially set to its default value."""
         a = Actor('alien')

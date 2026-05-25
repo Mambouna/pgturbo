@@ -49,7 +49,7 @@ ANCHOR_CENTER = None
 MAX_ALPHA = 255  # Based on pygame's max alpha.
 
 
-def transform_anchor(ax, ay, w, h, angle):
+def transform_anchor(ax, ay, w, h, angle, scale_x=1.0, scale_y=1.0):
     """Transform anchor based upon a rotation of a surface of size w x h."""
     theta = -radians(angle)
 
@@ -69,8 +69,8 @@ def transform_anchor(ax, ay, w, h, angle):
     ray = cax * sintheta + cay * costheta
 
     return (
-        tw * 0.5 + rax,
-        th * 0.5 + ray
+        (tw * 0.5 + rax) * scale_x,
+        (th * 0.5 + ray) * scale_y
     )
 
 
@@ -79,6 +79,20 @@ def _set_angle(actor, current_surface):
         # No changes required for default angle.
         return current_surface
     return pygame.transform.rotate(current_surface, actor._angle)
+
+
+def _set_scale(actor, current_surface):
+    if actor.scale_x == 1.0 and actor.scale_y == 1.0:
+        return current_surface
+    new_width = current_surface.get_width() * actor._scale_x
+    new_heigth = current_surface.get_heigth() * actor._scale_y
+    return pygame.transform.scale(current_surface, (new_width, new_height))
+
+
+def _set_flip(actor, current_surface):
+    if not actor._flip_x and not actor._flip_y:
+        return current_surface
+    return pygame.transform.flip(current_surface, actor._flip_x, actor._flip_y)
 
 
 def _set_opacity(actor, current_surface):
@@ -105,8 +119,12 @@ class Actor:
         a for a in dir(rect.ZRect) if not a.startswith("_")
     ]
 
-    function_order = [_set_opacity, _set_angle]
+    function_order = [_set_opacity, _set_scale, _set_flip, _set_angle]
     _anchor = _anchor_value = (0, 0)
+    _scale_x = 1.0
+    _scale_y = 1.0
+    _flip_x = False
+    _flip_y = False
     _angle = 0.0
     _opacity = 1.0
 
@@ -306,9 +324,26 @@ class Actor:
         ay = calculate_anchor(ay, 'y', oh)
         self._untransformed_anchor = ax, ay
         if self._angle == 0.0:
-            self._anchor = self._untransformed_anchor
+            temp = self._untransformed_anchor
+            self._anchor = (temp[0] * self._scale_x, temp[1] * self._scale_y)
         else:
-            self._anchor = transform_anchor(ax, ay, ow, oh, self._angle)
+            self._anchor = transform_anchor(ax, ay, ow, oh, self._angle,
+                                            self._scale_x, self._scale_y)
+
+    # This function has to be called when any property changes that affects
+    # the dimensions of the actor (angle and scale).
+    def _transform(self):
+        w, h = self._orig_surf.get_size()
+
+        ra = radians(self._angle)
+        sin_a = sin(ra)
+        cos_a = cos(ra)
+        self.width = (abs(w * cos_a) + abs(h * sin_a)) * self._scale_x
+        self.height = (abs(w * sin_a) + abs(h * cos_a)) * self._scale_y
+        ax, ay = self._untransformed_anchor
+        p = self.pos
+        self._anchor = transform_anchor(ax, ay, w, h, self._angle, self._scale_x, self._scale_y)
+        self.pos = p
 
     @property
     def angle(self):
@@ -318,19 +353,83 @@ class Actor:
     def angle(self, angle):
         # Keeps the angle between 0 and 359 degrees
         angle = angle % 360
+        if angle == self._angle:
+            return
         self._angle = angle
-        w, h = self._orig_surf.get_size()
-
-        ra = radians(angle)
-        sin_a = sin(ra)
-        cos_a = cos(ra)
-        self.height = abs(w * sin_a) + abs(h * cos_a)
-        self.width = abs(w * cos_a) + abs(h * sin_a)
-        ax, ay = self._untransformed_anchor
-        p = self.pos
-        self._anchor = transform_anchor(ax, ay, w, h, angle)
-        self.pos = p
+        self._transform()
         self._update_transform(_set_angle)
+
+    @property
+    def scale(self):
+        return (self._scale_x, self._scale_y)
+
+    @scale.setter
+    def scale(self, value):
+        if isinstance(value, (int, float)):
+            if value == self._scale_x and value == self._scale_y:
+                return
+            self._scale_x = value
+            self._scale_y = value
+        else:
+            try:
+                sx, sy = value
+                if sx == self._scale_x and sy == self._scale_y:
+                    return
+                self._scale_x = sx
+                self._scale_y = sy
+            except TypeError:
+                raise TypeError("Setting 'scale' for an actor can be done with"
+                                " a single integer or float value or a tuple "
+                                "of two numbers, not a " + str(type(value))
+                                + ".")
+        self._transform()
+        self._update_transform(_set_scale)
+
+    @property
+    def scale_x(self):
+        return self._scale_x
+
+    @scale_x.setter
+    def scale_x(self, value):
+        if value == self._scale_x:
+            return
+        self._scale_x = value
+        self._transform()
+        self._update_transform(_set_scale)
+
+    @property
+    def scale_y(self):
+        return self._scale_y
+
+    @scale_y.setter
+    def scale_y(self, value):
+        if value == self._scale_y:
+            return
+        self._scale_y = value
+        self._transform()
+        self._update_transform(_set_scale)
+
+    @property
+    def flip_x(self):
+        return self._flip_x
+
+    @flip_x.setter
+    def flip_x(self, value):
+        if value == self._flip_x:
+            return
+        self._flip_x = value
+        self._update_transform(_set_flip)
+
+    @property
+    def flip_y(self):
+        return self._flip_y
+
+    @flip_y.setter
+    def flip_y(self, value):
+        if value == self._flip_y:
+            return
+        self._flip_y = value
+        self._update_transform(_set_flip)
 
     @property
     def opacity(self):
