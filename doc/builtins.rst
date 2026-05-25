@@ -1037,6 +1037,48 @@ be floats or the strings ``left``, ``center``/``middle``, ``right``, ``top`` or
 ``bottom`` as appropriate.
 
 
+.. _scale:
+
+Scale
+'''''
+
+.. versionadded:: 1.5
+
+You can change the size of actors by setting the right properties::
+
+    alien = Actor("alien", (150, 150))
+    
+    def update():
+        if keyboard.space:
+            alien.scale = 2
+        else:
+            alien.scale = 1
+
+In the example, the "alien" actor will be twice as big whenever you hold the
+spacebar down on the keyboard. ``scale`` can be set to a single value like
+``2`` or ``0.5`` to change width and height to the same degree. Alternatively
+you can give ``scale`` a tuple like ``(0.5, 2)`` to make the actor half as wide
+and twice as tall. If you just want to control the size in one dimension, you
+can also just set ``actor.scale_x`` and ``actor.scale_y`` directly::
+
+    def update():
+        if keyboard.x:
+            alien.scale_x = 2
+        else:
+            alien.scale_x = 1
+
+        if keyboard.y:
+            alien.scale_y = 2
+        else:
+            alien.scale_y = 1
+
+When changing the dimension of actors, their image will grow or shrink around
+their anchor point and position. So if the anchor point is
+``("center", "bottom")`` and you scale an actor up, it will "grow" upwards. If
+the anchor point is centered the actor will grow in all directions
+proportionally.
+
+
 .. _rotation:
 
 Rotation

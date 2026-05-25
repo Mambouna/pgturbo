@@ -85,7 +85,7 @@ def _set_scale(actor, current_surface):
     if actor.scale_x == 1.0 and actor.scale_y == 1.0:
         return current_surface
     new_width = current_surface.get_width() * actor._scale_x
-    new_heigth = current_surface.get_heigth() * actor._scale_y
+    new_height = current_surface.get_height() * actor._scale_y
     return pygame.transform.scale(current_surface, (new_width, new_height))
 
 
