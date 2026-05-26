@@ -50,6 +50,8 @@ MAX_ALPHA = 255  # Based on pygame's max alpha.
 
 
 def transform_anchor(ax, ay, w, h, angle, scale_x=1.0, scale_y=1.0):
+    # ax, ay are the pivot coordinates in the original img itself?
+    # w, h are original image width and height
     """Transform anchor based upon a rotation of a surface of size w x h."""
     theta = -radians(angle)
 
@@ -82,15 +84,14 @@ def _set_angle(actor, current_surface):
 
 
 def _set_scale(actor, current_surface):
-    if actor.scale_x == 1.0 and actor.scale_y == 1.0:
+    if actor._scale_x == 1.0 and actor._scale_y == 1.0:
         return current_surface
-    new_width = current_surface.get_width() * actor._scale_x
-    new_height = current_surface.get_height() * actor._scale_y
-    return pygame.transform.scale(current_surface, (new_width, new_height))
+    return pygame.transform.scale_by(current_surface,
+                                     (actor._scale_x, actor._scale_y))
 
 
 def _set_flip(actor, current_surface):
-    if not actor._flip_x and not actor._flip_y:
+    if (not actor._flip_x) and (not actor._flip_y):
         return current_surface
     return pygame.transform.flip(current_surface, actor._flip_x, actor._flip_y)
 
@@ -319,14 +320,18 @@ class Actor:
 
     def _calc_anchor(self):
         ax, ay = self._anchor_value
-        ow, oh = self._orig_surf.get_size()
-        ax = calculate_anchor(ax, 'x', ow)
+        ow, oh = self._orig_surf.get_size() # width and height of original
+        ax = calculate_anchor(ax, 'x', ow) # Pixel position of anchor in img
         ay = calculate_anchor(ay, 'y', oh)
-        self._untransformed_anchor = ax, ay
-        if self._angle == 0.0:
+        self._untransformed_anchor = ax, ay # Anchor points before any ops
+        if self._angle == 0.0: # If we don't rotate...
             temp = self._untransformed_anchor
+            # Scale anchor with given scale
             self._anchor = (temp[0] * self._scale_x, temp[1] * self._scale_y)
         else:
+            #self._anchor = tuple(pygame.math.Vector2(self._anchor).rotate(-1 * self._angle))
+            # THIS SEEMS TO WORK AS THE RESULT STAYS THE SAME WHEN SUBSTITUTING
+            # PYGAMES OWN VECTOR ROTATION?
             self._anchor = transform_anchor(ax, ay, ow, oh, self._angle,
                                             self._scale_x, self._scale_y)
 
@@ -342,7 +347,8 @@ class Actor:
         self.height = (abs(w * sin_a) + abs(h * cos_a)) * self._scale_y
         ax, ay = self._untransformed_anchor
         p = self.pos
-        self._anchor = transform_anchor(ax, ay, w, h, self._angle, self._scale_x, self._scale_y)
+        self._anchor = transform_anchor(ax, ay, w, h, self._angle,
+                                        self._scale_x, self._scale_y)
         self.pos = p
 
     @property
@@ -546,6 +552,8 @@ class Actor:
 
     def draw(self):
         s = self._build_transformed_surf()
+        # Uncomment next line to draw bounding boxes for actors.
+        #pygame.draw.rect(s, (0,255,0), ((0, 0),(s.width, s.height)), 1)
         game.screen.blit(s, self.topleft)
 
     def angle_to(self, target):
