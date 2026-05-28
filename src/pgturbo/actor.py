@@ -49,7 +49,7 @@ ANCHOR_CENTER = None
 MAX_ALPHA = 255  # Based on pygame's max alpha.
 
 
-def transform_anchor(ax, ay, w, h, angle, scale_x=1.0, scale_y=1.0):
+def transform_anchor(ax, ay, w, h, angle, scale_x, scale_y):
     """Transform anchor based upon a rotation of a surface of size w x h."""
     theta = -radians(angle)
 
@@ -73,8 +73,8 @@ def transform_anchor(ax, ay, w, h, angle, scale_x=1.0, scale_y=1.0):
     ray = cax * sintheta + cay * costheta
 
     return (
-        (tw * 0.5 + rax),
-        (th * 0.5 + ray)
+        tw * 0.5 + rax,
+        th * 0.5 + ray
     )
 
 
@@ -322,18 +322,15 @@ class Actor:
 
     def _calc_anchor(self):
         ax, ay = self._anchor_value
-        ow, oh = self._orig_surf.get_size() # width and height of original
-        ax = calculate_anchor(ax, 'x', ow) # Pixel position of anchor in img
+        ow, oh = self._orig_surf.get_size()
+        ax = calculate_anchor(ax, 'x', ow)
         ay = calculate_anchor(ay, 'y', oh)
-        self._untransformed_anchor = ax, ay # Anchor points before any ops
-        if self._angle == 0.0: # If we don't rotate...
-            temp = self._untransformed_anchor
-            # Scale anchor with given scale
-            self._anchor = (temp[0] * self._scale_x, temp[1] * self._scale_y)
+        self._untransformed_anchor = ax, ay
+        if self._angle == 0.0:
+            u_anchor = self._untransformed_anchor
+            self._anchor = (u_anchor[0] * self._scale_x,
+                            u_anchor[1] * self._scale_y)
         else:
-            #self._anchor = tuple(pygame.math.Vector2(self._anchor).rotate(-1 * self._angle))
-            # THIS SEEMS TO WORK AS THE RESULT STAYS THE SAME WHEN SUBSTITUTING
-            # PYGAMES OWN VECTOR ROTATION?
             self._anchor = transform_anchor(ax, ay, ow, oh, self._angle,
                                             self._scale_x, self._scale_y)
 

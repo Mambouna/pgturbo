@@ -1047,7 +1047,7 @@ Scale
 You can change the size of actors by setting the right properties::
 
     alien = Actor("alien", (150, 150))
-    
+
     def update():
         if keyboard.space:
             alien.scale = 2
