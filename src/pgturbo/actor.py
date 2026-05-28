@@ -682,6 +682,51 @@ class Actor:
         # Since Vector2s aren't used in pgturbo directly, return as a tuple.
         return tuple(intercept_vec)
 
+    # TODO: Methods work but not when actors are rotated.
+    def flip_x_over_anchor(self):
+        """Flip the actor image and move it so that the resulting image is
+        mirrored across the anchor position along the X axis."""
+        self.flip_x = not self._flip_x
+        current_anchor_x, current_anchor_y = self.anchor
+        if isinstance(current_anchor_x, str):
+            match current_anchor_x:
+                case "left":
+                    new_anchor_x = "right"
+                    move_by = -1 * self.width
+                case "right":
+                    new_anchor_x = "left"
+                    move_by = self.width
+                case _:
+                    new_anchor_x = "center"
+                    move_by = 0
+        else:
+            new_anchor_x = abs(current_anchor_x - self.width)
+            move_by = current_anchor_x * 2 - self.width
+        self.x += move_by
+        self.anchor = (new_anchor_x, current_anchor_y)
+
+    def flip_y_over_anchor(self):
+        """Flip the actor image and move it so that the resulting image is
+        mirrored across the anchor position along the Y axis."""
+        self.flip_y = not self._flip_y
+        current_anchor_x, current_anchor_y = self.anchor
+        if isinstance(current_anchor_y, str):
+            match current_anchor_y:
+                case "top":
+                    new_anchor_y = "bottom"
+                    move_by = -1 * self.height
+                case "bottom":
+                    new_anchor_y = "top"
+                    move_by = self.height
+                case _:
+                    new_anchor_y = "center"
+                    move_by = 0
+        else:
+            new_anchor_y = abs(current_anchor_y - self.height)
+            move_by = current_anchor_y * 2 - self.height
+        self.y += move_by
+        self.anchor = (current_anchor_x, new_anchor_y)
+
     def _create_mask(self):
         """Gives the actor a mask from the surface that is displayed."""
         if not self._surface_cache:
