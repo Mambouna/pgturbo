@@ -50,10 +50,13 @@ New features
 * A proper ``mouse`` builtin to get the state of different mouse properties
   like positions, relative movements, state of buttons being pressed and
   more. Also allows changing of visibility, cursor shape and others.
-* Easy to use and feature rich controller support making coding games with controller controls easy while also allowing multiple controllers for multiplayer support with simple interfaces.
+* Easy to use and feature rich controller support making coding games with
+  controller controls easy while also allowing multiple controllers for
+  multiplayer support with simple interfaces.
 * Convenience functions for ``clock`` that allow checking total elapsed time
   and saving timestamps with names and checking them / time elapsed since their
   creation.
+* Scaling actors and flipping their images both independently for X and Y.
 
 
 Feature enhancements
