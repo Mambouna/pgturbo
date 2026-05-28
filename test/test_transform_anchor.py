@@ -81,7 +81,7 @@ class TransformAnchorTest(TestCase):
             (12.5 * root2, 12.5 * root2)
         )
 
-    def test_45deg_scale_total_up(self):
+    def test_45deg_scale_total_down(self):
         assertVecEqual(
             transform_anchor(5, 5, 10, 10, 45, 0.25, 0.25),
             (1.25 * root2, 1.25 * root2)
