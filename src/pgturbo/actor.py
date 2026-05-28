@@ -50,29 +50,31 @@ MAX_ALPHA = 255  # Based on pygame's max alpha.
 
 
 def transform_anchor(ax, ay, w, h, angle, scale_x=1.0, scale_y=1.0):
-    # ax, ay are the pivot coordinates in the original img itself?
-    # w, h are original image width and height
     """Transform anchor based upon a rotation of a surface of size w x h."""
     theta = -radians(angle)
 
     sintheta = sin(theta)
     costheta = cos(theta)
 
-    # Dims of the transformed rect
-    tw = abs(w * costheta) + abs(h * sintheta)
-    th = abs(w * sintheta) + abs(h * costheta)
+    # Width and height of the original after scaling is applied.
+    sw = w * scale_x
+    sh = h * scale_y
 
-    # Offset of the anchor from the center
-    cax = ax - w * 0.5
-    cay = ay - h * 0.5
+    # Width and height of the bounding box after the scaled rect rotation.
+    tw = abs(sw * costheta) + abs(sh * sintheta)
+    th = abs(sw * sintheta) + abs(sh * costheta)
+
+    # Offset of the anchor from the center taking scaling into account.
+    cax = (ax - w * 0.5) * scale_x
+    cay = (ay - h * 0.5) * scale_y
 
     # Rotated offset of the anchor from the center
     rax = cax * costheta - cay * sintheta
     ray = cax * sintheta + cay * costheta
 
     return (
-        (tw * 0.5 + rax) * scale_x,
-        (th * 0.5 + ray) * scale_y
+        (tw * 0.5 + rax),
+        (th * 0.5 + ray)
     )
 
 
@@ -335,20 +337,30 @@ class Actor:
             self._anchor = transform_anchor(ax, ay, ow, oh, self._angle,
                                             self._scale_x, self._scale_y)
 
-    # This function has to be called when any property changes that affects
-    # the dimensions of the actor (angle and scale).
+    # Calculates the new width and height of the actors bounding box and then
+    # recalculates the proper anchor position for the new dimensions, resetting
+    # the position afterwards to realign the image properly.
     def _transform(self):
         w, h = self._orig_surf.get_size()
+        # Scale the dimensions of the original surface.
+        sw = w * self._scale_x
+        sh = h * self._scale_y
 
         ra = radians(self._angle)
         sin_a = sin(ra)
         cos_a = cos(ra)
-        self.width = (abs(w * cos_a) + abs(h * sin_a)) * self._scale_x
-        self.height = (abs(w * sin_a) + abs(h * cos_a)) * self._scale_y
+        # Get the dimensions of the new bounding box after scale and rotation.
+        self.width = abs(sw * cos_a) + abs(sh * sin_a)
+        self.height = abs(sw * sin_a) + abs(sh * cos_a)
+        # Anchor coordinates without any scaling or rotating done.
         ax, ay = self._untransformed_anchor
+        # Remember the current position.
         p = self.pos
+        # Calculate the actual anchor offset for the new dimensions.
         self._anchor = transform_anchor(ax, ay, w, h, self._angle,
                                         self._scale_x, self._scale_y)
+        # After anchor has changed, we set pos again to calculate the new
+        # topleft position with the new anchor values.
         self.pos = p
 
     @property
@@ -552,8 +564,6 @@ class Actor:
 
     def draw(self):
         s = self._build_transformed_surf()
-        # Uncomment next line to draw bounding boxes for actors.
-        #pygame.draw.rect(s, (0,255,0), ((0, 0),(s.width, s.height)), 1)
         game.screen.blit(s, self.topleft)
 
     def angle_to(self, target):
