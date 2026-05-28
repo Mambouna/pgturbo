@@ -1079,6 +1079,37 @@ the anchor point is centered the actor will grow in all directions
 proportionally.
 
 
+.. _flipping:
+
+Flipping
+''''''''
+
+.. versionadded:: 1.5
+
+Besides scaling actors up and down, we can also flip the actor image along the
+X- and/or Y-axis. Simply set the ``flip_x`` and ``flip_y`` properties to
+``True`` to do so or ``False`` to set the image to the normal orientation::
+
+    alien = Actor("alien", (150, 200))
+    alien.flip_y = True
+
+If you just want to change whatever the current value is to the other one
+(either going from not flipped to flipped or the other way around) you can use
+the following code: ``player.flip_x = not player.flip_x``. The ``not`` keyword
+combined with getting the current value means you will always make the flipped
+state switch to whatever it is not currently on.
+
+Flipping via the properties doesn't move an actor image at all. If for example
+you have an actor with their anchor centered on the bottom and you want to
+"flip" it so that the actor ends up "hanging" upside down, you need to flip the
+image, change the anchor and move the actor by its height to fit::
+
+    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
+    alien.flip_y = True
+    alien.anchor = ("center", "top")
+    alien.y += alien.height
+
+
 .. _rotation:
 
 Rotation

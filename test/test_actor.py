@@ -425,6 +425,40 @@ class ActorTest(unittest.TestCase):
         self.assertAlmostEqual(a.left, 63.58, delta=0.02)
         self.assertAlmostEqual(a.top, 59.92, delta=0.02)
 
+    def test_get_default_flip_state(self):
+        """Actors start with not flipped images and we can get flip states."""
+        a = Actor("alien", (100, 100))
+        self.assertFalse(a.flip_x)
+        self.assertFalse(a.flip_y)
+
+    def test_set_flip_x(self):
+        """We can flip actors via parameters and flipping one dimension
+        does not flip the other."""
+        a = Actor("alien", (100, 100))
+        a.flip_x = True
+        self.assertTrue(a._flip_x)
+        self.assertFalse(a._flip_y)
+
+    def test_set_flip_y(self):
+        a = Actor("alien", (100, 100))
+        a.flip_y = True
+        self.assertTrue(a._flip_y)
+        self.assertFalse(a._flip_x)
+
+    def test_flip_dimensions_x(self):
+        """Flipping along X does not change any image dimensions."""
+        a = Actor("alien", (100, 100))
+        a.flip_x = True
+        self.assertEqual(a.width, 66)
+        self.assertEqual(a.height, 92)
+
+    def test_flip_dimensions_y(self):
+        """Flipping along Y does not change any image dimensions."""
+        a = Actor("alien", (100, 100))
+        a.flip_y = True
+        self.assertEqual(a.width, 66)
+        self.assertEqual(a.height, 92)
+
     def test_opacity_default(self):
         """Ensure opacity is initially set to its default value."""
         a = Actor('alien')
