@@ -349,7 +349,11 @@ class Actor:
         cos_a = cos(ra)
         # Get the dimensions of the new bounding box after scale and rotation.
         self._width = abs(sw * cos_a) + abs(sh * sin_a)
+        # We need to set the internal rect as well when total dimensions
+        # change as width and height are now properties on actor as well.
+        setattr(self._rect, "width", self._width)
         self._height = abs(sw * sin_a) + abs(sh * cos_a)
+        setattr(self._rect, "height", self._height)
         # Anchor coordinates without any scaling or rotating done.
         ax, ay = self._untransformed_anchor
         # Remember the current position.
