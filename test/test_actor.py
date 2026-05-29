@@ -459,6 +459,50 @@ class ActorTest(unittest.TestCase):
         self.assertEqual(a.width, 66)
         self.assertEqual(a.height, 92)
 
+    def test_flip_x_over_anchor_string(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. String anchors are correctly changed."""
+        a = Actor("alien", (100, 100), anchor=("left", "bottom"))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_x_over_anchor()
+        self.assertTrue(a.flip_x)
+        self.assertEqual(a.anchor, ("right", "bottom"))
+        self.assertEqual(a.topleft, (orig_left - a.width, orig_top))
+
+    def test_flip_y_over_anchor_string(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. String anchors are correctly changed."""
+        a = Actor("alien", (100, 100), anchor=("left", "bottom"))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_y_over_anchor()
+        self.assertTrue(a.flip_y)
+        self.assertEqual(a.anchor, ("left", "top"))
+        self.assertEqual(a.topleft, (orig_left, orig_top + a.height))
+
+    def test_flip_x_over_anchor_int(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. New integer anchors are correctly calculated."""
+        a = Actor("alien", (100, 100), anchor=(15, 15))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_x_over_anchor()
+        self.assertTrue(a.flip_x)
+        self.assertEqual(a.anchor, (51, 15))
+        self.assertEqual(a.topleft, (orig_left + 30 - a.width, orig_top))
+
+    def test_flip_y_over_anchor_int(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. New integer anchors are correctly calculated."""
+        a = Actor("alien", (100, 100), anchor=(15, 15))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_y_over_anchor()
+        self.assertTrue(a.flip_y)
+        self.assertEqual(a.anchor, (15, 77))
+        self.assertEqual(a.topleft, (orig_left, orig_top + 30 - a.height))
+
     def test_opacity_default(self):
         """Ensure opacity is initially set to its default value."""
         a = Actor('alien')
