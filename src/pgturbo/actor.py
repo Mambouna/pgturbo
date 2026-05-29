@@ -119,8 +119,8 @@ def _set_opacity(actor, current_surface):
 class Actor:
     EXPECTED_INIT_KWARGS = SYMBOLIC_POSITIONS
     DELEGATED_ATTRIBUTES = [
-        a for a in dir(rect.ZRect) if not a.startswith("_")
-                                      and a not in ("width", "height")
+        a for a in dir(rect.ZRect) if (not a.startswith("_")
+                                       and a not in ("width", "height"))
     ]
 
     function_order = [_set_opacity, _set_scale, _set_flip, _set_angle]
