@@ -1079,6 +1079,36 @@ the anchor point is centered the actor will grow in all directions
 proportionally.
 
 
+.. _width_and_height:
+
+Width and height
+''''''''''''''''
+
+.. versionadded:: 1.5
+
+Another way to control the size of an actor is to set its ``width`` and
+``height`` properties, which also automatically updates the scale properties
+so that both pixel dimensions and relative size are synchronized properly.
+As an example, let us stretch an actor while holding down a key::
+
+    def update():
+        if keyboard.space:
+            alien.width += 2
+
+These properties always return and set the dimensions of the actor image at its
+current size. When an actor is rotated however, the width and height it
+occupies in total is bigger than just the image. If you want to know how much
+distance an actor covers in total in the X- or Y-axis while rotated, use these
+properties instead::
+
+    alien.angle = 60
+    total_height = alien.bounding_height
+    total_width = alien.bounding_width
+
+While an actor is not rotated, these are both the same as the normal ``width``
+and ``height`` properties.
+
+
 .. _flipping:
 
 Flipping
@@ -1133,7 +1163,9 @@ degrees, anticlockwise (counterclockwise).
 
 The centre of rotation is the Actor's :ref:`anchor point <anchor>`.
 
-Note that this will change the ``width`` and ``height`` of the Actor.
+Note that this will change the ``bounding_width`` and ``bounding_height`` of
+the Actor. These properties report the width and height of the bounding box
+containing the actor and cannot be set manually.
 
 For example, to make an asteroid sprite spinning slowly anticlockwise in
 space::
