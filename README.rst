@@ -56,7 +56,6 @@ New features
 * Convenience functions for ``clock`` that allow checking total elapsed time
   and saving timestamps with names and checking them / time elapsed since their
   creation.
-* Scaling actors and flipping their images both independently for X and Y.
 
 
 Feature enhancements
@@ -64,6 +63,7 @@ Feature enhancements
 
 * Pixel perfect collision check between two actors via
   ``actor1.collidemask(actor2)``.
+* Scaling actors and flipping their images both independently for X and Y.
 * Angle and target-based movement functions for Actors, similar to what is
   possible in Scratch and other environments.
 * Velocity property and movement function for Actors that only move in
