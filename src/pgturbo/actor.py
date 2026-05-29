@@ -120,6 +120,7 @@ class Actor:
     EXPECTED_INIT_KWARGS = SYMBOLIC_POSITIONS
     DELEGATED_ATTRIBUTES = [
         a for a in dir(rect.ZRect) if not a.startswith("_")
+                                      and a not in ("width", "height")
     ]
 
     function_order = [_set_opacity, _set_scale, _set_flip, _set_angle]
@@ -347,8 +348,8 @@ class Actor:
         sin_a = sin(ra)
         cos_a = cos(ra)
         # Get the dimensions of the new bounding box after scale and rotation.
-        self.width = abs(sw * cos_a) + abs(sh * sin_a)
-        self.height = abs(sw * sin_a) + abs(sh * cos_a)
+        self._width = abs(sw * cos_a) + abs(sh * sin_a)
+        self._height = abs(sw * sin_a) + abs(sh * cos_a)
         # Anchor coordinates without any scaling or rotating done.
         ax, ay = self._untransformed_anchor
         # Remember the current position.
@@ -477,6 +478,34 @@ class Actor:
         px, py = pos
         ax, ay = self._anchor
         self.topleft = px - ax, py - ay
+
+    @property
+    def width(self):
+        return self._orig_surf.width * self._scale_x
+
+    @width.setter
+    def width(self, value):
+        if value < 0:
+            raise ValueError("Width cannot be set to negative values.")
+        self.scale_x = value / self._orig_surf.width
+
+    @property
+    def height(self):
+        return self._orig_surf.height * self._scale_y
+
+    @height.setter
+    def height(self, value):
+        if value < 0:
+            raise ValueError("Height cannot be set to negative values.")
+        self.scale_y = value / self._orig_surf.height
+
+    @property
+    def bounding_width(self):
+        return self._width
+
+    @property
+    def bounding_height(self):
+        return self._height
 
     def rect(self):
         """Get a copy of the actor's rect object.
@@ -722,7 +751,7 @@ class Actor:
                     new_anchor_x = "center"
         # Otherwise we just calculate the new anchor position.
         else:
-            new_anchor_x = abs(current_anchor_x - self.width)
+            new_anchor_x = abs(current_anchor_x - self._width)
         # Set the new anchor position (this moves the pos value of the actor).
         self.anchor = (new_anchor_x, current_anchor_y)
         # By setting pos to what we remembered before we move the image
@@ -747,7 +776,7 @@ class Actor:
                 case _:
                     new_anchor_y = "center"
         else:
-            new_anchor_y = abs(current_anchor_y - self.height)
+            new_anchor_y = abs(current_anchor_y - self._height)
         self.anchor = (current_anchor_x, new_anchor_y)
         self.pos = p
         self._restore_scale_and_rotation_from_store()
