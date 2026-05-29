@@ -5,15 +5,8 @@ This changelog tracks changes to Pygame Turbo. For the changelog of the
 original Pygame Zero, check below.
 
 
-1.3.5 - 2025-09-23
-------------------
-
-This was the initial fork from Pygame Zero with different PRs being
-integrated to create the first state of Pygame Turbo.
-
-Since Turbo was forked from Pygame Zero during its unreleased version 1.3
-stage, its version numbering starts from 1.3.5 to avoid confusion.
-
+Running overview
+----------------
 
 New features
 ''''''''''''
@@ -21,6 +14,12 @@ New features
 * A proper ``mouse`` builtin to get the state of different mouse properties
   like positions, relative movements, state of buttons being pressed and
   more. Also allows changing of visibility, cursor shape and others.
+* Easy to use and feature rich controller support making coding games with
+  controller controls easy while also allowing multiple controllers for
+  multiplayer support with simple interfaces.
+* Convenience functions for ``clock`` that allow checking total elapsed time
+  and saving timestamps with names and checking them / time elapsed since their
+  creation.
 
 
 Feature enhancements
@@ -28,6 +27,10 @@ Feature enhancements
 
 * Pixel perfect collision check between two actors via
   ``actor1.collidemask(actor2)``.
+* Scaling actors and flipping their images both independently for X and Y.
+* ``width`` and ``height`` are now proper gettable and settable properties for
+  actors. Alternative properties allow reading the dimensions of the actors
+  bounding box when rotated.
 * Angle and target-based movement functions for Actors, similar to what is
   possible in Scratch and other environments.
 * Velocity property and movement function for Actors that only move in
@@ -39,14 +42,68 @@ Feature enhancements
   ``Actor.Triangle(width, height, color)``.
 * Function to check if an actor is currently withing the screen bounds:
   ``.is_onscreen()``.
+* More understandable error reporting for wrong positional values.
+* String color names are spellchecked to make fixing typos easier.
 
 
 Bug fixes
 '''''''''
 
 * Fixed ``music.is_playing()`` requiring an argument.
-* Made actor ``width`` and ``height`` read-only properties while no solution
-  for scaling actors is implemented.
+* Fixed a bug where creating actors outside of functions in IDE mode (importing
+  ``pgtrun`` and using ``pgtrun.go()`` at the end of the game file led to a
+  crash because no display was initialized when image operations are performed
+  by PGTurbo.
+
+
+Dependencies
+''''''''''''
+
+* Switched the base dependency from ``pygame`` to ``pygame-ce`` as it is being
+  developed more actively and causes fewer installation problems.
+* Removed the dependency on ``pyfxr`` for tone synthesis. The same
+  functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.5.0 - 2026-05-29
+------------------
+
+Added scaling and flipping support as well as making width and height proper
+settable properties.
+
+
+1.4.3 - 2026-05-24
+------------------
+
+New clock functions around elapsed time.
+
+
+1.4.2 - 2026-05-22
+------------------
+
+Better positional errors for actor creation.
+
+
+1.4.1 - 2026-05-20
+------------------
+
+Fixed a crash in IDE mode when creating actors at the start of the file.
+
+
+1.4.0 - 2026-05-19
+------------------
+
+Removed dependency on pyfxr and switched dependency on pygame to pygame-ce.
+
+
+1.3.5 - 2025-09-23
+------------------
+
+This was the initial fork from Pygame Zero with different PRs being
+integrated to create the first state of Pygame Turbo.
+
+Since Turbo was forked from Pygame Zero during its unreleased version 1.3
+stage, its version numbering starts from 1.3.5 to avoid confusion.
 
 
 Pygame Zero Changelog

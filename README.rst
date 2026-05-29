@@ -64,6 +64,9 @@ Feature enhancements
 * Pixel perfect collision check between two actors via
   ``actor1.collidemask(actor2)``.
 * Scaling actors and flipping their images both independently for X and Y.
+* ``width`` and ``height`` are now proper gettable and settable properties for
+  actors. Alternative properties allow reading the dimensions of the actors
+  bounding box when rotated.
 * Angle and target-based movement functions for Actors, similar to what is
   possible in Scratch and other environments.
 * Velocity property and movement function for Actors that only move in
@@ -83,12 +86,11 @@ Bug fixes
 '''''''''
 
 * Fixed ``music.is_playing()`` requiring an argument.
-* Made actor ``width`` and ``height`` read-only properties while no solution
-  for scaling actors is implemented.
 * Fixed a bug where creating actors outside of functions in IDE mode (importing
   ``pgtrun`` and using ``pgtrun.go()`` at the end of the game file led to a
   crash because no display was initialized when image operations are performed
   by PGTurbo.
+
 
 Dependencies
 ''''''''''''
