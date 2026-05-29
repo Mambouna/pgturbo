@@ -49,20 +49,24 @@ ANCHOR_CENTER = None
 MAX_ALPHA = 255  # Based on pygame's max alpha.
 
 
-def transform_anchor(ax, ay, w, h, angle):
+def transform_anchor(ax, ay, w, h, angle, scale_x, scale_y):
     """Transform anchor based upon a rotation of a surface of size w x h."""
     theta = -radians(angle)
 
     sintheta = sin(theta)
     costheta = cos(theta)
 
-    # Dims of the transformed rect
-    tw = abs(w * costheta) + abs(h * sintheta)
-    th = abs(w * sintheta) + abs(h * costheta)
+    # Width and height of the original after scaling is applied.
+    sw = w * scale_x
+    sh = h * scale_y
 
-    # Offset of the anchor from the center
-    cax = ax - w * 0.5
-    cay = ay - h * 0.5
+    # Width and height of the bounding box after the scaled rect rotation.
+    tw = abs(sw * costheta) + abs(sh * sintheta)
+    th = abs(sw * sintheta) + abs(sh * costheta)
+
+    # Offset of the anchor from the center taking scaling into account.
+    cax = (ax - w * 0.5) * scale_x
+    cay = (ay - h * 0.5) * scale_y
 
     # Rotated offset of the anchor from the center
     rax = cax * costheta - cay * sintheta
@@ -79,6 +83,19 @@ def _set_angle(actor, current_surface):
         # No changes required for default angle.
         return current_surface
     return pygame.transform.rotate(current_surface, actor._angle)
+
+
+def _set_scale(actor, current_surface):
+    if actor._scale_x == 1.0 and actor._scale_y == 1.0:
+        return current_surface
+    return pygame.transform.scale_by(current_surface,
+                                     (actor._scale_x, actor._scale_y))
+
+
+def _set_flip(actor, current_surface):
+    if (not actor._flip_x) and (not actor._flip_y):
+        return current_surface
+    return pygame.transform.flip(current_surface, actor._flip_x, actor._flip_y)
 
 
 def _set_opacity(actor, current_surface):
@@ -102,11 +119,16 @@ def _set_opacity(actor, current_surface):
 class Actor:
     EXPECTED_INIT_KWARGS = SYMBOLIC_POSITIONS
     DELEGATED_ATTRIBUTES = [
-        a for a in dir(rect.ZRect) if not a.startswith("_")
+        a for a in dir(rect.ZRect) if (not a.startswith("_")
+                                       and a not in ("width", "height"))
     ]
 
-    function_order = [_set_opacity, _set_angle]
+    function_order = [_set_opacity, _set_scale, _set_flip, _set_angle]
     _anchor = _anchor_value = (0, 0)
+    _scale_x = 1.0
+    _scale_y = 1.0
+    _flip_x = False
+    _flip_y = False
     _angle = 0.0
     _opacity = 1.0
 
@@ -306,9 +328,42 @@ class Actor:
         ay = calculate_anchor(ay, 'y', oh)
         self._untransformed_anchor = ax, ay
         if self._angle == 0.0:
-            self._anchor = self._untransformed_anchor
+            u_anchor = self._untransformed_anchor
+            self._anchor = (u_anchor[0] * self._scale_x,
+                            u_anchor[1] * self._scale_y)
         else:
-            self._anchor = transform_anchor(ax, ay, ow, oh, self._angle)
+            self._anchor = transform_anchor(ax, ay, ow, oh, self._angle,
+                                            self._scale_x, self._scale_y)
+
+    # Calculates the new width and height of the actors bounding box and then
+    # recalculates the proper anchor position for the new dimensions, resetting
+    # the position afterwards to realign the image properly.
+    def _transform(self):
+        w, h = self._orig_surf.get_size()
+        # Scale the dimensions of the original surface.
+        sw = w * self._scale_x
+        sh = h * self._scale_y
+
+        ra = radians(self._angle)
+        sin_a = sin(ra)
+        cos_a = cos(ra)
+        # Get the dimensions of the new bounding box after scale and rotation.
+        self._width = abs(sw * cos_a) + abs(sh * sin_a)
+        # We need to set the internal rect as well when total dimensions
+        # change as width and height are now properties on actor as well.
+        setattr(self._rect, "width", self._width)
+        self._height = abs(sw * sin_a) + abs(sh * cos_a)
+        setattr(self._rect, "height", self._height)
+        # Anchor coordinates without any scaling or rotating done.
+        ax, ay = self._untransformed_anchor
+        # Remember the current position.
+        p = self.pos
+        # Calculate the actual anchor offset for the new dimensions.
+        self._anchor = transform_anchor(ax, ay, w, h, self._angle,
+                                        self._scale_x, self._scale_y)
+        # After anchor has changed, we set pos again to calculate the new
+        # topleft position with the new anchor values.
+        self.pos = p
 
     @property
     def angle(self):
@@ -318,19 +373,83 @@ class Actor:
     def angle(self, angle):
         # Keeps the angle between 0 and 359 degrees
         angle = angle % 360
+        if angle == self._angle:
+            return
         self._angle = angle
-        w, h = self._orig_surf.get_size()
-
-        ra = radians(angle)
-        sin_a = sin(ra)
-        cos_a = cos(ra)
-        self.height = abs(w * sin_a) + abs(h * cos_a)
-        self.width = abs(w * cos_a) + abs(h * sin_a)
-        ax, ay = self._untransformed_anchor
-        p = self.pos
-        self._anchor = transform_anchor(ax, ay, w, h, angle)
-        self.pos = p
+        self._transform()
         self._update_transform(_set_angle)
+
+    @property
+    def scale(self):
+        return (self._scale_x, self._scale_y)
+
+    @scale.setter
+    def scale(self, value):
+        if isinstance(value, (int, float)):
+            if value == self._scale_x and value == self._scale_y:
+                return
+            self._scale_x = value
+            self._scale_y = value
+        else:
+            try:
+                sx, sy = value
+                if sx == self._scale_x and sy == self._scale_y:
+                    return
+                self._scale_x = sx
+                self._scale_y = sy
+            except TypeError:
+                raise TypeError("Setting 'scale' for an actor can be done with"
+                                " a single integer or float value or a tuple "
+                                "of two numbers, not a " + str(type(value))
+                                + ".")
+        self._transform()
+        self._update_transform(_set_scale)
+
+    @property
+    def scale_x(self):
+        return self._scale_x
+
+    @scale_x.setter
+    def scale_x(self, value):
+        if value == self._scale_x:
+            return
+        self._scale_x = value
+        self._transform()
+        self._update_transform(_set_scale)
+
+    @property
+    def scale_y(self):
+        return self._scale_y
+
+    @scale_y.setter
+    def scale_y(self, value):
+        if value == self._scale_y:
+            return
+        self._scale_y = value
+        self._transform()
+        self._update_transform(_set_scale)
+
+    @property
+    def flip_x(self):
+        return self._flip_x
+
+    @flip_x.setter
+    def flip_x(self, value):
+        if value == self._flip_x:
+            return
+        self._flip_x = value
+        self._update_transform(_set_flip)
+
+    @property
+    def flip_y(self):
+        return self._flip_y
+
+    @flip_y.setter
+    def flip_y(self, value):
+        if value == self._flip_y:
+            return
+        self._flip_y = value
+        self._update_transform(_set_flip)
 
     @property
     def opacity(self):
@@ -363,6 +482,34 @@ class Actor:
         px, py = pos
         ax, ay = self._anchor
         self.topleft = px - ax, py - ay
+
+    @property
+    def width(self):
+        return self._orig_surf.width * self._scale_x
+
+    @width.setter
+    def width(self, value):
+        if value < 0:
+            raise ValueError("Width cannot be set to negative values.")
+        self.scale_x = value / self._orig_surf.width
+
+    @property
+    def height(self):
+        return self._orig_surf.height * self._scale_y
+
+    @height.setter
+    def height(self, value):
+        if value < 0:
+            raise ValueError("Height cannot be set to negative values.")
+        self.scale_y = value / self._orig_surf.height
+
+    @property
+    def bounding_width(self):
+        return self._width
+
+    @property
+    def bounding_height(self):
+        return self._height
 
     def rect(self):
         """Get a copy of the actor's rect object.
@@ -437,12 +584,14 @@ class Actor:
         self._orig_surf = loaders.images.load(image)
         self._surface_cache.clear()  # Clear out old image's cache.
         self._mask = None
-        self._update_pos()
-
-    def _update_pos(self):
+        # NOTE: This does quite a few things multiple times with existing
+        # functions. If there's ever a performance drop from this, just
+        # split up the called functions into multiple smaller ones and
+        # make sure position sets, dimension calculations and anchor
+        # transforms are all done just once.
         p = self.pos
-        self.width, self.height = self._orig_surf.get_size()
         self._calc_anchor()
+        self._transform()
         self.pos = p
 
     def draw(self):
@@ -567,6 +716,74 @@ class Actor:
 
         # Since Vector2s aren't used in pgturbo directly, return as a tuple.
         return tuple(intercept_vec)
+
+    def _store_and_wipe_scale_and_rotation(self):
+        """Stores and then defaults scaling and rotation to allow other
+        operations to happen correctly."""
+        self._stored_scale_rotation_state = (self._scale_x, self._scale_y,
+                                             self._angle)
+        self.scale_x = 1.0
+        self.scale_y = 1.0
+        self.angle = 0
+
+    def _restore_scale_and_rotation_from_store(self):
+        """Sets scaling and rotation from the stored values of the last
+        function."""
+        self.scale_x = self._stored_scale_rotation_state[0]
+        self.scale_y = self._stored_scale_rotation_state[1]
+        self.angle = self._stored_scale_rotation_state[2]
+
+    def flip_x_over_anchor(self):
+        """Flip the actor image and move it so that the resulting image is
+        mirrored across the anchor position along the X axis."""
+        # We default scaling and rotation to make the flipping easier.
+        self._store_and_wipe_scale_and_rotation()
+        # Flip the actor image
+        self.flip_x = not self._flip_x
+        # Remember the current position
+        p = self.pos
+        current_anchor_x, current_anchor_y = self.anchor
+        # If anchor is set to string values, we also make the new anchor
+        # based on string values.
+        if isinstance(current_anchor_x, str):
+            match current_anchor_x:
+                case "left":
+                    new_anchor_x = "right"
+                case "right":
+                    new_anchor_x = "left"
+                case _:
+                    new_anchor_x = "center"
+        # Otherwise we just calculate the new anchor position.
+        else:
+            new_anchor_x = abs(current_anchor_x - self._width)
+        # Set the new anchor position (this moves the pos value of the actor).
+        self.anchor = (new_anchor_x, current_anchor_y)
+        # By setting pos to what we remembered before we move the image
+        # so it appears mirrored afterwards.
+        self.pos = p
+        # Then we restore all the saved values for scaling and rotation.
+        self._restore_scale_and_rotation_from_store()
+
+    def flip_y_over_anchor(self):
+        """Flip the actor image and move it so that the resulting image is
+        mirrored across the anchor position along the Y axis."""
+        self._store_and_wipe_scale_and_rotation()
+        self.flip_y = not self._flip_y
+        p = self.pos
+        current_anchor_x, current_anchor_y = self.anchor
+        if isinstance(current_anchor_y, str):
+            match current_anchor_y:
+                case "top":
+                    new_anchor_y = "bottom"
+                case "bottom":
+                    new_anchor_y = "top"
+                case _:
+                    new_anchor_y = "center"
+        else:
+            new_anchor_y = abs(current_anchor_y - self._height)
+        self.anchor = (current_anchor_x, new_anchor_y)
+        self.pos = p
+        self._restore_scale_and_rotation_from_store()
 
     def _create_mask(self):
         """Gives the actor a mask from the surface that is displayed."""

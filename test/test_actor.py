@@ -54,7 +54,7 @@ class ActorTest(unittest.TestCase):
 
         self.assertEqual(
             a.topleft,
-            (100 - a.width, 200 - a.height),
+            (100 - a._width, 200 - a._height),
         )
 
     def test_setting_relative_initial_pos_topleft(self):
@@ -96,14 +96,14 @@ class ActorTest(unittest.TestCase):
         self.assertEqual(a.image, "alien")
         self.assertEqual(a.topleft, (0, 0))
         self.assertEqual(a.pos, (33.0, 46.0))
-        self.assertEqual(a.width, 66)
-        self.assertEqual(a.height, 92)
+        self.assertEqual(a._width, 66)
+        self.assertEqual(a._height, 92)
         a.angle += 90.0
         self.assertEqual(a.angle, 90.0)
         self.assertEqual(a.topleft, (-13, 13))
         self.assertEqual(a.pos, (33.0, 46.0))
-        self.assertEqual(a.width, 92)
-        self.assertEqual(a.height, 66)
+        self.assertEqual(a._width, 92)
+        self.assertEqual(a._height, 66)
 
     def test_rotation(self):
         """An actor's pos must not drift with continued small rotation."""
@@ -111,6 +111,429 @@ class ActorTest(unittest.TestCase):
         for _ in range(360):
             a.angle += 1.0
         self.assertEqual(a.pos, (100.0, 100.0))
+
+    def test_total_scale_number_no_scaling(self):
+        """No scaling means the image is unchanged."""
+        a = Actor("alien", (100, 100))
+        original_size = (a._width, a._height)
+        a.scale = 1
+        self.assertEqual((a._width, a._height) + a.pos, original_size + a.pos)
+        self.assertEqual(a.topleft, (67, 54))
+
+    def test_total_scale_tuple_no_scaling(self):
+        """Using tuple values also leaves the image unchanged at scale 1."""
+        a = Actor("alien", (100, 100))
+        original_size = (a._width, a._height)
+        a.scale = (1, 1)
+        self.assertEqual((a._width, a._height) + a.pos, original_size + a.pos)
+        self.assertEqual(a.topleft, (67, 54))
+
+    def test_total_scale_number_scaling_down(self):
+        """Shrinking an actor works as expected, with the image changing."""
+        a = Actor("alien", (100, 100))
+        scale = 0.25
+        exp_size = (a._width * scale, a._height * scale)
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (91.75, 88.5))
+
+    def test_total_scale_tuple_scaling_down(self):
+        """Shrinking with same values as a tuple also works."""
+        a = Actor("alien", (100, 100))
+        scale = (0.25, 0.25)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (91.75, 88.5))
+
+    def test_total_scale_number_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = 2.5
+        exp_size = (a._width * scale, a._height * scale)
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (17.5, -15.0))
+
+    def test_total_scale_tuple_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (2.5, 2.5)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (17.5, -15.0))
+
+    def test_total_scale_scaling_x_down(self):
+        """Scaling individual dimensions also works."""
+        a = Actor("alien", (100, 100))
+        scale = (0.25, 1.0)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (91.75, 54.0))
+
+    def test_total_scale_scaling_y_down(self):
+        a = Actor("alien", (100, 100))
+        scale = (1.0, 0.25)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (67.0, 88.5))
+
+    def test_total_scale_scaling_x_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (2.5, 1.0)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (17.5, 54.0))
+
+    def test_total_scale_scaling_y_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (1.0, 2.5)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (67.0, -15.0))
+
+    def test_total_scale_scaling_x_down_y_up(self):
+        a = Actor("alien", (100, 100))
+        scale = (0.25, 2.5)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (91.75, -15.0))
+
+    def test_total_scale_scaling_x_up_y_down(self):
+        a = Actor("alien", (100, 100))
+        scale = (2.5, 0.25)
+        exp_size = (a._width * scale[0], a._height * scale[1])
+        a.scale = scale
+        self.assertEqual((a._width, a._height) + a.pos, exp_size + a.pos)
+        self.assertEqual(a.topleft, (17.5, 88.5))
+
+    def test_scale_x_no_scaling(self):
+        a = Actor("alien", (100, 100))
+        orig_size = (a._width, a._height)
+        a.scale_x = 1
+        self.assertEqual((a._width, a._height), orig_size)
+        self.assertEqual(a.left, 67.0)
+        self.assertEqual(a.right, 133.0)
+
+    def test_scale_x_scaling_down(self):
+        a = Actor("alien", (100, 100))
+        scale = 0.25
+        exp_size = (a._width * scale, a._height)
+        a.scale_x = scale
+        self.assertEqual((a._width, a._height), exp_size)
+        self.assertEqual(a.left, 91.75)
+        self.assertEqual(a.right, 108.25)
+
+    def test_scale_x_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = 2.5
+        exp_size = (a._width * scale, a._height)
+        a.scale_x = scale
+        self.assertEqual((a._width, a._height), exp_size)
+        self.assertEqual(a.left, 17.5)
+        self.assertEqual(a.right, 182.5)
+
+    def test_scale_y_no_scaling(self):
+        a = Actor("alien", (100, 100))
+        orig_size = (a._width, a._height)
+        a.scale_y = 1
+        self.assertEqual((a._width, a._height), orig_size)
+        self.assertEqual(a.top, 54.0)
+        self.assertEqual(a.bottom, 146.0)
+
+    def test_scale_y_scaling_down(self):
+        a = Actor("alien", (100, 100))
+        scale = 0.25
+        exp_size = (a._width, a._height * scale)
+        a.scale_y = scale
+        self.assertEqual((a._width, a._height), exp_size)
+        self.assertEqual(a.top, 88.5)
+        self.assertEqual(a.bottom, 111.5)
+
+    def test_scale_y_scaling_up(self):
+        a = Actor("alien", (100, 100))
+        scale = 2.5
+        exp_size = (a._width, a._height * scale)
+        a.scale_y = scale
+        self.assertEqual((a._width, a._height), exp_size)
+        self.assertEqual(a.top, -15.0)
+        self.assertEqual(a.bottom, 215.0)
+
+    def test_scaling_with_rotation_total_scale_original(self):
+        a = Actor("alien", (100, 100))
+        a.scale = 1
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 112.67, delta=0.02)
+        self.assertAlmostEqual(a._height, 103.16, delta=0.02)
+        self.assertAlmostEqual(a.left, 43.66, delta=0.02)
+        self.assertAlmostEqual(a.top, 48.42, delta=0.02)
+
+    def test_scaling_with_rotation_total_scale_up(self):
+        a = Actor("alien", (100, 100))
+        a.scale = 2.5
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 281.69, delta=0.02)
+        self.assertAlmostEqual(a._height, 257.89, delta=0.02)
+        self.assertAlmostEqual(a.left, -40.84, delta=0.02)
+        self.assertAlmostEqual(a.top, -28.95, delta=0.02)
+
+    def test_scaling_with_rotation_total_scale_down(self):
+        a = Actor("alien", (100, 100))
+        a.scale = 0.25
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 28.17, delta=0.02)
+        self.assertAlmostEqual(a._height, 25.79, delta=0.02)
+        self.assertAlmostEqual(a.left, 85.92, delta=0.02)
+        self.assertAlmostEqual(a.top, 87.11, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_total_scale_original(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale = 1
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 112.67, delta=0.02)
+        self.assertAlmostEqual(a._height, 103.16, delta=0.02)
+        self.assertAlmostEqual(a.left, 3.83, delta=0.02)
+        self.assertAlmostEqual(a.top, 25.42, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_total_scale_up(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale = 2.5
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 281.69, delta=0.02)
+        self.assertAlmostEqual(a._height, 257.89, delta=0.02)
+        self.assertAlmostEqual(a.left, -140.44, delta=0.02)
+        self.assertAlmostEqual(a.top, -86.45, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_total_scale_down(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale = 0.25
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 28.17, delta=0.02)
+        self.assertAlmostEqual(a._height, 25.79, delta=0.02)
+        self.assertAlmostEqual(a.left, 75.96, delta=0.02)
+        self.assertAlmostEqual(a.top, 81.34, delta=0.02)
+
+    def test_scaling_with_rotation_x_original(self):
+        a = Actor("alien", (100, 100))
+        a.scale_x = 1
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 112.67, delta=0.02)
+        self.assertAlmostEqual(a._height, 103.16, delta=0.02)
+        self.assertAlmostEqual(a.left, 43.66, delta=0.02)
+        self.assertAlmostEqual(a.top, 48.42, delta=0.02)
+
+    def test_scaling_with_rotation_x_up(self):
+        a = Actor("alien", (100, 100))
+        a.scale_x = 2.5
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 162.17, delta=0.02)
+        self.assertAlmostEqual(a._height, 188.89, delta=0.02)
+        self.assertAlmostEqual(a.left, 18.91, delta=0.02)
+        self.assertAlmostEqual(a.top, 5.55, delta=0.02)
+
+    def test_scaling_with_rotation_x_down(self):
+        a = Actor("alien", (100, 100))
+        a.scale_x = 0.25
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 87.92, delta=0.02)
+        self.assertAlmostEqual(a._height, 60.29, delta=0.02)
+        self.assertAlmostEqual(a.left, 56.04, delta=0.02)
+        self.assertAlmostEqual(a.top, 69.86, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_x_original(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale_x = 1
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 112.67, delta=0.02)
+        self.assertAlmostEqual(a._height, 103.16, delta=0.02)
+        self.assertAlmostEqual(a.left, 3.83, delta=0.02)
+        self.assertAlmostEqual(a.top, 25.42, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_x_up(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale_x = 2.5
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 162.17, delta=0.02)
+        self.assertAlmostEqual(a._height, 188.89, delta=0.02)
+        self.assertAlmostEqual(a.left, -20.92, delta=0.02)
+        self.assertAlmostEqual(a.top, -17.45, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_x_down(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale_x = 0.25
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 87.92, delta=0.02)
+        self.assertAlmostEqual(a._height, 60.29, delta=0.02)
+        self.assertAlmostEqual(a.left, 16.20, delta=0.02)
+        self.assertAlmostEqual(a.top, 46.86, delta=0.02)
+
+    def test_scaling_with_rotation_y_original(self):
+        a = Actor("alien", (100, 100))
+        a.scale_y = 1
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 112.67, delta=0.02)
+        self.assertAlmostEqual(a._height, 103.16, delta=0.02)
+        self.assertAlmostEqual(a.left, 43.66, delta=0.02)
+        self.assertAlmostEqual(a.top, 48.42, delta=0.02)
+
+    def test_scaling_with_rotation_y_up(self):
+        a = Actor("alien", (100, 100))
+        a.scale_y = 2.5
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 232.19, delta=0.02)
+        self.assertAlmostEqual(a._height, 172.16, delta=0.02)
+        self.assertAlmostEqual(a.left, -16.09, delta=0.02)
+        self.assertAlmostEqual(a.top, 13.92, delta=0.02)
+
+    def test_scaling_with_rotation_y_down(self):
+        a = Actor("alien", (100, 100))
+        a.scale_y = 0.25
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 52.92, delta=0.02)
+        self.assertAlmostEqual(a._height, 68.66, delta=0.02)
+        self.assertAlmostEqual(a.left, 73.54, delta=0.02)
+        self.assertAlmostEqual(a.top, 65.67, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_y_original(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale_y = 1
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 112.67, delta=0.02)
+        self.assertAlmostEqual(a._height, 103.16, delta=0.02)
+        self.assertAlmostEqual(a.left, 3.83, delta=0.02)
+        self.assertAlmostEqual(a.top, 25.42, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_y_up(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale_y = 2.5
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 232.19, delta=0.02)
+        self.assertAlmostEqual(a._height, 172.16, delta=0.02)
+        self.assertAlmostEqual(a.left, -115.69, delta=0.02)
+        self.assertAlmostEqual(a.top, -43.58, delta=0.02)
+
+    def test_scaling_with_rotation_and_anchor_y_down(self):
+        a = Actor("alien", (100, 100), anchor=("center", "bottom"))
+        a.scale_y = 0.25
+        a.angle = 60
+        self.assertAlmostEqual(a._width, 52.92, delta=0.02)
+        self.assertAlmostEqual(a._height, 68.66, delta=0.02)
+        self.assertAlmostEqual(a.left, 63.58, delta=0.02)
+        self.assertAlmostEqual(a.top, 59.92, delta=0.02)
+
+    def test_getting_width(self):
+        """Actors report their image's scaled width."""
+        a = Actor("alien", (100, 100))
+        self.assertEqual(a.width, 66.0)
+        a.scale = 2.5
+        self.assertEqual(a.width, 165.0)
+        a.scale = 0.25
+        self.assertEqual(a.width, 16.5)
+
+    def test_getting_height(self):
+        """Actors report their image's scaled width."""
+        a = Actor("alien", (100, 100))
+        self.assertEqual(a.height, 92.0)
+        a.scale = 2.5
+        self.assertEqual(a.height, 230.0)
+        a.scale = 0.25
+        self.assertEqual(a.height, 23.0)
+
+    def test_getting_bounding_width(self):
+        """When rotated, Actors report bounding box dimensions correctly."""
+        a = Actor("alien", (100, 100))
+        self.assertEqual(a.bounding_width, 66.0)
+        a.angle = 60
+        self.assertAlmostEqual(a.bounding_width, 112.67, delta=0.02)
+
+    def test_getting_bounding_height(self):
+        """When rotated, Actors report bounding box dimensions correctly."""
+        a = Actor("alien", (100, 100))
+        self.assertEqual(a.bounding_height, 92.0)
+        a.angle = 60
+        self.assertAlmostEqual(a.bounding_height, 103.16, delta=0.02)
+
+    def test_get_default_flip_state(self):
+        """Actors start with not flipped images and we can get flip states."""
+        a = Actor("alien", (100, 100))
+        self.assertFalse(a.flip_x)
+        self.assertFalse(a.flip_y)
+
+    def test_set_flip_x(self):
+        """We can flip actors via parameters and flipping one dimension
+        does not flip the other."""
+        a = Actor("alien", (100, 100))
+        a.flip_x = True
+        self.assertTrue(a._flip_x)
+        self.assertFalse(a._flip_y)
+
+    def test_set_flip_y(self):
+        a = Actor("alien", (100, 100))
+        a.flip_y = True
+        self.assertTrue(a._flip_y)
+        self.assertFalse(a._flip_x)
+
+    def test_flip_dimensions_x(self):
+        """Flipping along X does not change any image dimensions."""
+        a = Actor("alien", (100, 100))
+        a.flip_x = True
+        self.assertEqual(a._width, 66)
+        self.assertEqual(a._height, 92)
+
+    def test_flip_dimensions_y(self):
+        """Flipping along Y does not change any image dimensions."""
+        a = Actor("alien", (100, 100))
+        a.flip_y = True
+        self.assertEqual(a._width, 66)
+        self.assertEqual(a._height, 92)
+
+    def test_flip_x_over_anchor_string(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. String anchors are correctly changed."""
+        a = Actor("alien", (100, 100), anchor=("left", "bottom"))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_x_over_anchor()
+        self.assertTrue(a.flip_x)
+        self.assertEqual(a.anchor, ("right", "bottom"))
+        self.assertEqual(a.topleft, (orig_left - a._width, orig_top))
+
+    def test_flip_y_over_anchor_string(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. String anchors are correctly changed."""
+        a = Actor("alien", (100, 100), anchor=("left", "bottom"))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_y_over_anchor()
+        self.assertTrue(a.flip_y)
+        self.assertEqual(a.anchor, ("left", "top"))
+        self.assertEqual(a.topleft, (orig_left, orig_top + a._height))
+
+    def test_flip_x_over_anchor_int(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. New integer anchors are correctly calculated."""
+        a = Actor("alien", (100, 100), anchor=(15, 15))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_x_over_anchor()
+        self.assertTrue(a.flip_x)
+        self.assertEqual(a.anchor, (51, 15))
+        self.assertEqual(a.topleft, (orig_left + 30 - a._width, orig_top))
+
+    def test_flip_y_over_anchor_int(self):
+        """Flipping over the anchor changes flip state, anchor value and
+        position of the image. New integer anchors are correctly calculated."""
+        a = Actor("alien", (100, 100), anchor=(15, 15))
+        orig_left = a.left
+        orig_top = a.top
+        a.flip_y_over_anchor()
+        self.assertTrue(a.flip_y)
+        self.assertEqual(a.anchor, (15, 77))
+        self.assertEqual(a.topleft, (orig_left, orig_top + 30 - a._height))
 
     def test_opacity_default(self):
         """Ensure opacity is initially set to its default value."""

@@ -1037,6 +1037,120 @@ be floats or the strings ``left``, ``center``/``middle``, ``right``, ``top`` or
 ``bottom`` as appropriate.
 
 
+.. _scale:
+
+Scale
+'''''
+
+.. versionadded:: 1.5
+
+You can change the size of actors by setting the right properties::
+
+    alien = Actor("alien", (150, 150))
+
+    def update():
+        if keyboard.space:
+            alien.scale = 2
+        else:
+            alien.scale = 1
+
+In the example, the "alien" actor will be twice as big whenever you hold the
+spacebar down on the keyboard. ``scale`` can be set to a single value like
+``2`` or ``0.5`` to change width and height to the same degree. Alternatively
+you can give ``scale`` a tuple like ``(0.5, 2)`` to make the actor half as wide
+and twice as tall. If you just want to control the size in one dimension, you
+can also just set ``actor.scale_x`` and ``actor.scale_y`` directly::
+
+    def update():
+        if keyboard.x:
+            alien.scale_x = 2
+        else:
+            alien.scale_x = 1
+
+        if keyboard.y:
+            alien.scale_y = 2
+        else:
+            alien.scale_y = 1
+
+When changing the dimension of actors, their image will grow or shrink around
+their anchor point and position. So if the anchor point is
+``("center", "bottom")`` and you scale an actor up, it will "grow" upwards. If
+the anchor point is centered the actor will grow in all directions
+proportionally.
+
+
+.. _width_and_height:
+
+Width and height
+''''''''''''''''
+
+.. versionadded:: 1.5
+
+Another way to control the size of an actor is to set its ``width`` and
+``height`` properties, which also automatically updates the scale properties
+so that both pixel dimensions and relative size are synchronized properly.
+As an example, let us stretch an actor while holding down a key::
+
+    def update():
+        if keyboard.space:
+            alien.width += 2
+
+These properties always return and set the dimensions of the actor image at its
+current size. When an actor is rotated however, the width and height it
+occupies in total is bigger than just the image. If you want to know how much
+distance an actor covers in total in the X- or Y-axis while rotated, use these
+properties instead::
+
+    alien.angle = 60
+    total_height = alien.bounding_height
+    total_width = alien.bounding_width
+
+While an actor is not rotated, these are both the same as the normal ``width``
+and ``height`` properties.
+
+
+.. _flipping:
+
+Flipping
+''''''''
+
+.. versionadded:: 1.5
+
+Besides scaling actors up and down, we can also flip the actor image along the
+X- and/or Y-axis. Simply set the ``flip_x`` and ``flip_y`` properties to
+``True`` to do so or ``False`` to set the image to the normal orientation::
+
+    alien = Actor("alien", (150, 200))
+    alien.flip_y = True
+
+If you just want to change whatever the current value is to the other one
+(either going from not flipped to flipped or the other way around) you can use
+the following code: ``player.flip_x = not player.flip_x``. The ``not`` keyword
+combined with getting the current value means you will always make the flipped
+state switch to whatever it is not currently on.
+
+Flipping via the properties doesn't move an actor image at all. If for example
+you have an actor with their anchor centered on the bottom and you want to
+flip it so that the actor ends up "hanging" upside down in comparison to its
+previous position, you can use ``flip_y_over_anchor()``. This function and
+``flip_x_over_anchor()`` both flip the whole actor with the image, anchor point
+and position so the result is the actor being mirrored across the anchor.
+
+.. method:: Actor.flip_x_over_anchor()
+
+    Mirrors the actor across the anchor point in the X axis by flipping the
+    image and updating anchor and position of the actor.
+
+.. method:: Actor.flip_y_over_anchor()
+
+    Mirrors the actor across the anchor point in the Y axis by flipping the
+    image and updating anchor and position of the actor.
+
+*Note:* These methods of flipping change the anchor position of the actor. A
+value of ``("center", "bottom")`` will become ``("center", "top")`` after using
+``flip_y_over_anchor()``.
+
+
 .. _rotation:
 
 Rotation
@@ -1049,7 +1163,9 @@ degrees, anticlockwise (counterclockwise).
 
 The centre of rotation is the Actor's :ref:`anchor point <anchor>`.
 
-Note that this will change the ``width`` and ``height`` of the Actor.
+Note that this will change the ``bounding_width`` and ``bounding_height`` of
+the Actor. These properties report the width and height of the bounding box
+containing the actor and cannot be set manually.
 
 For example, to make an asteroid sprite spinning slowly anticlockwise in
 space::
