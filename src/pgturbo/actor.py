@@ -551,12 +551,14 @@ class Actor:
         self._orig_surf = loaders.images.load(image)
         self._surface_cache.clear()  # Clear out old image's cache.
         self._mask = None
-        self._update_pos()
-
-    def _update_pos(self):
+        # NOTE: This does quite a few things multiple times with existing
+        # functions. If there's ever a performance drop from this, just
+        # split up the called functions into multiple smaller ones and
+        # make sure position sets, dimension calculations and anchor
+        # transforms are all done just once.
         p = self.pos
-        self.width, self.height = self._orig_surf.get_size()
         self._calc_anchor()
+        self._transform()
         self.pos = p
 
     def draw(self):
