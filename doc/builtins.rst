@@ -1101,13 +1101,24 @@ state switch to whatever it is not currently on.
 
 Flipping via the properties doesn't move an actor image at all. If for example
 you have an actor with their anchor centered on the bottom and you want to
-"flip" it so that the actor ends up "hanging" upside down, you need to flip the
-image, change the anchor and move the actor by its height to fit::
+flip it so that the actor ends up "hanging" upside down in comparison to its
+previous position, you can use ``flip_y_over_anchor()``. This function and
+``flip_x_over_anchor()`` both flip the whole actor with the image, anchor point
+and position so the result is the actor being mirrored across the anchor.
 
-    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
-    alien.flip_y = True
-    alien.anchor = ("center", "top")
-    alien.y += alien.height
+.. method:: Actor.flip_x_over_anchor()
+
+    Mirrors the actor across the anchor point in the X axis by flipping the
+    image and updating anchor and position of the actor.
+
+.. method:: Actor.flip_y_over_anchor()
+
+    Mirrors the actor across the anchor point in the Y axis by flipping the
+    image and updating anchor and position of the actor.
+
+*Note:* These methods of flipping change the anchor position of the actor. A
+value of ``("center", "bottom")`` will become ``("center", "top")`` after using
+``flip_y_over_anchor()``.
 
 
 .. _rotation:

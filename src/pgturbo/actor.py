@@ -682,50 +682,73 @@ class Actor:
         # Since Vector2s aren't used in pgturbo directly, return as a tuple.
         return tuple(intercept_vec)
 
-    # TODO: Methods work but not when actors are rotated.
+    def _store_and_wipe_scale_and_rotation(self):
+        """Stores and then defaults scaling and rotation to allow other
+        operations to happen correctly."""
+        self._stored_scale_rotation_state = (self._scale_x, self._scale_y,
+                                             self._angle)
+        self.scale_x = 1.0
+        self.scale_y = 1.0
+        self.angle = 0
+
+    def _restore_scale_and_rotation_from_store(self):
+        """Sets scaling and rotation from the stored values of the last
+        function."""
+        self.scale_x = self._stored_scale_rotation_state[0]
+        self.scale_y = self._stored_scale_rotation_state[1]
+        self.angle = self._stored_scale_rotation_state[2]
+
     def flip_x_over_anchor(self):
         """Flip the actor image and move it so that the resulting image is
         mirrored across the anchor position along the X axis."""
+        # We default scaling and rotation to make the flipping easier.
+        self._store_and_wipe_scale_and_rotation()
+        # Flip the actor image
         self.flip_x = not self._flip_x
+        # Remember the current position
+        p = self.pos
         current_anchor_x, current_anchor_y = self.anchor
+        # If anchor is set to string values, we also make the new anchor
+        # based on string values.
         if isinstance(current_anchor_x, str):
             match current_anchor_x:
                 case "left":
                     new_anchor_x = "right"
-                    move_by = -1 * self.width
                 case "right":
                     new_anchor_x = "left"
-                    move_by = self.width
                 case _:
                     new_anchor_x = "center"
-                    move_by = 0
+        # Otherwise we just calculate the new anchor position.
         else:
             new_anchor_x = abs(current_anchor_x - self.width)
-            move_by = current_anchor_x * 2 - self.width
-        self.x += move_by
+        # Set the new anchor position (this moves the pos value of the actor).
         self.anchor = (new_anchor_x, current_anchor_y)
+        # By setting pos to what we remembered before we move the image
+        # so it appears mirrored afterwards.
+        self.pos = p
+        # Then we restore all the saved values for scaling and rotation.
+        self._restore_scale_and_rotation_from_store()
 
     def flip_y_over_anchor(self):
         """Flip the actor image and move it so that the resulting image is
         mirrored across the anchor position along the Y axis."""
+        self._store_and_wipe_scale_and_rotation()
         self.flip_y = not self._flip_y
+        p = self.pos
         current_anchor_x, current_anchor_y = self.anchor
         if isinstance(current_anchor_y, str):
             match current_anchor_y:
                 case "top":
                     new_anchor_y = "bottom"
-                    move_by = -1 * self.height
                 case "bottom":
                     new_anchor_y = "top"
-                    move_by = self.height
                 case _:
                     new_anchor_y = "center"
-                    move_by = 0
         else:
             new_anchor_y = abs(current_anchor_y - self.height)
-            move_by = current_anchor_y * 2 - self.height
-        self.y += move_by
         self.anchor = (current_anchor_x, new_anchor_y)
+        self.pos = p
+        self._restore_scale_and_rotation_from_store()
 
     def _create_mask(self):
         """Gives the actor a mask from the surface that is displayed."""
