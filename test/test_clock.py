@@ -5,20 +5,40 @@ import pgturbo.clock as clock
 
 class ClockTest(unittest.TestCase):
     def setUp(self):
-        clock.clock.t = 5900.20
+        clock.clock._t = 5900.20
         clock.mark_time("test_mark")
-        clock.clock.t = 22100.75
+        clock.clock._t = 22100.75
         clock.mark_time("other_test_mark")
+        clock.clock._timescale = 1.0
 
     def tearDown(self):
         clock.clock._marks = {}
 
     def test_time(self):
         self.assertEqual(clock.time(), 22100.75)
+        clock.tick(0.05)
+        self.assertEqual(clock.time(), 22100.80)
+
+    def test_timescale_get(self):
+        self.assertEqual(clock.timescale(), 1.0)
+        clock.set_timescale(0.5)
+        self.assertEqual(clock.timescale(), 0.5)
+
+    def test_timescale_down(self):
+        clock.set_timescale(0.5)
+        clock.tick(0.05)
+        self.assertEqual(clock.clock._timescale, 0.5)
+        self.assertEqual(clock.time(), 22100.775)
+
+    def test_timescale_up(self):
+        clock.set_timescale(2.0)
+        clock.tick(0.05)
+        self.assertEqual(clock.clock._timescale, 2.0)
+        self.assertEqual(clock.time(), 22100.85)
 
     def test_mark_time(self):
         self.assertEqual(len(clock.clock._marks), 2)
-        clock.clock.t = 500000
+        clock.clock._t = 500000
         clock.mark_time("last_test_mark")
         self.assertEqual(len(clock.clock._marks), 3)
         self.assertEqual(clock.clock._marks["last_test_mark"], 500000)
