@@ -1,5 +1,5 @@
 # Expose clock API as a builtin
-from . import clock
+from .clock import clock
 from . import music
 from . import tone
 from .actor import Actor

@@ -827,7 +827,7 @@ Elapsed time and marks
 ''''''''''''''''''''''
 
 Another use of clock is to keep track of elapsed time in different ways. If you
-just want to get the total time since the program started, ``clock.time()``
+just want to get the total time since the program started, ``clock.time``
 will return how many seconds have passed. Often though, we are more interested
 in how much time has gone by since a certain starting moment like the start of
 a round for example::
@@ -860,26 +860,26 @@ for displaying elapsed seconds.
 Timescale
 '''''''''
 
-To change how fast time is running in your game, you can use
-``clock.set_timescale(number)``. ``2.0`` would make all clock related things
+To change how fast time is running in your game, you can set
+``clock.timescale``. ``2.0`` would make all clock related things
 happen twice as fast, where ``0`` would effectively pause the clock. If you
 scheduled a function call to happen in two seconds and then did
-``clock.set_timescale(0.5)`` right afterwards, the function would only be
+``clock.timescale = 0.5`` right afterwards, the function would only be
 called four seconds later in real time. If you want your whole game to respect
 this timescale you need to make sure anything involving movement or counting
 over time is affected by the timescale::
 
     def update(dt):
         if keyboard.w:
-            alien.y -= 10 * dt * clock.timescale()
+            alien.y -= 10 * dt * clock.timescale
 
 Now when you change the timescale, it will look to the player like the whole
 game has slowed down, sped up or been paused.
 
-This also affects the reported elapsed times by ``clock.time()``
+This also affects the reported elapsed times by ``clock.time``
 and time marks. This is usually good, but if you want to get the total time
 elapsed since program start without respecting changes to timescale, you can
-get it with ``clock.absolute_time()``.
+get it with ``clock.absolute_time``.
 
 ``clock`` provides the following useful methods:
 

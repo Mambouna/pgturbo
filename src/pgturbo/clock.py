@@ -93,19 +93,23 @@ class Clock:
         self._marks = {}
         self._timescale = 1.0
 
+    @property
     def time(self):
         """Simple property to return the total elapsed time affected by
         pauses."""
         return self._t
 
+    @property
     def absolute_time(self):
         """Returns the elapsed time without respecting timescale changes."""
         return self._absolute_t
 
+    @property
     def timescale(self):
         return self._timescale
 
-    def set_timescale(self, value):
+    @timescale.setter
+    def timescale(self, value):
         """Property to control how fast the user facing clock is running."""
         if not isinstance(value, (int, float)):
             raise TypeError(f"Timescale must be of type int or float, not "
@@ -243,14 +247,6 @@ class Clock:
 
 # One instance of a clock is available by default, to simplify the API
 clock = Clock()
-time = clock.time
-absolute_time = clock.absolute_time
-timescale = clock.timescale
-set_timescale = clock.set_timescale
-mark_time = clock.mark_time
-get_mark_time = clock.get_mark_time
-time_since_mark = clock.time_since_mark
-get_all_marks = clock.get_all_marks
 tick = clock.tick
 schedule = clock.schedule
 schedule_interval = clock.schedule_interval
