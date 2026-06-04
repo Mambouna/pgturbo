@@ -36,6 +36,23 @@ class ClockTest(unittest.TestCase):
         self.assertEqual(clock._timescale, 2.0)
         self.assertEqual(clock.time, 22100.85)
 
+    def test_timescale_pause(self):
+        clock.timescale = 0.0
+        clock.tick(0.05)
+        self.assertEqual(clock._timescale, 0.0)
+        self.assertEqual(clock.time, 22100.75)
+
+    def test_timescale_negative_raises_error(self):
+        with self.assertRaises(ValueError):
+            clock.timescale = -1.0
+
+    def test_absolute_time_unaffected_by_timescale(self):
+        clock._absolute_t = 22100.75
+        clock.timescale = 2.0
+        clock.tick(0.05)
+        self.assertEqual(clock._timescale, 2.0)
+        self.assertEqual(clock.absolute_time, 22100.8)
+
     def test_mark_time(self):
         self.assertEqual(len(clock._marks), 2)
         clock._t = 500000
