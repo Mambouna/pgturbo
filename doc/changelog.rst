@@ -68,6 +68,12 @@ Dependencies
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
 
 
+1.6.0 - 2026-06-04
+------------------
+
+Added ``timescale`` property to ``clock`` to allow easy control of game time.
+
+
 1.5.0 - 2026-05-29
 ------------------
 
