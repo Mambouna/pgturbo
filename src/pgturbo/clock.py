@@ -112,11 +112,11 @@ class Clock:
     def timescale(self, value):
         """Property to control how fast the user facing clock is running."""
         if not isinstance(value, (int, float)):
-            raise TypeError(f"Timescale must be of type int or float, not "
-                            "{type(value)}.")
+            raise TypeError("Timescale must be of type int or float, not "
+                            "{}.".format(type(value)))
         elif value < 0:
-            raise ValueError(f"Timescale values must not be negative. You set "
-                             "it to {value}.")
+            raise ValueError("Timescale values must not be negative. You set "
+                             "it to {}.".format(value))
         self._timescale = value
 
     def mark_time(self, name):
