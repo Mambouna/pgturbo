@@ -85,20 +85,44 @@ class Clock:
     """
 
     def __init__(self):
-        self.t = 0
+        self._t = 0
+        self._absolute_t = 0
         self.fired = False
         self.events = []
         self._each_tick = []
         self._marks = {}
+        self._timescale = 1.0
 
+    @property
     def time(self):
-        """Simple function to return the total elapsed time."""
-        return self.t
+        """Simple property to return the total elapsed time affected by
+        pauses."""
+        return self._t
+
+    @property
+    def absolute_time(self):
+        """Returns the elapsed time without respecting timescale changes."""
+        return self._absolute_t
+
+    @property
+    def timescale(self):
+        return self._timescale
+
+    @timescale.setter
+    def timescale(self, value):
+        """Property to control how fast the user facing clock is running."""
+        if not isinstance(value, (int, float)):
+            raise TypeError("Timescale must be of type int or float, not "
+                            "{}.".format(type(value)))
+        elif value < 0:
+            raise ValueError("Timescale values must not be negative. You set "
+                             "it to {}.".format(value))
+        self._timescale = value
 
     def mark_time(self, name):
         """Save a timestamp with a name for later. Also returns that time."""
-        self._marks[name] = self.t
-        return self.t
+        self._marks[name] = self._t
+        return self._t
 
     def get_mark_time(self, name):
         """Get the time saved with a mark name or return None if it doesn't
@@ -110,7 +134,7 @@ class Clock:
         doesn't exist."""
         timestamp = self._marks.get(name)
         if timestamp is not None:
-            return self.t - timestamp
+            return self._t - timestamp
         return None
 
     def get_all_marks(self):
@@ -131,7 +155,7 @@ class Clock:
         :param delay: The delay before the call (in clock time / seconds).
 
         """
-        heapq.heappush(self.events, Event(self.t + delay, callback, None))
+        heapq.heappush(self.events, Event(self._t + delay, callback, None))
 
     def schedule_unique(self, callback, delay):
         """Schedule callback to be called once, at `delay` seconds from now.
@@ -154,7 +178,7 @@ class Clock:
         :param delay: The interval in seconds.
 
         """
-        heapq.heappush(self.events, Event(self.t + delay, callback, delay))
+        heapq.heappush(self.events, Event(self._t + delay, callback, delay))
 
     def unschedule(self, callback):
         """Unschedule the given callback.
@@ -200,9 +224,10 @@ class Clock:
 
         """
         self.fired = False
-        self.t += float(dt)
+        self._t += float(dt) * self._timescale
+        self._absolute_t += float(dt)
         self._fire_each_tick(dt)
-        while self.events and self.events[0].time <= self.t:
+        while self.events and self.events[0].time <= self._t:
             ev = heapq.heappop(self.events)
             cb = ev.callback
             if not cb:
@@ -222,11 +247,6 @@ class Clock:
 
 # One instance of a clock is available by default, to simplify the API
 clock = Clock()
-time = clock.time
-mark_time = clock.mark_time
-get_mark_time = clock.get_mark_time
-time_since_mark = clock.time_since_mark
-get_all_marks = clock.get_all_marks
 tick = clock.tick
 schedule = clock.schedule
 schedule_interval = clock.schedule_interval

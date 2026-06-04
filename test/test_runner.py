@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 from pgturbo.runner import load_and_run
-from pgturbo import clock
+from pgturbo.clock import clock
 
 game_tests = Path(__file__).parent / 'game_tests'
 

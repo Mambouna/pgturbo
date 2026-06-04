@@ -20,6 +20,9 @@ New features
 * Convenience functions for ``clock`` that allow checking total elapsed time
   and saving timestamps with names and checking them / time elapsed since their
   creation.
+* ``clock.timescale`` property that allows slowing down, speeding up or pausing
+  the game time. Integrating the different timescale with actor movements or
+  other time relevant code is up to the user.
 
 
 Feature enhancements
@@ -63,6 +66,12 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.6.0 - 2026-06-04
+------------------
+
+Added ``timescale`` property to ``clock`` to allow easy control of game time.
 
 
 1.5.0 - 2026-05-29
