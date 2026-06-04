@@ -53,9 +53,12 @@ New features
 * Easy to use and feature rich controller support making coding games with
   controller controls easy while also allowing multiple controllers for
   multiplayer support with simple interfaces.
-* Convenience functions for ``clock`` that allow checking total elapsed time
-  and saving timestamps with names and checking them / time elapsed since their
-  creation.
+* Convenience property and functions for ``clock`` that allow checking total
+  elapsed time and saving timestamps with names and checking them / time
+  elapsed since their creation.
+* ``clock.timescale`` property that allows slowing down, speeding up or pausing
+  the game time. Integrating the different timescale with actor movements or
+  other time relevant code is up to the user.
 
 
 Feature enhancements

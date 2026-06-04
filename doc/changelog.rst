@@ -20,6 +20,9 @@ New features
 * Convenience functions for ``clock`` that allow checking total elapsed time
   and saving timestamps with names and checking them / time elapsed since their
   creation.
+* ``clock.timescale`` property that allows slowing down, speeding up or pausing
+  the game time. Integrating the different timescale with actor movements or
+  other time relevant code is up to the user.
 
 
 Feature enhancements
