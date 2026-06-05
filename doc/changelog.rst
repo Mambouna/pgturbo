@@ -47,6 +47,7 @@ Feature enhancements
   ``.is_onscreen()``.
 * More understandable error reporting for wrong positional values.
 * String color names are spellchecked to make fixing typos easier.
+* Schedule functions with arguments instead of only ones without any.
 
 
 Bug fixes
@@ -66,6 +67,13 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.7.0 - 2026-06-05
+------------------
+
+Added ability to schedule functions with arguments instead of only those
+without.
 
 
 1.6.0 - 2026-06-04
@@ -183,12 +191,12 @@ Pygame Turbo:
 * Added additional example games in the ``examples/`` directory.
 
 1.0.2 - 2015-06-04
-''''''''''''''''
+''''''''''''''''''
 
 * Fix: ensure compatibility with Python 3.2
 
 1.0.1 - 2015-05-31
-''''''''''''''''
+''''''''''''''''''
 
 This is a bugfix release.
 
@@ -230,6 +238,6 @@ This is a bugfix release.
 
 
 1.0beta1 - 2015-05-19
-''''''''''''''''
+'''''''''''''''''''''
 
 Initial public (preview) release.

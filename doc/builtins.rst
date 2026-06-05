@@ -823,8 +823,41 @@ not being called here! The clock will call it for us.
 referring to a time value and not a count of things.)
 
 
+Scheduling with arguments
+'''''''''''''''''''''''''
+
+.. versionadded:: 1.7
+
+The ``fire_laser`` function above doesn't need to be called with any arguments,
+but what if you want to schedule a function that does take arguments?
+
+Let's image a game about mining where differently colored gems pop up from time
+to time. It would be easiest to have just one function that creates a new gem
+that can do so with different colors and positions::
+
+    def create_gem(color, posx, posy):
+        new_gem = Actor("gem_" + color, (posx, posy))
+        gems.append(new_gem)
+
+When you schedule function calls that need arguments, you need to give these
+after the callable and delay in the clock call::
+
+    clock.schedule(create_gem, 4.5, "red", 240, 120)
+
+Any values you give ``schedule``, ``schedule_unique`` or ``schedule_interval``
+after the delay will simply be passed on to the function call as arguments when
+it happens.
+
+Note that if you schedule a function with arguments, you also need to
+``unschedule()`` it with the same arguments to stop it from being called. If
+you want to remove all calls to a certain function regardless of arguments,
+simply use ``clock.unschedule_all(callable)``.
+
+
 Elapsed time and marks
 ''''''''''''''''''''''
+
+.. versionadded:: 1.4
 
 Another use of clock is to keep track of elapsed time in different ways. If you
 just want to get the total time since the program started, ``clock.time``
@@ -860,6 +893,8 @@ for displaying elapsed seconds.
 Timescale
 '''''''''
 
+.. versionadded:: 1.6
+
 To change how fast time is running in your game, you can set
 ``clock.timescale``. ``2.0`` would make all clock related things
 happen twice as fast, where ``0`` would effectively pause the clock. If you
@@ -885,17 +920,44 @@ get it with ``clock.absolute_time``.
 
 .. class:: Clock
 
-    .. method:: schedule(callback, delay)
+    .. property:: time
+
+        Returns the elapsed time while respecting timescale changes.
+
+        Cannot be set by the user.
+
+    .. property:: absolute_time
+
+        Returns the elapsed time without respecting timescale changes.
+
+        This always returns the actual second count since program start.
+
+        Cannot be set by the user.
+
+    .. property:: timescale
+
+        Controls the speed at which time is counted for ``time`` property and
+        scheduling of function calls.
+
+        ``1.0`` is normal game time, values above will increase the speed while
+        values above zero slow the timing down. ``0.0`` will pause the time
+        counting.
+
+    .. method:: schedule(callback, delay, *args, **kwargs)
 
         Schedule `callback` to be called after the given delay.
 
         Repeated calls will schedule the callback repeatedly.
 
-        :param callback: A callable that takes no arguments.
+        :param callback: A callable (usually a function you wrote).
         :param delay: The delay, in seconds, before the function should be
                       called.
+        :param args: Any further arguments will be given to callback as
+                     positional arguments when called.
+        :param kwargs: Any further named arguments will be given to callback
+                       as keyword arguments when called.
 
-    .. method:: schedule_unique(callback, delay)
+    .. method:: schedule_unique(callback, delay, *args, **kwargs)
 
         Schedule `callback` to be called once after the given delay.
 
@@ -903,23 +965,61 @@ get it with ``clock.absolute_time``.
         applies also if it was scheduled multiple times: after calling
         ``schedule_unique``, it will be scheduled exactly once.
 
-        :param callback: A callable that takes no arguments.
+        :param callback: A callable (usually a function you wrote).
         :param delay: The delay, in seconds, before the function should be
                       called.
+        :param args: Any further arguments will be given to callback as
+                     positional arguments when called.
+        :param kwargs: Any further named arguments will be given to callback
+                       as keyword arguments when called.
 
-    .. method:: schedule_interval(callback, interval)
+    .. method:: schedule_interval(callback, interval, *args, **kwargs)
 
         Schedule `callback` to be called repeatedly.
 
-        :param callback: A callable that takes no arguments.
+        :param callback: A callable (usually a function you wrote).
         :param interval: The interval in seconds between calls to `callback`.
+        :param args: Any further arguments will be given to callback as
+                     positional arguments when called.
+        :param kwargs: Any further named arguments will be given to callback
+                       as keyword arguments when called.
 
-    .. method:: unschedule(callback)
+    .. method:: unschedule(callback, *args, **kwargs)
 
-        Unschedule callback if it has been previously scheduled (either because
-        it has been scheduled with ``schedule()`` and has not yet been called,
-        or because it has been scheduled to repeat with
-        ``schedule_interval()``.
+        Unschedule only the callback with the given arguments if it has
+        been previously scheduled (either because it had been scheduled with
+        ``schedule()`` and has not yet been called, or because it had been
+        scheduled to repeat with ``schedule_interval()``.
+
+        This means that if you scheduled ``set_gem_color`` with ``"red"`` and
+        ``"blue"`` for separate delays before and then call
+        ``clock.unschedule(set_gem_color, "red")`` only the call with ``"red"``
+        as an argument will be unscheduled.
+
+        :param callback: A callable (usually a function you wrote).
+        :param args: Any further arguments will be given to callback as
+                     positional arguments when called.
+        :param kwargs: Any further named arguments will be given to callback
+                       as keyword arguments when called.
+
+    .. method:: unschedule_all(callback)
+
+        Unschedule all calls of the given callback, ignoring any arguments
+        supplied to them.
+
+        This means that if you scheduled ``set_gem_color`` with ``"red"`` and
+        ``"blue"`` for separate delays before, both will be unscheduled.
+
+        :param callback: A callable (usually a function you wrote).
+
+Note that the Pygame Turbo clock only holds weak references to each callback
+you give it. It will not fire scheduled events if the objects and methods are
+not referenced elsewhere. This can help prevent the clock keeping objects
+alive and continuing to fire unexpectedly after they are otherwise dead.
+
+The downside to the weak references is that you won't be able to schedule
+lambdas or any other object that has been created purely to be scheduled. You
+will have to keep a reference to the object.
 
     .. method:: mark_time(name)
 
@@ -950,15 +1050,6 @@ get it with ``clock.absolute_time``.
         Note that changing this dictionary does not affect the underlying data
         in clock.
 
-
-Note that the Pygame Turbo clock only holds weak references to each callback
-you give it. It will not fire scheduled events if the objects and methods are
-not referenced elsewhere. This can help prevent the clock keeping objects
-alive and continuing to fire unexpectedly after they are otherwise dead.
-
-The downside to the weak references is that you won't be able to schedule
-lambdas or any other object that has been created purely to be scheduled. You
-will have to keep a reference to the object.
 
 .. _actor:
 
