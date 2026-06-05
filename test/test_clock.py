@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock
 
 from pgturbo.clock import clock
 
@@ -13,6 +14,7 @@ class ClockTest(unittest.TestCase):
 
     def tearDown(self):
         clock._marks = {}
+        clock.clear()
 
     def test_time(self):
         self.assertEqual(clock.time, 22100.75)
@@ -79,3 +81,177 @@ class ClockTest(unittest.TestCase):
         # only get a copy back from get_all_marks().
         returned_dict.pop("test_mark")
         self.assertEqual(clock.get_all_marks(), compare_dict)
+
+    def test_schedule_single_no_args(self):
+        """Scheduled functions are called but only after the right amount of
+        time."""
+        # This creates a mock function signature where we can check later
+        # if it was called.
+        test_func_mock = Mock()
+        clock.schedule(test_func_mock, 1.0)
+        # The call has been added to the clock events list.
+        self.assertEqual(len(clock.events), 1)
+        # Not enough time, call should not have been made.
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        # Now enough time has passed that it should have been called.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 0)
+        # It should also not have been called multiple times.
+        test_func_mock.assert_called_once()
+
+    def test_schedule_unique_no_args(self):
+        """Uniquely scheduled functions delay previous scheduling correctly."""
+        test_func_mock = Mock()
+        clock.schedule(test_func_mock, 1.0)
+        self.assertEqual(len(clock.events), 1)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        # Schedule unique should remove the old scheduling, leaving only the
+        # new one.
+        clock.schedule_unique(test_func_mock, 1.5)
+        self.assertEqual(len(clock.events), 1)
+        # Since the old event was removed, the function should still not
+        # have been called.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        # Only now should it have been called.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 0)
+        test_func_mock.assert_called_once()
+
+    def test_schedule_interval_no_args(self):
+        """Scheduling with an interval keeps the event in the queue and calls
+        repeatedly."""
+        test_func_mock = Mock()
+        clock.schedule_interval(test_func_mock, 1.0)
+        self.assertEqual(len(clock.events), 1)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        # Here we should have gotten the first call.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_called_once()
+        # Another call.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        self.assertEqual(test_func_mock.call_count, 2)
+        # Another call.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        self.assertEqual(test_func_mock.call_count, 3)
+
+    def test_schedule_single_with_args(self):
+        """Simple scheduling works with supplied arguments."""
+        test_func_mock = Mock()
+        clock.schedule(test_func_mock, 1.0, 42, "test", kword="test")
+        self.assertEqual(len(clock.events), 1)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 0)
+        test_func_mock.assert_called_once_with(42, "test", kword="test")
+
+    def test_schedule_unique_with_args(self):
+        """Uniquely scheduled functions delay previous scheduling correctly
+        and different arguments don't intersect when rescheduling."""
+        test_func_mock = Mock()
+        clock.schedule(test_func_mock, 1.0, 42, "test", kword="test")
+        self.assertEqual(len(clock.events), 1)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        # This should not remove the old call because the supplied args differ.
+        clock.schedule_unique(test_func_mock, 5.0)
+        self.assertEqual(len(clock.events), 2)
+        # This should reschedule however.
+        clock.schedule_unique(test_func_mock, 1.5, 42, "test", kword="test")
+        self.assertEqual(len(clock.events), 2)
+        # Since the old event was removed, the function should still not
+        # have been called.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 2)
+        test_func_mock.assert_not_called()
+        # Only now should it have been called with the other call remaining.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_called_once_with(42, "test", kword="test")
+        clock.tick(10.0)
+        self.assertEqual(len(clock.events), 0)
+        # The last call should have been without arguments.
+        test_func_mock.assert_called_with()
+        # In total two calls should have happened.
+        self.assertEqual(test_func_mock.call_count, 2)
+
+    def test_schedule_interval_with_args(self):
+        """Interval scheduling also works with arguments."""
+        test_func_mock = Mock()
+        clock.schedule_interval(test_func_mock, 1.0, 42, "test", kword="test")
+        self.assertEqual(len(clock.events), 1)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_called_once_with(42, "test", kword="test")
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        self.assertEqual(test_func_mock.call_count, 2)
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        self.assertEqual(test_func_mock.call_count, 3)
+
+    def test_unschedule_no_args(self):
+        """Scheduled events can be removed from the queue."""
+        test_func_mock = Mock()
+        clock.schedule(test_func_mock, 1.0)
+        self.assertEqual(len(clock.events), 1)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_not_called()
+        clock.unschedule(test_func_mock)
+        # No calls should have been made since it was unscheduled.
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 0)
+        test_func_mock.assert_not_called()
+
+    def test_unschedule_with_args(self):
+        """Scheduled events can be removed from the queue."""
+        test_func_mock = Mock()
+        clock.schedule(test_func_mock, 1.0, 42, "test", kword="test")
+        clock.schedule(test_func_mock, 2.0, 42, "test", kword="test")
+        self.assertEqual(len(clock.events), 2)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 2)
+        test_func_mock.assert_not_called()
+        # This does not unschedule the calls because of the difference
+        # in supplied arguments.
+        clock.unschedule(test_func_mock)
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 1)
+        test_func_mock.assert_called_once_with(42, "test", kword="test")
+        # This unschedules the remaining call because the arguments match.
+        clock.unschedule(test_func_mock, 42, "test", kword="test")
+        clock.tick(1.0)
+        self.assertEqual(len(clock.events), 0)
+        self.assertEqual(test_func_mock.call_count, 1)
+
+    def test_unschedule_all(self):
+        """Unschedule all removes callbacks regardless of their args."""
+        test_func_mock = Mock()
+        clock.schedule(test_func_mock, 1.0)
+        clock.schedule(test_func_mock, 2.0, 42, "test", kword="test")
+        self.assertEqual(len(clock.events), 2)
+        clock.tick(0.5)
+        self.assertEqual(len(clock.events), 2)
+        test_func_mock.assert_not_called()
+        # This should remove both scheduled calls.
+        clock.unschedule_all(test_func_mock)
+        self.assertEqual(len(clock.events), 0)
+        clock.tick(2.0)
+        test_func_mock.assert_not_called()
