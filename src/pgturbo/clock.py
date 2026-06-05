@@ -7,6 +7,7 @@ classes in Pyglet.
 import heapq
 from weakref import ref
 from functools import total_ordering
+from inspect import signature
 from types import MethodType
 
 __all__ = [
@@ -51,10 +52,15 @@ class Event:
 
     """
 
-    def __init__(self, time, cb, repeat=None):
+    def __init__(self, time, cb, repeat=None, *args, **kwargs):
         self.time = time
         self.repeat = repeat
         self.cb = mkref(cb)
+        # This function signature allows us to ensure invalid arguments
+        # are immediately detected and rejected before the function is called.
+        self.cb_signature = signature(cb)
+        self.bound = self.cb_signature.bind(*args, **kwargs)
+        self.bound.apply_defaults()
         self.name = str(cb)
         self.repeat = repeat
 
@@ -148,16 +154,17 @@ class Clock:
         self.events.clear()
         self._each_tick.clear()
 
-    def schedule(self, callback, delay):
+    def schedule(self, callback, delay, *args, **kwargs):
         """Schedule callback to be called once, at `delay` seconds from now.
 
         :param callback: A parameterless callable to be called.
         :param delay: The delay before the call (in clock time / seconds).
 
         """
-        heapq.heappush(self.events, Event(self._t + delay, callback, None))
+        heapq.heappush(self.events, Event(self._t + delay, callback, None,
+                                          *args, **kwargs))
 
-    def schedule_unique(self, callback, delay):
+    def schedule_unique(self, callback, delay, *args, **kwargs):
         """Schedule callback to be called once, at `delay` seconds from now.
 
         If it was already scheduled, postpone its firing.
@@ -166,10 +173,10 @@ class Clock:
         :param delay: The delay before the call (in clock time / seconds).
 
         """
-        self.unschedule(callback)
-        self.schedule(callback, delay)
+        self.unschedule(callback, *args, **kwargs)
+        self.schedule(callback, delay, *args, **kwargs)
 
-    def schedule_interval(self, callback, delay):
+    def schedule_interval(self, callback, delay, *args, **kwargs):
         """Schedule callback to be called every `delay` seconds.
 
         The first occurrence will be after `delay` seconds.
@@ -178,21 +185,34 @@ class Clock:
         :param delay: The interval in seconds.
 
         """
-        heapq.heappush(self.events, Event(self._t + delay, callback, delay))
+        heapq.heappush(self.events, Event(self._t + delay, callback, delay,
+                                          *args, **kwargs))
 
-    def unschedule(self, callback):
-        """Unschedule the given callback.
+    def _internal_unschedule(self, callback, with_args, *args, **kwargs):
+        """Unschedule callbacks either with specified arguments or all
+        of the same callback regardsless of params.
 
         If scheduled multiple times all instances will be unscheduled.
-
         """
         self.events = [
             e for e in self.events
-            if e.callback != callback
             if e.callback is not None
+            if (with_args and not (e.callback == callback
+                                   and e.bound.args == args
+                                   and e.bound.kwargs == kwargs)
+                ) or (not with_args and e.callback != callback)
         ]
         heapq.heapify(self.events)
         self._each_tick = [e for e in self._each_tick if e() != callback]
+
+    def unschedule(self, callback, *args, **kwargs):
+        """Unschedule a callback with specified arguments."""
+        self._internal_unschedule(callback, True, *args, **kwargs)
+
+    def unschedule_all(self, callback):
+        """Unschedule all callbacks of the same function regardless of their
+        specified arguments."""
+        self._internal_unschedule(callback, False)
 
     def each_tick(self, callback):
         """Schedule a callback to be called every tick.
@@ -238,7 +258,7 @@ class Clock:
 
             self.fired = True
             try:
-                cb()
+                cb(*ev.bound.args, **ev.bound.kwargs)
             except Exception:
                 import traceback
                 traceback.print_exc()
