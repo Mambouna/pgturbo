@@ -3,6 +3,8 @@ import unittest
 from unittest.mock import patch
 # Used to supress printed warnings in unittests.
 from io import StringIO
+# Used to give a generous timeout before deleting the temp dir for a test
+from time import sleep
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import os
@@ -281,6 +283,7 @@ class ScreenTest(unittest.TestCase):
             self.assertEqual(len(os.listdir("pgturbo_screenshots")), 1)
             ext = os.listdir("pgturbo_screenshots")[0].split(".")[-1]
             self.assertEqual(ext, "png")
+            sleep(1)
 
 
 if __name__ == '__main__':
