@@ -58,7 +58,7 @@ draw images to the screen ("blit" them).
     .. method:: screenshot()
 
         Takes a screenshot of the entire game window and saves it to
-        ``Pictures`` in your home directory.
+        the ``pgturbo`` folder in your home ``Pictures`` directory.
 
         Returns the path of the file that was written, as a string.
 
