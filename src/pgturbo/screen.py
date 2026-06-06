@@ -1,5 +1,10 @@
+import os
+import sys
+from datetime import datetime
+
 import pygame
 import pygame.draw
+import pygame.image
 
 from . import ptext
 from .rect import RECT_CLASSES, ZRect
@@ -25,6 +30,67 @@ def make_color(arg):
     else:
         spellcheck.check_color_name(arg)
     return tuple(pygame.Color(arg))
+
+
+def _get_platform_screenshot_path():
+    r"""Get the screenshot directory for pgturbo.
+    Under Windows, this is %USERPROFILE%\Pictures\pgturbo.
+    Under Linux/MacOS, it's ~/Pictures/pgturbo.
+    If the platform is unsupported, it defaults to the CWD."""
+    if sys.platform == "win32":
+        try:
+            home = os.environ["USERPROFILE"]
+        except KeyError:
+            raise KeyError("Couldn't find the user home directory for "
+                           "screenshots. Please set the %USERPROFILE% "
+                           "environment variable.")
+        return os.path.join(home, "Pictures", "pgturbo")
+    elif sys.platform in ("linux", "linux2", "darwin"):
+        return os.path.expanduser(os.path.join("~", "Pictures", "pgturbo"))
+    else:
+        print(f"WARNING: Device platform {sys.platform} not recognized, thus "
+              "no user folder found. Falling back to current directory to save"
+              " screenshots.", file=sys.stderr)
+        return os.path.join(os.getcwd(), "pgturbo_screenshots")
+
+
+# This function is used to create the screenshot instance with the file name
+# given by runner.py but save it in the scope of screen.
+def _initialize_screenshots(file_path, custom_path=None):
+    global screenshots
+    # Ensure we get a full path to split in the next operation.
+    if not os.path.isabs(file_path):
+        file_path = os.path.abspath(file_path)
+    project_name, _ = os.path.splitext(os.path.basename(file_path))
+    # If the screenshotting functionality was given a custom path,
+    # create the manager instance with it. Otherwise use the default
+    # path for the OS.
+    if custom_path:
+        screenshots = Screenshots(project_name, custom_path)
+    else:
+        screenshots = Screenshots(project_name,
+                                  _get_platform_screenshot_path())
+
+
+class Screenshots:
+    """Class to manage taking screenshots."""
+    def __init__(self, project_name, target_path):
+        self._project_name = project_name
+        self._path = target_path
+
+    def take(self, surface):
+        # Ensure that the directory for screenshots exists.
+        os.makedirs(self._path, exist_ok=True)
+
+        # Creates the filename, made up of the script name and a timestamp.
+        now = datetime.now()
+        # We can't use proper ISO standard here since ":" in filenames
+        # doesn't work on Windows.
+        filename = f"{self._project_name}_{now:%Y-%m-%d_%H-%M-%S}.png"
+        filepath = os.path.join(self._path, filename)
+        # Save the screenshot.
+        pygame.image.save(surface, filepath)
+        return filepath
 
 
 class SurfacePainter:
@@ -180,6 +246,10 @@ class Screen:
         if isinstance(image, str):
             image = loaders.images.load(image)
         self.surface.blit(image, pos, None, pygame.BLEND_ALPHA_SDL2)
+
+    def screenshot(self):
+        """Takes a screenshot of the entire game window."""
+        return screenshots.take(self.surface)
 
     @property
     def draw(self):

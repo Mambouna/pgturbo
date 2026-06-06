@@ -1,7 +1,13 @@
 import sys
 import unittest
+from unittest.mock import patch
+# Used to supress printed warnings in unittests.
+from io import StringIO
+from tempfile import TemporaryDirectory
 from pathlib import Path
 import os
+import ntpath
+import posixpath
 import warnings
 
 import numpy as np
@@ -9,7 +15,7 @@ import pygame
 import pygame.image
 import pygame.surfarray
 
-from pgturbo.screen import Screen
+import pgturbo.screen as screen
 from pgturbo.loaders import set_root, images
 from pgturbo.rect import Rect, ZRect
 
@@ -96,7 +102,7 @@ class ScreenTest(unittest.TestCase):
         pygame.display.quit()
 
     def setUp(self):
-        self.screen = Screen()
+        self.screen = screen.Screen()
         self.screen._set_surface(self.surf)
         self.screen.clear()
 
@@ -237,6 +243,50 @@ class ScreenTest(unittest.TestCase):
             self.screen.bounds(),
             ZRect(0, 0, 200, 200)
         )
+
+    @patch("sys.platform", "win32")
+    @patch("os.path", ntpath)
+    @patch.dict("os.environ", {"USERPROFILE": r"c:\Users\user"})
+    def test_get_screenshot_path_windows(self):
+        r"""Screenshot path on Windows is %USERPROFILE%\Pictures\pgturbo."""
+        result_path = screen._get_platform_screenshot_path()
+        self.assertEqual(result_path,
+                         os.path.join(r"c:\Users\user", "Pictures", "pgturbo"))
+
+    @patch("sys.platform", "linux")
+    @patch("os.path", posixpath)
+    @patch.dict("os.environ", {"HOME": "/home/user"})
+    def test_get_screenshot_path_linux(self):
+        """Screenshot path on Linux or MacOS is ~/Pictures/pgturbo."""
+        result_path = screen._get_platform_screenshot_path()
+        self.assertEqual(result_path,
+                         os.path.join("/home/user", "Pictures", "pgturbo"))
+
+    @patch("sys.platform", "NOTHING")
+    @patch("sys.stderr", new=StringIO())
+    def test_get_screenshot_path_other(self):
+        """If OS is not supported, CWD is used for screenshots."""
+        result_path = screen._get_platform_screenshot_path()
+        self.assertEqual(result_path,
+                         os.path.join(os.getcwd(), "pgturbo_screenshots"))
+
+    @patch("sys.platform", "NOTHING")
+    @patch("sys.stderr", new=StringIO())
+    def test_take_screenshot(self):
+        """Screenshot files are created and have the proper extension."""
+        # td is file-like and can thus be used as a path as well.
+        with TemporaryDirectory() as td:
+            # By supplying a path to _initialize_screenshot, we give it
+            # an alternate target to save screenshots in for testing.
+            screen._initialize_screenshots(__file__, td)
+            # Before taking a screenshot, the directory should be empty.
+            self.assertEqual(len(os.listdir(td)), 0)
+            self.screen.screenshot()
+            # After, there should be a file.
+            self.assertEqual(len(os.listdir(td)), 1)
+            ext = os.listdir(td)[0].split(".")[-1]
+            # The file extension is png.
+            self.assertEqual(ext, "png")
 
 
 if __name__ == '__main__':
