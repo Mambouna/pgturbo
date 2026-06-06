@@ -281,6 +281,9 @@ class ScreenTest(unittest.TestCase):
         with TemporaryDirectory("screenshot_testdir",
                                 ignore_cleanup_errors=True) as td:
             os.chdir(td)
+            print("")
+            print(os.stat(td))
+            print("")
             screen._initialize_screenshots(__file__)
             self.screen.screenshot()
             self.assertEqual(len(os.listdir("pgturbo_screenshots")), 1)
