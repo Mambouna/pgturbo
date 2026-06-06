@@ -86,7 +86,7 @@ class Screenshots:
         now = datetime.now()
         # We can't use proper ISO standard here since ":" in filenames
         # doesn't work on Windows.
-        filename = f"{self._project_name}-{now:%Y-%m-%d_%H-%M-%S}.png"
+        filename = f"{self._project_name}_{now:%Y-%m-%d_%H-%M-%S}.png"
         filepath = os.path.join(self._path, filename)
         # Save the screenshot.
         pygame.image.save(surface, filepath)
