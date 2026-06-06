@@ -23,6 +23,8 @@ New features
 * ``clock.timescale`` property that allows slowing down, speeding up or pausing
   the game time. Integrating the different timescale with actor movements or
   other time relevant code is up to the user.
+* Take screenshots with F12 in the game window or manually from code with
+  ``screen.screenshot()``.
 
 
 Feature enhancements
@@ -67,6 +69,12 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.8.0 - 2026-06-06
+------------------
+
+Added ability to take screenshots.
 
 
 1.7.0 - 2026-06-05
