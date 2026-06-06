@@ -1,7 +1,8 @@
 import sys
 import unittest
 from unittest.mock import patch
-from io import StringIO # Used to supress printed warnings in unittests.
+# Used to supress printed warnings in unittests.
+from io import StringIO
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import os
