@@ -3,8 +3,6 @@ import unittest
 from unittest.mock import patch
 # Used to supress printed warnings in unittests.
 from io import StringIO
-# Used to give a generous timeout before deleting the temp dir for a test
-from time import sleep
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import os
@@ -276,14 +274,18 @@ class ScreenTest(unittest.TestCase):
     @patch("sys.stderr", new=StringIO())
     def test_take_screenshot(self):
         """Screenshot files are created and have the proper extension."""
-        with TemporaryDirectory("screenshot_testdir") as td:
+        # ignore_cleanup_errors=True might seem dangerous but is as far as I
+        # can see the official way to deal with weird Windows only issues
+        # around temporary directories and permission errors that shouldn't
+        # actually happen.
+        with TemporaryDirectory("screenshot_testdir",
+                                ignore_cleanup_errors=True) as td:
             os.chdir(td)
             screen._initialize_screenshots(__file__)
             self.screen.screenshot()
             self.assertEqual(len(os.listdir("pgturbo_screenshots")), 1)
             ext = os.listdir("pgturbo_screenshots")[0].split(".")[-1]
             self.assertEqual(ext, "png")
-            sleep(1)
 
 
 if __name__ == '__main__':
