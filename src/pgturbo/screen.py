@@ -56,21 +56,27 @@ def _get_platform_screenshot_path():
 
 # This function is used to create the screenshot instance with the file name
 # given by runner.py but save it in the scope of screen.
-def _initialize_screenshots(file_path):
+def _initialize_screenshots(file_path, custom_path=None):
     global screenshots
-    # Otherwise, create the instance of the Screenshots class used to
-    # take and save screenshots.
+    # Ensure we get a full path to split in the next operation.
     if not os.path.isabs(file_path):
         file_path = os.path.abspath(file_path)
     project_name, _ = os.path.splitext(os.path.basename(file_path))
-    screenshots = Screenshots(project_name)
+    # If the screenshotting functionality was given a custom path,
+    # create the manager instance with it. Otherwise use the default
+    # path for the OS.
+    if custom_path:
+        screenshots = Screenshots(project_name, custom_path)
+    else:
+        screenshots = Screenshots(project_name,
+                                  _get_platform_screenshot_path())
 
 
 class Screenshots:
     """Class to manage taking screenshots."""
-    def __init__(self, project_name):
+    def __init__(self, project_name, target_path):
         self._project_name = project_name
-        self._path = _get_platform_screenshot_path()
+        self._path = target_path
 
     def take(self, surface):
         # Ensure that the directory for screenshots exists.
@@ -78,7 +84,9 @@ class Screenshots:
 
         # Creates the filename, made up of the script name and a timestamp.
         now = datetime.now()
-        filename = f"{self._project_name}-{now:%Y-%m-%d_%H:%M:%S}.png"
+        # We can't use proper ISO standard here since ":" in filenames
+        # doesn't work on Windows.
+        filename = f"{self._project_name}-{now:%Y-%m-%d_%H-%M-%S}.png"
         filepath = os.path.join(self._path, filename)
         # Save the screenshot.
         pygame.image.save(surface, filepath)

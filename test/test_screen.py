@@ -274,20 +274,18 @@ class ScreenTest(unittest.TestCase):
     @patch("sys.stderr", new=StringIO())
     def test_take_screenshot(self):
         """Screenshot files are created and have the proper extension."""
-        # ignore_cleanup_errors=True might seem dangerous but is as far as I
-        # can see the official way to deal with weird Windows only issues
-        # around temporary directories and permission errors that shouldn't
-        # actually happen.
-        with TemporaryDirectory("screenshot_testdir",
-                                ignore_cleanup_errors=True) as td:
-            os.chdir(td)
-            print("")
-            print(os.stat(td))
-            print("")
-            screen._initialize_screenshots(__file__)
+        # td is file-like and can thus be used as a path as well.
+        with TemporaryDirectory() as td:
+            # By supplying a path to _initialize_screenshot, we give it
+            # an alternate target to save screenshots in for testing.
+            screen._initialize_screenshots(__file__, td)
+            # Before taking a screenshot, the directory should be empty.
+            self.assertEqual(len(os.listdir(td)), 0)
             self.screen.screenshot()
-            self.assertEqual(len(os.listdir("pgturbo_screenshots")), 1)
-            ext = os.listdir("pgturbo_screenshots")[0].split(".")[-1]
+            # After, there should be a file.
+            self.assertEqual(len(os.listdir(td)), 1)
+            ext = os.listdir(td)[0].split(".")[-1]
+            # The file extension is png.
             self.assertEqual(ext, "png")
 
 
