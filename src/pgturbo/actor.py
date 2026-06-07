@@ -671,7 +671,12 @@ class Actor:
             print("Width:", self.width, "Height:", self.height)
             """
             # Update actor position to incorporate frame offsets.
-            self._update_pos()
+            # TODO: Same note as above? Refactor to avoid duplicating many
+            # calls?
+            p = self.pos
+            self._calc_anchor()
+            self._transform()
+            self.pos = p
         # Otherwise, if no animation is running but there still is an 
         # animation image, it is deleted and the surface cache cleared
         # so that the static image is displayed again.

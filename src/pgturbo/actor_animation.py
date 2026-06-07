@@ -1,5 +1,5 @@
 from . import loaders
-from . import clock
+from .clock import clock
 
 """
 Manages animations for actor objects.
@@ -250,7 +250,7 @@ class ActorAnimationSystem:
         # Calculate the remaining time the frame should be shown after
         # unpausing.
         started = self._current_animation._frame_started
-        paused = clock.time()
+        paused = clock.time
         remaining = paused - started
 
         # Unschedule advancing the current animation.
@@ -636,13 +636,13 @@ class ActorAnimation:
             # Indicates actor.draw() should get the new frame.
             self._new_frame = True
             # Records when this frame was started to be shown.
-            self._frame_started = clock.time()
+            self._frame_started = clock.time
             # Schedules the next frame advancement.
             clock.schedule(self._next_frame, self._durations[self._frame_index])
 
     def _resume_frame(self, remaining_duration):
         self._new_frame = True
-        self._frame_started = clock.time()
+        self._frame_started = clock.time
         clock.schedule(self._next_frame, remaining_duration)
 
     # Function to reset the state of the animation and unschedule its advance-
