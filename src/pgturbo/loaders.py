@@ -316,6 +316,48 @@ class AnimationLoader(ResourceLoader):
         return "<Animations animations={}>".format(self.__dir__())
 
 
+class SpritesheetLoader(ResourceLoader):
+    EXTNS = ['png', 'gif', 'jpg', 'jpeg', 'bmp']
+    TYPE = 'spritesheet'
+
+    def _load(self, path, vertical, width, height):
+        """Loads a spritesheet into a single set of animation frames.
+
+        :param path: Filepath to the spritesheet image.
+        :param horizontal: Boolean whether the frames on the spritesheet are
+                           ordered left-to-right (True) or top-to-bottom
+                           (False).
+        :param width: Width of each frame in pixels.
+        :param height: Height of each frame in pixels.
+        """
+        # First load the whole spritesheet image.
+        sheet = pygame.image.load(path).convert_alpha()
+        # Prepare the necessary variables to iterate over the frames.
+        frames = []
+        # How to shift the frame window each iteration.
+        move_x = width if not vertical else 0
+        move_y = height if vertical else 0
+        # How many frames there are in the sheet.
+        num = sheet.height / height if vertical else sheet.width / width
+        if num % 1 != 0:
+            raise ValueError("Your given frame dimensions don't cleanly divide"
+                             " the spritesheet. The spritesheet size is {}. "
+                             "Your supplied frame size is {}."
+                             .format(sheet.get_size(), (width, height)))
+        for i in range(0, int(num)):
+            # The rectangle on the sprite sheet of the current frame.
+            rect_on_sheet = pygame.Rect(move_x * i, move_y * i, width, height)
+            # So far empty surface for the new frame.
+            frame = pygame.Surface((width, height), pygame.SRCALPHA)
+            # "Stamp" the Spritesheet part we want onto the empty surface.
+            frame.blit(sheet, (0,0), rect_on_sheet)
+            # Append the complete frame to the list.
+            frames.append(frame)
+        return tuple(frames)
+
+    def __repr__(self):
+        return "<Spritesheets spritesheets={}>".format(self.__dir__())
+
 class SoundLoader(ResourceLoader):
     EXTNS = ['wav', 'ogg', 'oga']
     TYPE = 'sound'
@@ -368,6 +410,7 @@ class FontLoader(ResourceLoader):
 
 images = ImageLoader('images')
 animations = AnimationLoader('animations')
+spritesheets = SpritesheetLoader('animations')
 sounds = SoundLoader('sounds')
 fonts = FontLoader('fonts')
 

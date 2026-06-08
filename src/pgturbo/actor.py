@@ -690,7 +690,7 @@ class Actor:
     def draw(self):
         # Updates _a_image and other necessary tracking if new animation
         # frames are needed or removes it if it's not needed.
-        self._manage_frame_advancements()
+        self._manage_frame_advancement()
         s = self._build_transformed_surf()
         game.screen.blit(s, self.topleft)
 
