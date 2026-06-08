@@ -6,7 +6,7 @@ from . import loaders
 from . import rect
 from . import spellcheck
 from .validation import validate_position_value
-from .actor_animation import ActorAnimationSystem, ActorAnimation
+from .actor_animation import ActorAnimationSystem
 
 
 ANCHORS = {
@@ -137,7 +137,7 @@ class Actor:
     # Image variable to hold the currently displayed animation frame.
     # This image is separate from the static image so that falling back to it
     # is possible if something goes wrong with the animations.
-    _a_image = None 
+    _a_image = None
 
     def _build_transformed_surf(self):
         cache_len = len(self._surface_cache)
@@ -362,7 +362,7 @@ class Actor:
             # TODO: Is - right here? Should it be +?
             ax -= self._anim._current_animation.offset_x
             ay -= self._anim._current_animation.offset_y
-        # The untransformed anchor assumes the image isn't 
+        # The untransformed anchor assumes the image isn't
         # rotated. If it is, the anchor position has to be
         # recalculated because the rotated image has a different
         # size and topleft, so the position of the anchor
@@ -648,9 +648,9 @@ class Actor:
         return self._anim
 
     def draw(self):
-        # If an animation is running and it has advanced a frame, the 
+        # If an animation is running and it has advanced a frame, the
         # actors new animation image needs to be fetched.
-        # TODO: Solve this differently? An animation could directly 
+        # TODO: Solve this differently? An animation could directly
         # change actor._a_image when it runs _next_frame, would that
         # be better?
         if self._anim._current_animation and self._anim._current_animation._new_frame:
@@ -667,7 +667,8 @@ class Actor:
             print("\nPos:", self.pos)
             print("Anchor:", self._anchor)
             print("Topleft:", self.topleft)
-            print("Added:", self._anchor[0] + self.topleft[0], self._anchor[1] + self.topleft[1])
+            print("Added:", self._anchor[0] + self.topleft[0],
+                  self._anchor[1] + self.topleft[1])
             print("Width:", self.width, "Height:", self.height)
             """
             # Update actor position to incorporate frame offsets.
@@ -677,10 +678,11 @@ class Actor:
             self._calc_anchor()
             self._transform()
             self.pos = p
-        # Otherwise, if no animation is running but there still is an 
+        # Otherwise, if no animation is running but there still is an
         # animation image, it is deleted and the surface cache cleared
         # so that the static image is displayed again.
-        elif not self._anim._current_animation and self._a_image and not self._anim.paused:
+        elif (not self._anim._current_animation and self._a_image
+              and not self._anim.paused):
             self._a_image = None
             self._surface_cache.clear()
         s = self._build_transformed_surf()

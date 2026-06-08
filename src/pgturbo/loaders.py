@@ -82,7 +82,7 @@ def validate_animation_paths(path):
     """
     # First, validate the directory path itself.
     validate_compatible_path(path)
-    
+
     dirname = os.path.basename(path)
     warned_dirname = False
     warned_directory = False
@@ -134,7 +134,7 @@ def validate_animation_paths(path):
                           "missing or with more than 10 frames, numbering could "
                           "produce wrong file order.".format(number, last_number))
                     warned_numbering = True
-            except:
+            except ValueError:
                 number = None
                 if not warned_no_numbers:
                     print("WARNING: Filename {} does not end in a number. Order "
@@ -145,7 +145,7 @@ def validate_animation_paths(path):
                 print("WARNING: Filename {} without numbering does not match "
                       "directory name {}.".format(anim_name, dirname))
                 warned_dirname = True
-        
+
             # Update last name and last number if there was a valid number.
             last_anim_name = anim_name
             if number:
@@ -158,8 +158,8 @@ def validate_animation_paths(path):
 
     # If any specific warning was given, also give general best practis for
     # naming animation frames.
-    if any((warned_dirname, warned_directory, warned_filenames, warned_numbering, 
-           warned_no_numbers, warned_extension)):
+    if any((warned_dirname, warned_directory, warned_filenames,
+            warned_numbering, warned_no_numbers, warned_extension)):
         print("WARNING SUMMARY: Checking the animation directory revealed "
               "problems that could interfere with correct ingest of animation "
               "frames.\nThe following is suggested best practise:\n\t- Name "
@@ -218,12 +218,12 @@ class ResourceLoader:
             self.validate_root(name)
         p = os.path.join(self._root(), name)
 
-        # New if-else to separate dealing with animation loading vs. 
+        # New if-else to separate dealing with animation loading vs.
         # non-animation loading.
         if os.path.isdir(p) and self.TYPE == "animation":
             # Validate the animation directory.
             validate_animation_paths(p)
-            # With a given directory, the path to load does not 
+            # With a given directory, the path to load does not
             # need to be changed here.
         else:
             # Handling of non-animations stays the same.
@@ -241,7 +241,7 @@ class ResourceLoader:
                         )
                     )
 
-            # Validation of the directory has already occurred in 
+            # Validation of the directory has already occurred in
             # validate_animation_paths() so it's not necessary to
             # call validate_compatible_path() again here.
             validate_compatible_path(p)
@@ -296,14 +296,14 @@ class UnsupportedFormat(Exception):
 
 # New class to handle loading of animations
 class AnimationLoader(ResourceLoader):
-    # Extensions are the same as for ImageLoader as animations are made 
+    # Extensions are the same as for ImageLoader as animations are made
     # up of individual images.
     EXTNS = ['png', 'gif', 'jpg', 'jpeg', 'bmp']
     TYPE = 'animation'
 
     def _load(self, path):
         # Get paths to all files in the directory
-        files = sorted([f_path for f in os.listdir(path) 
+        files = sorted([f_path for f in os.listdir(path)
                         if os.path.isfile(
                         (f_path := os.path.join(path, f)))])
         # Load all images as Pygame surfaces and return a tuple of frames.
