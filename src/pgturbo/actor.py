@@ -647,13 +647,14 @@ class Actor:
     def anim(self):
         return self._anim
 
-    def draw(self):
+    def _manage_frame_advancement(self):
         # If an animation is running and it has advanced a frame, the
         # actors new animation image needs to be fetched.
         # TODO: Solve this differently? An animation could directly
         # change actor._a_image when it runs _next_frame, would that
         # be better?
-        if self._anim._current_animation and self._anim._current_animation._new_frame:
+        if (self._anim._current_animation
+                and self._anim._current_animation._new_frame):
             # Index of the right frame.
             i = self._anim._current_animation._frame_index
             # Setting the actors animation image to the right frame.
@@ -685,6 +686,11 @@ class Actor:
               and not self._anim.paused):
             self._a_image = None
             self._surface_cache.clear()
+
+    def draw(self):
+        # Updates _a_image and other necessary tracking if new animation
+        # frames are needed or removes it if it's not needed.
+        self._manage_frame_advancements()
         s = self._build_transformed_surf()
         game.screen.blit(s, self.topleft)
 
