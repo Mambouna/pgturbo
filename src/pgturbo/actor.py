@@ -635,10 +635,6 @@ class Actor:
 
     @image.setter
     def image(self, image):
-        # If a new image is set, stop all running animations and return to it.
-        # TODO: Is this desireable behavior?
-        self._anim.stop()
-        self._a_image = None
         self._image_name = image
         self._orig_surf = loaders.images.load(image)
         self._surface_cache.clear()  # Clear out old image's cache.
