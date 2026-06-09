@@ -12,11 +12,6 @@ class ActorAnimationSystem:
     Management class. Each actor holds an instance of this class in the
     property anim. Direct write access to the important properties is
     restricted and use of anim should
-
-    # TODO: this isn't clear yet!!!
-    Base animation and paused could be implemented as accessible properties,
-    but in order to avoid confusion, they are not. This way, the user knows
-    that actor.anim always has to be used with a function.
     """
 
     def __init__(self):
@@ -36,7 +31,7 @@ class ActorAnimationSystem:
     # intuitive use.
     @property
     def animation_pool(self):
-        return list(self._animation_pool.keys())
+        return tuple(self._animation_pool.keys())
 
     animations = animation_pool
 
@@ -53,7 +48,7 @@ class ActorAnimationSystem:
 
     @property
     def queue_pool(self):
-        return list(self._queue.keys())
+        return tuple(self._queue.keys())
 
     @property
     def base_animation(self):

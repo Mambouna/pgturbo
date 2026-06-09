@@ -136,12 +136,6 @@ class Actor:
     _flipped_y_over_anchor = False
     _angle = 0.0
     _opacity = 1.0
-    # Initialize any actor with a new animation system
-    _anim = ActorAnimationSystem()
-    # Image variable to hold the currently displayed animation frame.
-    # This image is separate from the static image so that falling back to it
-    # is possible if something goes wrong with the animations.
-    _a_image = None
 
     def _build_transformed_surf(self):
         cache_len = len(self._surface_cache)
@@ -181,6 +175,14 @@ class Actor:
         # moved to the pos.setter for better coverage.
         if pos:
             validate_position_value(pos)
+
+        # Initialize any actor with a new animation system. This needs to be
+        # done here so all Actors don't share the same animation system.
+        self._anim = ActorAnimationSystem()
+        # Image variable to hold the currently displayed animation frame.
+        # This image is separate from the static image so that falling back to
+        # it is possible if something goes wrong with the animations.
+        self._a_image = None
 
         self.image = image
         self._init_position(pos, anchor, **kwargs)
