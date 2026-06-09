@@ -130,6 +130,10 @@ class Actor:
     _scale_y = 1.0
     _flip_x = False
     _flip_y = False
+    # TODO: Is this solution too ugly? Only needed to correct animation frame
+    # offsets in _calc_anchor() when actor was flipped over the anchor.
+    _flipped_x_over_anchor = False
+    _flipped_y_over_anchor = False
     _angle = 0.0
     _opacity = 1.0
     # Initialize any actor with a new animation system
@@ -351,9 +355,21 @@ class Actor:
         # If an animation is playing, change the anchor coordinates
         # based on animation frame offsets.
         if self._anim._current_animation:
+            # Quick access to the current animation.
+            anim = self._anim._current_animation
+            # Offsets for the current frame of the running animation.
+            offset_x = anim.offset_x
+            offset_y = anim.offset_y
+            # If the actor was flipped on an axis, we need to calculate new
+            # offsets based on the original ones and the difference in image
+            # sizes of the base image and the current animation frame.
+            if self._flipped_x_over_anchor:
+                offset_x = -1 * offset_x + ow - anim.frame.width
+            if self._flipped_y_over_anchor:
+                offset_y = -1 * offset_y + oh - anim.frame.height
             # For some reason this works correctly with - instead of + ...
-            ax -= self._anim._current_animation.offset_x
-            ay -= self._anim._current_animation.offset_y
+            ax -= offset_x
+            ay -= offset_y
         # The untransformed anchor assumes the image isn't
         # rotated. If it is, the anchor position has to be
         # recalculated because the rotated image has a different
@@ -828,6 +844,9 @@ class Actor:
         self._store_and_wipe_scale_and_rotation()
         # Flip the actor image
         self.flip_x = not self._flip_x
+        # Remeber the flip state being over the axis for animation frame
+        # offset adjustment.
+        self._flipped_x_over_anchor = not self._flipped_x_over_anchor
         # Remember the current position
         p = self.pos
         current_anchor_x, current_anchor_y = self.anchor
@@ -857,6 +876,7 @@ class Actor:
         mirrored across the anchor position along the Y axis."""
         self._store_and_wipe_scale_and_rotation()
         self.flip_y = not self._flip_y
+        self._flipped_y_over_anchor = not self._flipped_y_over_anchor
         p = self.pos
         current_anchor_x, current_anchor_y = self.anchor
         if isinstance(current_anchor_y, str):

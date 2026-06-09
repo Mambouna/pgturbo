@@ -56,10 +56,6 @@ class ActorAnimationSystem:
         return list(self._queue.keys())
 
     @property
-    def playing_queue(self):
-        return self._playing_queue if self._current_queue else False
-
-    @property
     def base_animation(self):
         if self._base_animation:
             return self._base_animation.name
@@ -440,7 +436,7 @@ class ActorAnimationSystem:
 
         # If the queue is currently playing, reset the animation and
         # play from where the new position is.
-        if self._playing_queue:
+        if self._current_queue:
             self._queue[self._queue_index].reset()
 
             self._queue_index = index - 1
@@ -734,7 +730,12 @@ class ActorAnimation:
         # values for their operations. Better ideas?
         if self._frame_index:
             return self._frames[self._frame_index]
-        return None
+        # We return the first frame of the animation even if it's not running
+        # so that frame offset calculations remain correct in the short time
+        # between transitioning animations.
+        # TODO: Does that actually work generally or only in the case that an
+        # animation is looping itself?
+        return self._frames[0]
 
     @property
     def durations(self):
