@@ -91,10 +91,10 @@ class ActorAnimationSystem:
         # Since base_animation can be None, check_animation_name() cannot be
         # used here to validate the given name.
         else:
-            raise ValueError("Given animation name is not part of the "
+            raise ValueError("Given animation name '{}' is not part of the "
                              "available animation pool. Valid animation names "
                              "are the following: {}"
-                             .format(", ".join(self._animation_pool)))
+                             .format(name, ", ".join(self._animation_pool)))
 
     base = base_animation
 
@@ -118,7 +118,7 @@ class ActorAnimationSystem:
     # If not, an error is raised that also lists available animations.
     def check_animation_name(self, name):
         if name not in self._animation_pool:
-            raise ValueError("Given animation name {} is not part of the "
+            raise ValueError("Given animation name '{}' is not part of the "
                              "available animation pool. Valid animation names "
                              "are the following: {}"
                              .format(name, ", ".join(self._animation_pool)))

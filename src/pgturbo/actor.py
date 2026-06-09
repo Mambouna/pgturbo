@@ -338,15 +338,9 @@ class Actor:
     def _calc_anchor(self):
         # Values are "left", "center", etc.
         ax, ay = self._anchor_value
-        # If an animation is ongoing, the current
-        # frame is used.
-        if self._anim._current_animation:
-            # TODO: Should this be done? If a larger frame is used, does the
-            # anchor jump around suddenly?
-            ow, oh = self._a_image.get_size()
-        # Otherwise, the static image is used.
-        else:
-            ow, oh = self._orig_surf.get_size()
+        # We always use the base image size here since animation frame offsets
+        # are entered in relation to it.
+        ow, oh = self._orig_surf.get_size()
         # calculate_anchor() returns the x and y coords
         # of the anchor in relation to the topleft of
         # the image. (e.g. if img. is 200x150 and anchor
@@ -357,9 +351,7 @@ class Actor:
         # If an animation is playing, change the anchor coordinates
         # based on animation frame offsets.
         if self._anim._current_animation:
-            # Add the frame offsets to the relative pos of
-            # anchor in relation to topleft.
-            # TODO: Is - right here? Should it be +?
+            # For some reason this works correctly with - instead of + ...
             ax -= self._anim._current_animation.offset_x
             ay -= self._anim._current_animation.offset_y
         # The untransformed anchor assumes the image isn't
