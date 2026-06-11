@@ -96,7 +96,7 @@ class ActorAnimationSystem:
     @property
     def current_type(self):
         if (self._base_animation
-                and self._current_animation == self._base_animation.name):
+                and self._current_animation == self._base_animation):
             return "base"
         elif self._current_queue:
             return "queue"
@@ -209,7 +209,7 @@ class ActorAnimationSystem:
         # Call the helper function to actually add the animation.
         self._add_animation(name, frames, durations, offsets, callback)
 
-    def add_queue(self, name, animations, callback=None, new_base=None):
+    def add_queue(self, name, animation_names, callback=None, new_base=None):
         """Adds a new queue to the animation system. All animations that are
         part of the queue must already be valid animations in the system.
 
@@ -219,11 +219,11 @@ class ActorAnimationSystem:
         :param new_base: What to set the systems base animation to once the
                          queue finishes playing.
         """
-        for a in animations:
+        for a in animation_names:
             self.check_animation_name(a)
 
         # TODO: Makes sense to cast to tuple here or just leave it?
-        q = ActorAnimationQueue(self, name, tuple(animations), callback,
+        q = ActorAnimationQueue(self, name, tuple(animation_names), callback,
                                 new_base)
         self._queue_pool[name] = q
 
@@ -278,8 +278,9 @@ class ActorAnimationSystem:
         if self._current_animation:
             clock.unschedule(self._current_animation._next_frame)
         self._current_queue = self._queue_pool[name]
-        # Set the new currently running animation.
-        self._current_animation = self._current_queue._animations[0]
+        # Set the new running animation.
+        first_animation = self._current_queue._animations[0]
+        self._current_animation = self._animation_pool[first_animation]
         # If a queue should not be started but resumed,
         # get the remaining information from the pause state
         # and call the queue function to resume playing.
@@ -595,15 +596,19 @@ class ActorAnimationQueue:
             # Records when this animation was started.
             self._animation_started = clock.time
 
+            # TODO: Even necessary? It should reset itself cuz it was finished.
             # Resets and starts the proper animation in the queue.
-            self._animations[self._animation_index]._reset()
+            #self._anim_system._animation_pool[current_name]._reset()
+
+            new_name = self._animations[self._animation_index]
+
             # Call up to the animation manager to run the next animation.
-            self._anim_system._run(self._animations[self._animation_index])
+            self._anim_system._run(new_name)
 
             # How long the entire animation will take to play out.
-            timeout = self._animations[self._animation_index].total_duration
+            td = self._anim_system._animation_pool[new_name].total_duration
             # Schedules the next animation advancement.
-            clock.schedule(self._next_animation, timeout)
+            clock.schedule(self._next_animation, td)
 
     def _resume_animation(self, remaining_frame, remaining_queue):
         self._new_animation = True
