@@ -1324,6 +1324,136 @@ Remember that angles loop round, so 0 degrees == 360 degrees == 720 degrees.
 Likewise -180 degrees == 180 degrees.
 
 
+.. _actor_animation:
+
+Actor animations
+''''''''''''''''
+
+Most games don't use static images for characters but rather have lots of
+animations that play whenever characters walk around, jump or just stand
+around. Just like a video is a series of still images being played quickly,
+animations are made by just quickly cycling the display image of an actor
+through many frames in an animation. PGTurbo can do most of the work of putting
+animations in your game for you.
+
+There's two ways to get PGTurbo to recognize your animation resources. For this
+quick overview we'll stick with one approach but the other is described in
+detail further below.
+
+First of all, anything to do with animations has to be placed in a folder named
+``animations`` next to your game's main python file (the same place you have
+your ``images`` folder as well).
+
+Each animation is then another folder inside that ``animations`` folder. The
+name of that folder will be the name under which PGTurbo finds the animation.
+Place the individual frames of the animation in the folder as separate images.
+Make sure the file order reflects the order of frames in the animation. Here's
+an example folder structure with two animations:
+
+.. code-block:: none
+
+    .
+    ├── animations/
+    │   ├── walk_up/
+    │   │   ├── walk_up_1.png
+    │   │   ├── walk_up_2.png
+    │   │   ├── walk_up_3.png
+    │   │   └── walk_up_4.png
+    │   └── idle/
+    │       ├── idle_1.png
+    │       └── idle_2.png
+    └── main.py
+
+With this structure, PGTurbo will be able to find and load two animations:
+``walk_up`` and ``idle``. To do so, simply create an actor and load the
+animations into its ``anim`` component::
+
+    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
+    alien.anim.add("walk_up", 1.5)
+    alien.anim.add("idle", 1.0)
+
+``Actor.anim`` is the general manager for anything to do with actor animations.
+``Actor.anim.add()`` loads an animation to use with the actor. The string is
+the name of the animation to load while the number is the number of seconds
+that the animation should play out over. In the example above, playing
+the ``"walk_up"`` animation once will take 1.5 seconds where ``"idle"`` will
+play out in one second.
+
+Once your animations are loaded in, it's simple to play them::
+
+    def update():
+        if keyboard.up:
+            alien.y -= 5
+            alien.anim.play("walk_up")
+        else:
+            alien.anim.play("idle")
+
+That's it! The ``actor.anim.play()`` function will start to play the animation
+you tell it to. If that animation is already running, it won't do anything.
+This is perfect for animations that should run and repeat while the player is
+holding down a button for example.
+
+Another way to use an idle animation would be to set it as a base animation.
+This animation will always be played whenever other animations you set to play
+are finished. We could rewrite the above example as follows::
+
+    alien.anim.set_base("idle")
+
+    def update():
+        if keyboard.up:
+            alien.y -= 5
+            alien.anim.play("walk_up")
+
+Now even though we didn't call ``alien.anim.play("idle")``, the animation will
+run whenever no other animation is running. This is very typical for many kinds
+of games. Note though that with this approach, the ``"walk_up"`` animation
+won't be interrupted when you stop holding the up arrow but will play out
+before ``"idle"`` starts playing.
+
+The last big feature of animations are animation queues. With them, you can set
+multiple animations to run one after the other until all of them are done::
+
+    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
+    alien.anim.add("stretch", 1.5)
+    alien.anim.add("dance", 3.0)
+    alien.anim.add("relax", 1.5)
+    alien.anim.add_queue("dance_routine", ("stretch", "dance", "relax"))
+
+    def update():
+        if keyboard.space:
+            alien.anim.play_queue("dance_routine")
+
+As you can see, the animations first have to be added to the ``Actor.anim``
+manager normally before you can then add a named animation queue. The first
+argument is the name for the queue, the second a tuple or list of the animation
+names that should run in that order.
+
+Why not just put all those images in one big animation? Well maybe you'd like
+to reuse the ``"dance"`` animation somewhere else. Maybe some other time the
+alien should relax first before stretching but shouldn't dance. With queues,
+you can use animations individually and grouped up in any combination you want.
+
+There's many more options like having certain functions run once an animation
+or queue is finished and pausing or stopping animations while they run. You can
+learn about all of them in the method reference below.
+
+.. method:: 
+
+TODO CONTINUE HERE!!!
+
+There are two ways to store animation resources that PGTurbo can access.
+
+#. If you have each individual frame of an animation as a separate image file,
+   place them all in a folder inside the "animations" folder. The name you give
+   that folder will be the name by which PGTurbo finds the animation.
+#. If you have an animation as a spritesheet (a single image containing all
+   frames of the animation), simply place it inside the "animations" folder.
+   The name of the spritesheet will be the name by which PGTurbo finds the
+   animation (same as for an image in the "images" folder).
+
+Let's assume
+
+
 Distance and angle to
 '''''''''''''''''''''
 
