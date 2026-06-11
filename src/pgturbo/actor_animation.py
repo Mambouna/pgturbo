@@ -48,7 +48,7 @@ class ActorAnimationSystem:
 
     @property
     def queue_pool(self):
-        return tuple(self._queue.keys())
+        return tuple(self._queue_pool.keys())
 
     @property
     def base_animation(self):
@@ -56,6 +56,11 @@ class ActorAnimationSystem:
             return self._base_animation.name
         else:
             return None
+
+    @property
+    def playing_base(self):
+        return (self._current_animation
+                and self._current_animation == self._base_animation)
 
     @base_animation.setter
     def base_animation(self, name):
@@ -263,9 +268,7 @@ class ActorAnimationSystem:
         # Otherwise, reset the progress states of the animation
         # in case they hadn't been already and run it.
         else:
-            self._current_animation._frame_index = None
-            self._current_animation._new_frame = False
-
+            self._current_animation._reset()
             self._current_animation._next_frame()
 
         # Reset pause state.
@@ -279,8 +282,8 @@ class ActorAnimationSystem:
             clock.unschedule(self._current_animation._next_frame)
         self._current_queue = self._queue_pool[name]
         # Set the new running animation.
-        first_animation = self._current_queue._animations[0]
-        self._current_animation = self._animation_pool[first_animation]
+        first_animation_name = self._current_queue._animations[0]
+        self._current_animation = self._animation_pool[first_animation_name]
         # If a queue should not be started but resumed,
         # get the remaining information from the pause state
         # and call the queue function to resume playing.
@@ -291,9 +294,7 @@ class ActorAnimationSystem:
         # Otherwise, reset the progress states of the queue
         # in case they hadn't been already and run it.
         else:
-            self._current_queue._animation_index = None
-            self._current_queue._new_animation = False
-
+            self._current_queue._reset()
             self._current_queue._next_animation()
 
         # Reset pause state.
@@ -508,7 +509,8 @@ class ActorAnimationSystem:
         """Function called by the running queue when it finishes."""
         # If the queue included a new base animation to set, do so now.
         if self._current_queue._new_base:
-            self._base_animation = self._current_queue._new_base
+            new_base_name = self._current_queue._new_base
+            self._base_animation = self._animation_pool[new_base_name]
         # Play the base animation if present otherwise stop animating.
         if self._base_animation:
             self._run(self._base_animation.name)
