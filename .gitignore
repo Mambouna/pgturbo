@@ -19,3 +19,6 @@ examples_dev
 /test/failed-image
 __pycache__
 src/pgturbo/_version.py
+
+RELEASE.md
+TODO.md
