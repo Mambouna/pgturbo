@@ -334,7 +334,7 @@ class ActorAnimationSystem:
         # Start the given animation, even if it was already running.
         self._run(name)
 
-    def start(self, name):
+    def start_queue(self, name):
         # Check if the queue name is valid.
         self.check_queue_name(name)
         self._record_interruption()
@@ -342,6 +342,10 @@ class ActorAnimationSystem:
         self._run_queue(name)
 
     def _record_interruption(self):
+        # If nothing was running, nothing was interrupted either.
+        if not self._current_animation:
+            self._pause_info = None
+            return
         # Calculate the remaining time the frame should be shown after
         # unpausing. Same for the animation if it's in a queue.
         paused = clock.time
@@ -692,6 +696,10 @@ class ActorAnimation:
             # Records when this frame was started to be shown.
             self._frame_started = clock.time
             # Schedules the next frame advancement.
+            # Note: This approach has the downside that if a clock.tick()
+            # spanned more time than the frame should have been displayed for,
+            # the entire animation is lengthened by the difference since it
+            # can only advance by one frame for every tick at most.
             clock.schedule(self._next_frame, self._durations[self._frame_index])
 
     def _resume_frame(self, remaining_duration):
