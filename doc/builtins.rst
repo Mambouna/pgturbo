@@ -1433,25 +1433,169 @@ to reuse the ``"dance"`` animation somewhere else. Maybe some other time the
 alien should relax first before stretching but shouldn't dance. With queues,
 you can use animations individually and grouped up in any combination you want.
 
+With the basics out of the way, let's look at another way to store your
+animations in the ``animations`` folder: spritesheets. A spritesheet is a
+single image file that holds all the frame images for an entire animation. In
+general, a spritesheet can even hold frames of many different animations, but
+PGTurbo only supports spritesheets with a single animation on them. Here's an
+example of how such a spritesheet file can look like with the individual
+frames highlighted:
+
+.. image:: _static/walk_down_frames.png
+
+To use spritesheets to load animations, simply place the spritesheet file
+directly into the ``animations`` folder (instead of a subfolder). The name of
+the file will be the name of the animation. Then you can load it with the
+right function::
+
+    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
+    alien.anim.add_spritesheet("walk_down", 64, 64)
+
+What do these new arguments mean? The two numbers are the width and height of
+a single animation frame in the spritesheet. The animation frames will be read
+from the file from left to right. After these two numbers, you can give the
+duration and other parameters of the animation just like you can do with the
+normal ``anim.add()``.
+
 There's many more options like having certain functions run once an animation
 or queue is finished and pausing or stopping animations while they run. You can
 learn about all of them in the method reference below.
 
-.. method:: 
+.. method:: anim.add(name, [durations, offsets, callback])
 
-TODO CONTINUE HERE!!!
+    Adds an animation from a folder with separate image files to the actor's
+    animation pool.
 
-There are two ways to store animation resources that PGTurbo can access.
+    :param name: The name of the folder with the animation frames in it.
+    :param durations: Over what time the animation should play out. Default is
+                      one second. If given a single number, the animation
+                      frames will be evenly distributed over that time. If a
+                      list or tuple with a number of values equal to the number
+                      of animation frames is given instead, those specific
+                      values will be the duration of the respectiv frames.
+    :param offsets: How to move the animation frames in relation to the actor's
+                    base image. This can be used to properly align animation
+                    frames with sizes other than the base image size. Offsets
+                    are given as tuples of X and Y changes in relation to the
+                    base image topleft corner. For example, if one animation
+                    frame is taller than the base image, an offset of (0, -32)
+                    would shift it up by 32 pixels.
 
-#. If you have each individual frame of an animation as a separate image file,
-   place them all in a folder inside the "animations" folder. The name you give
-   that folder will be the name by which PGTurbo finds the animation.
-#. If you have an animation as a spritesheet (a single image containing all
-   frames of the animation), simply place it inside the "animations" folder.
-   The name of the spritesheet will be the name by which PGTurbo finds the
-   animation (same as for an image in the "images" folder).
+                    If a single tuple of two numbers is given, that offset is
+                    applied to all animation frames. If a tuple or list of
+                    multiple offsets is given, each will be applied to only
+                    the respective animation frame.
+    :param callback: A function name to call once the animation has finished
+                     playing.
 
-Let's assume
+.. method:: anim.add_spritesheet(name, width, height, [durations, offsets,
+                                 callback, vertical])
+
+    Adds an animation from a spritesheet to the actor's animation pool.
+
+    :param name: The filename of the spritesheet without a file extension.
+    :param width: The width in pixels of an animation frame in the spritesheet.
+    :param height: The height in pixels of an animation frame in the sheet.
+    :param durations: The duration over which the animation will play. Same
+                      possible values and default as for anim.add() above.
+    :param offsets: The offsets to be applied to the animation frame whe
+                    drawing the actor. Same possible values and default as for
+                    anim.add() above.
+    :param callback: A function name to call once the animation has finished
+                     playing.
+    :param vertical: Boolean flag of whether the spritesheet is arranged
+                     vertically or not. Default is False, meaning that
+                     spritesheets are normally read left to right. If set to
+                     True, the spritesheet will be read top to bottom instead.
+
+.. method:: anim.add_queue(name, animation_names, [callback, new_base])
+
+    Adds a new animation queue made up of previously loaded animations.
+
+    :param name: The name for the new animation queue.
+    :param animation_names: A tuple or list of the animation names to be
+                            included in the queue.
+    :param callback: A function name to call once the animation queue has
+                     finished playing.
+    :param new_base: An animation name that should be set as the new base
+                     animation once the queue has finished playing.
+
+.. method:: anim.remove(name)
+
+    Removes a loaded animation from the animation pool. If the animation is
+    currently playing as part of a queue, the queue will skip forward to the
+    next animation in its sequence. If the animation is playing outside of a
+    queue, it is stopped before removal.
+
+    :param name: The name of the animation to remove.
+
+.. method:: anim.remove_queue(name)
+
+    Removes a named queue from the queue pool. If the queue is currently
+    playing, it will be stopped before removal.
+
+    :param name: The name of the queue to remove.
+
+.. method:: anim.play(name)
+
+    Play a loaded animation. If the same animation is already running, nothing
+    is done. This means you can safely keep calling this without restarting the
+    same animation over and over again.
+
+    :param name: The name of the animation to play.
+
+.. method:: anim.play_queue(name)
+
+    Play a named animation queue. If it is already playing, it won't be
+    restarted, just like with anim.play().
+
+    :param name: The name of the queue to play.
+
+.. method:: anim.start(name)
+
+    Play a loaded animation. If it is already running, restart the animation.
+    This is the important difference to anim.play(). If you want to definitely
+    start an animation from the beginning, even if it is already playing, use
+    this function.
+
+    :param name: The name of the animation to start playing.
+
+.. method:: anim.start_queue(name)
+
+    Play a named animation queue. If it is already playing, restart it just
+    like anim.start().
+
+    :param name: The name of the queue to start playing.
+
+.. method:: anim.pause()
+
+    Pause all animation playback, returning the actor to its static image.
+
+.. method:: anim.unpause()
+
+    Allow all animation playback and return to the state in animation before
+    the pause.
+
+.. method:: anim.set_base(name)
+
+    Set the base animation to play when nothing else is running. If the
+    former base animation was running, switch it to the new one.
+
+    :param name: The name of the new base animation.
+
+.. method:: anim.remove_base()
+
+    Remove any currently set base animation.
+
+.. method:: anim.stop()
+
+    Stop any currently running animation and return to the base animation if
+    one is set.
+
+.. method:: anim.stop_all()
+
+    Stop any currently running animation as well as removing the base
+    animation. This returns the display of the actor to the static image.
 
 
 Distance and angle to
