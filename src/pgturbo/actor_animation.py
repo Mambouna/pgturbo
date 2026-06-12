@@ -64,6 +64,10 @@ class ActorAnimationSystem:
 
     @base_animation.setter
     def base_animation(self, name):
+        # If we set the same animation again, simply return.
+        if name == self._base_animation.name:
+            return
+
         # Check if the former base animation is currently running.
         swap = self._current_animation == self._base_animation
         # If the name is in the pool, set the base animation.
@@ -201,8 +205,8 @@ class ActorAnimationSystem:
         # Call the helper function to actually add the animation.
         self._add_animation(name, frames, durations, offsets, callback)
 
-    def add_spritesheet(self, name, frame_width, frame_height, vertical=False,
-                        durations=1.0, offsets=(0, 0), callback=None):
+    def add_spritesheet(self, name, frame_width, frame_height, durations=1.0,
+                        offsets=(0, 0), callback=None, vertical=False):
         """Adds a given animation from a spritesheet to the animation pool by
         its name.
 
@@ -241,6 +245,34 @@ class ActorAnimationSystem:
         # cached animation frames.
         self.check_animation_name(name)
 
+        # TODO: Unittests for this as it might be veeeery janky...
+
+        # If we are currently playing the animation to be removed in a queue,
+        # skip to the next animation in the queue.
+        if self._current_queue and name in self._current_queue._animations:
+            i = self._current_queue._animations.index(name)
+            if self._current_queue._animation_index == i:
+                clock.unschedule(self._current_queue._next_animation)
+                self._current_queue._next_animation()
+
+        # If the animation to be removed is playing right now, stop it before
+        # removal. If it's the base animation, stop everything, otherwise
+        # return to the base animation if possible.
+        if self._current_animation.name == name:
+            if self._base_animation.name == name:
+                self.stop_all()
+            else:
+                self.stop()
+
+        # We remove the animation from any queues and if it was in the current
+        # queue we adjust the running frame index accordingly.
+        for _, queue in self._queue_pool:
+            if name in queue._animations:
+                i = queue._animations.index(name)
+                queue._animations.pop(i)
+                if queue == self._current_queue and i >= queue._frame_index:
+                    queue._frame_index -= 1
+
         del self._animation_pool[name]
         loaders.animations.unload(name)
 
@@ -250,6 +282,14 @@ class ActorAnimationSystem:
         :param name: Name of the queue to be removed.
         """
         self.check_queue_name(name)
+
+        # If we are playing the queue to be removed, stop it before removal.
+        if self._current_queue and self._current_queue.name == name:
+            self.stop()
+
+        # TODO: What happens with the recorded interruption info when something
+        # is removed? Potentially very messed up state ahead...
+
         del self._queue_pool[name]
 
     # Playing animations
@@ -374,6 +414,8 @@ class ActorAnimationSystem:
         if self._paused:
             return
 
+        # TODO: Unittests!
+
         # Otherwise, record the state before the pause and then reset.
         self._paused = True
         # Saves all info in _pause_info to resume later.
@@ -389,6 +431,9 @@ class ActorAnimationSystem:
         # If we aren't paused, do nothing.
         if not self._paused:
             return
+
+        # TODO: Unittests!
+
         # Otherwise, resume the former state.
         # Get the name of the animation before the pause.
         prev_animation_name = self._pause_info["animation_name"]
@@ -412,9 +457,11 @@ class ActorAnimationSystem:
     # Since the user mostly makes something happen with anim through
     # functions, the base animation can also be manipulated with functions.
     def set_base(self, name):
+        # TODO: Unittests!
         self.base_animation = name
 
     def remove_base(self, name):
+        # TODO: Unittests!
         self.base_animation = None
 
     # Animation queue
