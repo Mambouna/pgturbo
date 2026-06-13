@@ -37,14 +37,18 @@ class ActorAnimationSystem:
 
     @property
     def current(self):
-        return self._current_animation
+        if self._current_animation:
+            return self._current_animation.name
+        return None
 
     current_animation = current
     running = current
 
     @property
     def current_queue(self):
-        return self._current_queue
+        if self._current_queue:
+            return self._current_queue.name
+        return None
 
     @property
     def queue_pool(self):
@@ -185,6 +189,11 @@ class ActorAnimationSystem:
         """Helper function to not repeat code unnecessarily. Both add() and
         add_spritesheet() just call this once they got the animation frames by
         their individual ways."""
+        if name in self._animation_pool:
+            raise ValueError("Animation {} already in pool. If you want to "
+                             "change it, first remove('{}') and then add it"
+                             "with the new settings again.".format(name, name))
+
         num_frames = len(frames)
         durations = self._process_durations(durations, num_frames)
         offsets = self._process_offsets(offsets, num_frames)
@@ -227,10 +236,15 @@ class ActorAnimationSystem:
         :param new_base: What to set the systems base animation to once the
                          queue finishes playing.
         """
+        if name in self._queue_pool:
+            raise ValueError("A queue with the name {} is already in the queue"
+                             " pool. If you want to change it, first "
+                             "remove_queue('{}') and then add it with your "
+                             "chosen settings again.".format(name, name))
+
         for a in animation_names:
             self.check_animation_name(a)
 
-        # TODO: Makes sense to cast to tuple here or just leave it?
         q = ActorAnimationQueue(self, name, tuple(animation_names), callback,
                                 new_base)
         self._queue_pool[name] = q
@@ -244,8 +258,6 @@ class ActorAnimationSystem:
         # cached animation frames.
         self.check_animation_name(name)
 
-        # TODO: Unittests for this as it might be veeeery janky...
-
         # If we are currently playing the animation to be removed in a queue,
         # skip to the next animation in the queue.
         if self._current_queue and name in self._current_queue._animations:
@@ -257,20 +269,25 @@ class ActorAnimationSystem:
         # If the animation to be removed is playing right now, stop it before
         # removal. If it's the base animation, stop everything, otherwise
         # return to the base animation if possible.
-        if self._current_animation.name == name:
-            if self._base_animation.name == name:
+        if self._current_animation and self._current_animation.name == name:
+            if self._base_animation and self._base_animation.name == name:
                 self.stop_all()
             else:
                 self.stop()
 
         # We remove the animation from any queues and if it was in the current
-        # queue we adjust the running frame index accordingly.
-        for _, queue in self._queue_pool:
+        # queue we adjust the running animation index accordingly.
+        for queue in self._queue_pool.values():
+            # If the name is in the queue, we remove it.
             if name in queue._animations:
                 i = queue._animations.index(name)
-                queue._animations.pop(i)
-                if queue == self._current_queue and i >= queue._frame_index:
-                    queue._frame_index -= 1
+                queue._animations = tuple(a for a in queue._animations
+                                          if not a == name)
+                # We only need to adjust the animation index if it was before
+                # or at the removed animation.
+                if (queue == self._current_queue
+                        and i >= queue._animation_index):
+                    queue._animation_index -= 1
 
         del self._animation_pool[name]
         loaders.animations.unload(name)
@@ -461,11 +478,9 @@ class ActorAnimationSystem:
     # Since the user mostly makes something happen with anim through
     # functions, the base animation can also be manipulated with functions.
     def set_base(self, name):
-        # TODO: Unittests!
         self.base_animation = name
 
     def remove_base(self):
-        # TODO: Unittests!
         self.base_animation = None
 
     # Animation queue
