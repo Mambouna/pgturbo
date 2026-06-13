@@ -1,3 +1,6 @@
+# We need sys to print warnings when pause state is wiped.
+import sys
+
 from . import loaders
 from .clock import clock
 
@@ -48,6 +51,14 @@ class ActorAnimationSystem:
     def current_queue(self):
         if self._current_queue:
             return self._current_queue.name
+        return None
+
+    @property
+    def current_queue_position(self):
+        """Returns the current position in the queue. None means no queue is
+        currently running, 0 is the first and so on."""
+        if self._current_queue is not None:
+            return self._current_queue._animation_index
         return None
 
     @property
@@ -249,6 +260,12 @@ class ActorAnimationSystem:
                                 new_base)
         self._queue_pool[name] = q
 
+    # set_base() is a courtesy function to make working with anim easier.
+    # Since the user mostly makes something happen with anim through
+    # functions, the base animation can also be manipulated with functions.
+    def set_base(self, name):
+        self.base_animation = name
+
     def remove(self, name):
         """Removes the named animation from the animation pool.
 
@@ -289,6 +306,13 @@ class ActorAnimationSystem:
                         and i >= queue._animation_index):
                     queue._animation_index -= 1
 
+        # If we were paused on the animation to be removed, remove the pause
+        # state.
+        if self._pause_info and self._pause_info["animation_name"] == name:
+            print("WARNING: Animation was removed while it was paused, pause "
+                  "state was wiped.", file=sys.stderr)
+            self._pause_info = None
+
         del self._animation_pool[name]
         loaders.animations.unload(name)
 
@@ -303,8 +327,11 @@ class ActorAnimationSystem:
         if self._current_queue and self._current_queue.name == name:
             self.stop()
 
-        # TODO: What happens with the recorded interruption info when something
-        # is removed? Potentially very messed up state ahead...
+        # If we were paused on the queue to be removed, remove the pause state.
+        if self._pause_info and self._pause_info["queue_name"] == name:
+            print("WARNING: Queue was removed while it was paused, pause state"
+                  " was wiped.", file=sys.stderr)
+            self._pause_info = None
 
         del self._queue_pool[name]
 
@@ -357,10 +384,10 @@ class ActorAnimationSystem:
             try:
                 anim_name = self._current_queue._animations[position]
             except IndexError:
-                raise IndexError("The position ({}) to play the queue from is "
+                max_index = len(self._queue_pool[name]._animations) - 1
+                raise IndexError("Position {} to play the queue from is "
                                  "outside the valid indices for the queue "
-                                 "(0-{}).".format(
-                                     len(self._queue_pool[name]._animations)))
+                                 "(0-{}).".format(position, max_index))
             self._current_animation = self._animation_pool[anim_name]
             self._current_queue._reset()
             if position > 0:
@@ -468,6 +495,21 @@ class ActorAnimationSystem:
         if not self._paused:
             return
 
+        # If we were paused but somehow lost the pause state (for example
+        # because something that was paused was removed since pausing), we
+        # play the base animation if there is one.
+        if not self._pause_info:
+            print("WARNING: Unpause was called while there was no valid pause "
+                  "state, likely because an animation or queue was removed "
+                  "while having been paused.", file=sys.stderr)
+            if self._base_animation:
+                self._run(self._base_animation)
+            # We explicitely unpause here since it otherwise only happens
+            # as part of _run(). But if there was no base animation, nothing
+            # would have been run.
+            self._paused = False
+            return
+
         # Otherwise, resume the former state.
         # Get the name of the animation and queue before the pause.
         prev_animation_name = self._pause_info["animation_name"]
@@ -486,23 +528,6 @@ class ActorAnimationSystem:
             # Running _run() with True makes it resume the animation
             # instead of starting it from scratch.
             self._run(prev_animation_name, True)
-
-    # Base animation
-    # set_base() is a courtesy function to make working with anim easier.
-    # Since the user mostly makes something happen with anim through
-    # functions, the base animation can also be manipulated with functions.
-    def set_base(self, name):
-        self.base_animation = name
-
-    def remove_base(self):
-        self.base_animation = None
-
-    def current_queue_position(self):
-        """Returns the current position in the queue. None means no queue is
-        currently running, 0 is the first and so on."""
-        if self._current_queue is not None:
-            return self._current_queue._animation_index
-        return None
 
     # Ending animations
     def _done(self):

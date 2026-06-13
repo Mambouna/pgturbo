@@ -1,5 +1,7 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import patch, Mock
+# Used to supress printed warnings in unittests.
+from io import StringIO
 
 import pygame
 
@@ -275,7 +277,7 @@ class ActorAnimationTest(unittest.TestCase):
         clock.tick(0.1)
         a._manage_frame_advancement()
         self.assertEqual(a._a_image, frame)
-        a.anim.remove_base()
+        a.anim.set_base(None)
         self.assertIsNone(a.anim._base_animation)
         a._manage_frame_advancement()
         self.assertIsNone(a._a_image)
@@ -923,6 +925,20 @@ class ActorAnimationTest(unittest.TestCase):
         self.assertEqual(a.anim._queue_pool["walking_queue"]._animations,
                          ("walk_down", "walk_down"))
 
+    @patch("sys.stderr", new=StringIO())
+    def test_remove_animation_on_pause(self):
+        """Removing an animation that was paused will wipe the pause state."""
+        a = Actor("ninja")
+        a.anim.add("walk_down")
+        a.anim.play("walk_down")
+        clock.tick(0.1)
+        a.anim.pause()
+        self.assertIsNotNone(a.anim._pause_info)
+        a.anim.remove("walk_down")
+        self.assertIsNone(a.anim._pause_info)
+        a.anim.unpause()
+        self.assertIsNone(a.anim.current)
+
     def test_remove_queue(self):
         """We can remove queues as well."""
         a = Actor("ninja")
@@ -944,6 +960,23 @@ class ActorAnimationTest(unittest.TestCase):
         clock.tick(0.1)
         a.anim.remove_queue("walking_queue")
         self.assertEqual(a.anim.queue_pool, ())
+        self.assertIsNone(a.anim.current_queue)
+
+    @patch("sys.stderr", new=StringIO())
+    def test_remove_queue_on_pause(self):
+        """Removing a queue that was paused will wipe the pause state."""
+        a = Actor("ninja")
+        a.anim.add("walk_down")
+        a.anim.add("walk_up")
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
+        a.anim.play_queue("walking_queue")
+        clock.tick(0.1)
+        a.anim.pause()
+        self.assertIsNotNone(a.anim._pause_info)
+        a.anim.remove_queue("walking_queue")
+        self.assertIsNone(a.anim._pause_info)
+        a.anim.unpause()
+        self.assertIsNone(a.anim.current)
         self.assertIsNone(a.anim.current_queue)
 
     def test_actors_get_individual_animation_systems(self):

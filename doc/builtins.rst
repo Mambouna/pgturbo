@@ -1520,19 +1520,31 @@ learn about all of them in the method reference below.
     :param new_base: An animation name that should be set as the new base
                      animation once the queue has finished playing.
 
+.. method:: anim.set_base(name)
+
+    Set the base animation to play when nothing else is running. If the
+    former base animation was running, switch it to the new one.
+
+    :param name: The name of the new base animation. Call with None to remove
+                 the base animation.
+
 .. method:: anim.remove(name)
 
     Removes a loaded animation from the animation pool. If the animation is
     currently playing as part of a queue, the queue will skip forward to the
     next animation in its sequence. If the animation is playing outside of a
-    queue, it is stopped before removal.
+    queue, it is stopped before removal. If the animation was on pause, the
+    pause state is wiped, meaning unpausing will only play the base animation
+    if there is one.
 
     :param name: The name of the animation to remove.
 
 .. method:: anim.remove_queue(name)
 
     Removes a named queue from the queue pool. If the queue is currently
-    playing, it will be stopped before removal.
+    playing, it will be stopped before removal. If the animation was on pause,
+    the pause state is wiped, meaning unpausing will only play the base
+    animation if there is one.
 
     :param name: The name of the queue to remove.
 
@@ -1544,12 +1556,15 @@ learn about all of them in the method reference below.
 
     :param name: The name of the animation to play.
 
-.. method:: anim.play_queue(name)
+.. method:: anim.play_queue(name, [position])
 
     Play a named animation queue. If it is already playing, it won't be
     restarted, just like with anim.play().
 
     :param name: The name of the queue to play.
+    :param position: From what animation to start playing the queue. Default is
+                     0, which is the first animation. The position numbers
+                     reflect zero-indexing.
 
 .. method:: anim.start(name)
 
@@ -1560,12 +1575,15 @@ learn about all of them in the method reference below.
 
     :param name: The name of the animation to start playing.
 
-.. method:: anim.start_queue(name)
+.. method:: anim.start_queue(name, [position])
 
     Play a named animation queue. If it is already playing, restart it just
     like anim.start().
 
     :param name: The name of the queue to start playing.
+    :param position: From what animation to start playing the queue. Default is
+                     0, which is the first animation. The position numbers
+                     reflect zero-indexing.
 
 .. method:: anim.pause()
 
@@ -1574,18 +1592,8 @@ learn about all of them in the method reference below.
 .. method:: anim.unpause()
 
     Allow all animation playback and return to the state in animation before
-    the pause.
-
-.. method:: anim.set_base(name)
-
-    Set the base animation to play when nothing else is running. If the
-    former base animation was running, switch it to the new one.
-
-    :param name: The name of the new base animation.
-
-.. method:: anim.remove_base()
-
-    Remove any currently set base animation.
+    the pause. If something paused was removed, return to playing the base
+    animation if there is one. This will also print a warning.
 
 .. method:: anim.stop()
 
