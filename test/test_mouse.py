@@ -61,6 +61,23 @@ class MouseTest(unittest.TestCase):
         mouse._release(mouse.LEFT)
         self.assertTrue(mouse.pressed_middle)
 
+    def test_mouse_wheel_doesnt_press(self):
+        try:
+            mouse._press(4)
+            mouse._press(5)
+        except IndexError:
+            self.fail("mouse._press() threw an error with buttons other than "
+                      "left, middle and right.")
+
+    def test_other_buttons_dont_press(self):
+        try:
+            mouse._press(6)
+            mouse._press(7)
+            mouse._press(999)
+        except IndexError:
+            self.fail("mouse._press() threw an error with buttons other than "
+                      "left, middle and right.")
+
     def test_uppercase_constants(self):
         """The uppercase attribute names from earlier in the project still
         work. This is important for backwards compatibility."""
