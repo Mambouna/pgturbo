@@ -350,13 +350,14 @@ class SpritesheetLoader(ResourceLoader):
             # So far empty surface for the new frame.
             frame = pygame.Surface((width, height), pygame.SRCALPHA)
             # "Stamp" the Spritesheet part we want onto the empty surface.
-            frame.blit(sheet, (0,0), rect_on_sheet)
+            frame.blit(sheet, (0, 0), rect_on_sheet)
             # Append the complete frame to the list.
             frames.append(frame)
         return tuple(frames)
 
     def __repr__(self):
         return "<Spritesheets spritesheets={}>".format(self.__dir__())
+
 
 class SoundLoader(ResourceLoader):
     EXTNS = ['wav', 'ogg', 'oga']

@@ -65,7 +65,7 @@ class ActorAnimationSystem:
     @base_animation.setter
     def base_animation(self, name):
         # If we set the same animation again, simply return.
-        if name == self._base_animation.name:
+        if self._base_animation and name == self._base_animation.name:
             return
 
         # Check if the former base animation is currently running.
@@ -181,8 +181,7 @@ class ActorAnimationSystem:
         else:
             return tuple([offsets] * num_frames)
 
-    def _add_animation(self, name, frames, durations, offsets,
-                               callback):
+    def _add_animation(self, name, frames, durations, offsets, callback):
         """Helper function to not repeat code unnecessarily. Both add() and
         add_spritesheet() just call this once they got the animation frames by
         their individual ways."""
@@ -304,7 +303,8 @@ class ActorAnimationSystem:
         # get the remaining information from the pause state
         # and call the animations function to resume playing.
         if resume:
-            self._current_animation._resume_frame(self._pause_info[1])
+            remaining_duration = self._pause_info["remaining_frame"]
+            self._current_animation._resume_frame(remaining_duration)
         # Otherwise, reset the progress states of the animation
         # in case they hadn't been already and run it.
         else:
@@ -321,19 +321,23 @@ class ActorAnimationSystem:
         if self._current_animation:
             clock.unschedule(self._current_animation._next_frame)
         self._current_queue = self._queue_pool[name]
-        # Set the new running animation.
-        first_animation_name = self._current_queue._animations[0]
-        self._current_animation = self._animation_pool[first_animation_name]
         # If a queue should not be started but resumed,
         # get the remaining information from the pause state
         # and call the queue function to resume playing.
         if resume:
-            # TODO: How does pause info look again?
-            self._current_animation._resume_animation(self._pause_info[1],
-                                                      self._pause_info[2])
+            remaining_frame = self._pause_info["remaining_frame"]
+            remaining_queue = self._pause_info["remaining_animation"]
+            queue = self._current_queue
+            anim_name = queue._animations[queue._animation_index]
+            self._current_animation = self._animation_pool[anim_name]
+            self._current_queue._resume_animation(remaining_frame,
+                                                  remaining_queue)
         # Otherwise, reset the progress states of the queue
         # in case they hadn't been already and run it.
         else:
+            # Set the new running animation.
+            first_anim_name = self._current_queue._animations[0]
+            self._current_animation = self._animation_pool[first_anim_name]
             self._current_queue._reset()
             self._current_queue._next_animation()
 
@@ -388,21 +392,25 @@ class ActorAnimationSystem:
         if not self._current_animation:
             self._pause_info = None
             return
-        # Calculate the remaining time the frame should be shown after
-        # unpausing. Same for the animation if it's in a queue.
+        # Timestamp of the pause.
         paused = clock.time
-        frame_started = self._current_animation._frame_started
-        remaining_frame = paused - frame_started
+        # Animation object that was running when pausing.
+        anim = self._current_animation
+        # How much time the frame has been displayed for so far.
+        elapsed_frame = paused - anim._frame_started
+        # How much display time is still remaining for the current frame.
+        remaining_frame = anim._durations[anim._frame_index] - elapsed_frame
         if self._current_queue:
-            queue_name = self._current_queue._name
-            animation_started = self._current_queue._animation_started
-            remaining_animation = paused - animation_started
+            # Queue object that was running when pausing.
+            queue = self._current_queue
+            queue_name = queue._name
+            elapsed_animation = paused - queue._animation_started
+            remaining_animation = anim._total_duration - elapsed_animation
         else:
             queue_name = None
-            animation_started = None
             remaining_animation = None
 
-        self._pause_info = {"animation_name": self._current_animation._name,
+        self._pause_info = {"animation_name": anim._name,
                             "queue_name": queue_name,
                             "remaining_frame": remaining_frame,
                             "remaining_animation": remaining_animation,
@@ -413,8 +421,6 @@ class ActorAnimationSystem:
         # If we are paused, do nothing.
         if self._paused:
             return
-
-        # TODO: Unittests!
 
         # Otherwise, record the state before the pause and then reset.
         self._paused = True
@@ -432,10 +438,8 @@ class ActorAnimationSystem:
         if not self._paused:
             return
 
-        # TODO: Unittests!
-
         # Otherwise, resume the former state.
-        # Get the name of the animation before the pause.
+        # Get the name of the animation and queue before the pause.
         prev_animation_name = self._pause_info["animation_name"]
         prev_queue_name = self._pause_info["queue_name"]
 
@@ -444,7 +448,7 @@ class ActorAnimationSystem:
         self.check_animation_name(prev_animation_name)
         # If we were playing a queue before, check and resume that.
         if prev_queue_name:
-            self._check_queue_name(prev_queue_name)
+            self.check_queue_name(prev_queue_name)
             self._run_queue(prev_queue_name, True)
         # Otherwise just resume the single animation.
         else:
@@ -460,7 +464,7 @@ class ActorAnimationSystem:
         # TODO: Unittests!
         self.base_animation = name
 
-    def remove_base(self, name):
+    def remove_base(self):
         # TODO: Unittests!
         self.base_animation = None
 
@@ -645,28 +649,26 @@ class ActorAnimationQueue:
             # Records when this animation was started.
             self._animation_started = clock.time
 
-            # TODO: Even necessary? It should reset itself cuz it was finished.
-            # Resets and starts the proper animation in the queue.
-            #self._anim_system._animation_pool[current_name]._reset()
-
             new_name = self._animations[self._animation_index]
 
             # Call up to the animation manager to run the next animation.
             self._anim_system._run(new_name)
 
             # How long the entire animation will take to play out.
-            td = self._anim_system._animation_pool[new_name].total_duration
+            td = self._anim_system._animation_pool[new_name]._total_duration
             # Schedules the next animation advancement.
             clock.schedule(self._next_animation, td)
 
-    def _resume_animation(self, remaining_frame, remaining_queue):
+    def _resume_animation(self, remaining_frame, remaining_animation):
         self._new_animation = True
         self._animation_started = clock.time
         # Resumes the animation in the queue that was playing when paused.
-        self._animations[self._animation_index]._resume_frame(remaining_frame)
+        anim_name = self._animations[self._animation_index]
+        anim_to_resume = self._anim_system._animation_pool[anim_name]
+        anim_to_resume._resume_frame(remaining_frame)
         # Schedules the advancement of the queue with the remaining duration
         # for it.
-        clock.schedule(self._next_animation, remaining_queue)
+        clock.schedule(self._next_animation, remaining_animation)
 
     # Function to reset the state of the queue and unschedule its advance-
     # ment if it was running.
