@@ -368,6 +368,57 @@ class ActorAnimationTest(unittest.TestCase):
         a._manage_frame_advancement()
         self.assertIsNone(a._a_image)
 
+    def test_play_animation_queue_with_starting_position(self):
+        """We can play animation queues from an animation not starting at the
+        beginning of the queue."""
+        a = Actor("ninja")
+        a.anim.add("walk_down")
+        a.anim.add("walk_up")
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
+        # We start playing the queue from the second animation (index 1).
+        a.anim.play_queue("walking_queue", 1)
+        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
+        # These are the frames of the first animation in the queue.
+        first_frame = a.anim._animation_pool[anim_name].frames[0]
+        self.assertEqual(a.anim._current_animation,
+                         a.anim._animation_pool["walk_up"])
+        self.assertEqual(a.anim._current_queue,
+                         a.anim._queue_pool["walking_queue"])
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, first_frame)
+        multitick(0.25, 2)
+        # We are in the middle of the animation, calling play_queue() again
+        # does not restart.
+        a.anim.play_queue("walking_queue", 0)
+        multitick(0.25, 2)
+        # The animation has now finished meaning the queue is done.
+        self.assertIsNone(a.anim._current_animation)
+        self.assertIsNone(a.anim._current_queue)
+
+    def test_playing_queue_with_negative_index(self):
+        """When playing queues not from the start, negative indices also
+        work."""
+        a = Actor("ninja")
+        a.anim.add("walk_down")
+        a.anim.add("walk_up")
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
+        a.anim.play_queue("walking_queue", -1)
+        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
+        first_frame = a.anim._animation_pool[anim_name].frames[0]
+        self.assertEqual(a.anim._current_animation,
+                         a.anim._animation_pool["walk_up"])
+        self.assertEqual(a.anim._current_queue,
+                         a.anim._queue_pool["walking_queue"])
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, first_frame)
+        multitick(0.25, 2)
+        a.anim.play_queue("walking_queue", 0)
+        multitick(0.25, 2)
+        self.assertIsNone(a.anim._current_animation)
+        self.assertIsNone(a.anim._current_queue)
+
     def test_start_animation_queue(self):
         """We can play animation queues and calling it again will restart the
         queue."""
@@ -409,6 +460,93 @@ class ActorAnimationTest(unittest.TestCase):
         multitick(0.25, 4)
         a._manage_frame_advancement()
         self.assertIsNone(a._a_image)
+
+    def test_start_animation_queue_with_starting_position(self):
+        """We can start playing animation queues from other indices as well
+        and calling it again restarts the queue."""
+        a = Actor("ninja")
+        a.anim.add("walk_down")
+        a.anim.add("walk_up")
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
+        a.anim.start_queue("walking_queue", 1)
+        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
+        frames = a.anim._animation_pool[anim_name].frames
+        self.assertEqual(a.anim._current_animation,
+                         a.anim._animation_pool["walk_up"])
+        self.assertEqual(a.anim._current_queue,
+                         a.anim._queue_pool["walking_queue"])
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        # The queue has correctly started at the second animation.
+        self.assertEqual(a._a_image, frames[0])
+        multitick(0.25, 2)
+        # Calling start_queue() again restarts playback, again from the second
+        # animation.
+        a.anim.start_queue("walking_queue", 1)
+        clock.tick(0.1)
+        # Because we restarted, we are still in the animation after two more
+        # ticks of 0.25.
+        multitick(0.25, 2)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, frames[2])
+        self.assertEqual(a.anim._current_animation,
+                         a.anim._animation_pool["walk_up"])
+        self.assertEqual(a.anim._current_queue,
+                         a.anim._queue_pool["walking_queue"])
+        # Only after two more ticks is the queue done.
+        multitick(0.25, 2)
+        self.assertIsNone(a.anim._current_animation)
+        self.assertIsNone(a.anim._current_queue)
+
+    def test_starting_queue_with_negative_index(self):
+        """When starting queues not from the start, negative indices also
+        work."""
+        a = Actor("ninja")
+        a.anim.add("walk_down")
+        a.anim.add("walk_up")
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
+        a.anim.start_queue("walking_queue", -1)
+        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
+        frames = a.anim._animation_pool[anim_name].frames
+        self.assertEqual(a.anim._current_animation,
+                         a.anim._animation_pool["walk_up"])
+        self.assertEqual(a.anim._current_queue,
+                         a.anim._queue_pool["walking_queue"])
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, frames[0])
+        multitick(0.25, 2)
+        a.anim.start_queue("walking_queue", -1)
+        clock.tick(0.1)
+        multitick(0.25, 2)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, frames[2])
+        self.assertEqual(a.anim._current_animation,
+                         a.anim._animation_pool["walk_up"])
+        self.assertEqual(a.anim._current_queue,
+                         a.anim._queue_pool["walking_queue"])
+        multitick(0.25, 2)
+        self.assertIsNone(a.anim._current_animation)
+        self.assertIsNone(a.anim._current_queue)
+
+    def test_wrong_index_for_playing_queues_errors(self):
+        """If the user gives an invalid index for playing or starting a queue
+        at, a descriptive error is raised."""
+        a = Actor("ninja")
+        a.anim.add("walk_down")
+        a.anim.add("walk_up")
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
+        with self.assertRaises(IndexError):
+            a.anim.play_queue("walking_queue", 5)
+        # This is necessary as the exception being raised in the last test
+        # messes slightly with the anim state. This is not a problem for
+        # end users since the error should stop their game running.
+        a.anim._current_queue = None
+        with self.assertRaises(IndexError):
+            a.anim.play_queue("walking_queue", -5)
+        # Since both play_queue() and start_queue() call _run_queue() and
+        # the descriptive error is thrown there, we don't have to check them
+        # separately.
 
     def test_pause(self):
         """We can pause animation playback."""
@@ -719,7 +857,6 @@ class ActorAnimationTest(unittest.TestCase):
         self.assertIsNone(a.anim.current)
         self.assertIsNone(a.anim.base_animation)
 
-    # TODO: Unittests around removal of animations.
     def test_remove_animation(self):
         """We can remove animations from the animation pool."""
         a = Actor("ninja")

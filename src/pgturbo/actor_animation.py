@@ -332,7 +332,7 @@ class ActorAnimationSystem:
         self._paused = False
         self._pause_info = None
 
-    def _run_queue(self, name, resume=False):
+    def _run_queue(self, name, position, resume=False):
         # If an animation is currently running, unschedule its
         # frame advancement.
         if self._current_animation:
@@ -352,10 +352,23 @@ class ActorAnimationSystem:
         # Otherwise, reset the progress states of the queue
         # in case they hadn't been already and run it.
         else:
-            # Set the new running animation.
-            first_anim_name = self._current_queue._animations[0]
-            self._current_animation = self._animation_pool[first_anim_name]
+            # If the given position isn't valid, we just give a more
+            # descriptive error message for the user.
+            try:
+                anim_name = self._current_queue._animations[position]
+            except IndexError:
+                raise IndexError("The position ({}) to play the queue from is "
+                                 "outside the valid indices for the queue "
+                                 "(0-{}).".format(
+                                     len(self._queue_pool[name]._animations)))
+            self._current_animation = self._animation_pool[anim_name]
             self._current_queue._reset()
+            if position > 0:
+                self._current_queue._animation_index = position - 1
+            elif position < 0:
+                num_anims = len(self._current_queue._animations)
+                # We add here since position is negative in this branch.
+                self._current_queue._animation_index = num_anims + position - 1
             self._current_queue._next_animation()
 
         # Reset pause state.
@@ -377,16 +390,16 @@ class ActorAnimationSystem:
         # If neither, the only other options is we were already running this,
         # so nothing needs to be done.
 
-    def play_queue(self, name):
+    def play_queue(self, name, position=0):
         # Check if the queue name is valid.
         self.check_queue_name(name)
 
         # Same logic as above.
         if not self._current_queue:
-            self._run_queue(name)
+            self._run_queue(name, position)
         elif self._current_queue.name != name:
             self._record_interruption()
-            self._run_queue(name)
+            self._run_queue(name, position)
 
     def start(self, name):
         # Check if the animation name is valid.
@@ -397,12 +410,12 @@ class ActorAnimationSystem:
         # Start the given animation, even if it was already running.
         self._run(name)
 
-    def start_queue(self, name):
+    def start_queue(self, name, position=0):
         # Check if the queue name is valid.
         self.check_queue_name(name)
         self._record_interruption()
         # Start the given queue, even if it was already running.
-        self._run_queue(name)
+        self._run_queue(name, position)
 
     def _record_interruption(self):
         # If nothing was running, nothing was interrupted either.
@@ -466,7 +479,8 @@ class ActorAnimationSystem:
         # If we were playing a queue before, check and resume that.
         if prev_queue_name:
             self.check_queue_name(prev_queue_name)
-            self._run_queue(prev_queue_name, True)
+            # If resume is True, the given position is ignored, so can be 0.
+            self._run_queue(prev_queue_name, 0, True)
         # Otherwise just resume the single animation.
         else:
             # Running _run() with True makes it resume the animation
@@ -483,82 +497,12 @@ class ActorAnimationSystem:
     def remove_base(self):
         self.base_animation = None
 
-    # Animation queue
     def current_queue_position(self):
         """Returns the current position in the queue. None means no queue is
         currently running, 0 is the first and so on."""
         if self._current_queue is not None:
             return self._current_queue._animation_index
         return None
-
-    # TODO: Better name for this function?
-    def jump_to_queue_animation(self, position):
-        # Jump to a specific animation in the queue by position.
-        index = position - 1
-        # Error descriptively in case of a bad given position.
-        if index < 0 or index >= len(self._queue):
-            raise ValueError("Position {} to jump to is not in the queue. "
-                             "Minimum position is 1 and maximum position is"
-                             " currently {}".format(position, len(self._queue)))
-
-        # If the queue is currently playing, reset the animation and
-        # play from where the new position is.
-        if self._current_queue:
-            self._queue[self._queue_index].reset()
-
-            self._queue_index = index - 1
-            self._advance_queue()
-        # Otherwise, only set the position without starting to play.
-        # TODO: Should this be changed? Should queue_jump always play?
-        else:
-            # TODO: IMPORTANT! This means that until the queue is played,
-            # queue_position will report the wrong value to the user.
-            self._queue_index = index - 1
-
-    def _check_queue_steps(self, steps=1, forward=True):
-        """Function to check whether a given amount of steps to change
-        the queue position by is in bounds based on the direction to move."""
-        if self._current_queue is None:
-            raise ValueError("No queue is currently playing so it's animation"
-                             " can't be advanced.")
-        if steps < 1:
-            raise ValueError("start_next_queue_animation() accepts only "
-                             "positive integer values (the number of "
-                             "animations to go forward in the queue), not {}."
-                             .format(steps))
-        new_index = self._current_queue._animation_index + steps
-        queue_len = len(self._current_queue._animations)
-        if forward and new_index >= queue_len:
-            max_steps = queue_len - self._current_queue._animation_index - 1
-            raise IndexError("Given steps {} go out of bounds of the animation"
-                             " queue, maximum steps forward at this point "
-                             "would be {}.".format(steps, max_steps))
-        # TODO: Should this compare to -1 or 0?
-        if self._current_queue._animation_index - steps < -1:
-            max_steps = self._current_queue._animation_index
-            raise IndexError("Given steps {} go out of bounds of the animation"
-                             " queue, maximum steps backward at this point "
-                             "would be {}.".format(steps, max_steps))
-
-    def start_next_queue_animation(self, steps=1):
-        # Catch possible bad value for steps.
-        self._check_queue_steps(steps)
-
-        # Reset the currently playing animation.
-        self._current_animation._reset()
-        # Since _next_animation() already increments the index by
-        # one, we reduce it by one here to have more intuitive
-        # values to use with the function.
-        self._current_queue._animation_index += steps - 1
-        self._current_queue._next_animation()
-
-    def start_previous_queue_animation(self, steps=1):
-        # Catch possible bad value for steps.
-        self._check_queue_steps(steps, False)
-        # Same as above but with a minus instead of a plus.
-        self._current_animation._reset()
-        self._current_queue._animation_index -= steps - 1
-        self._current_queue._next_animation()
 
     # Ending animations
     def _done(self):
