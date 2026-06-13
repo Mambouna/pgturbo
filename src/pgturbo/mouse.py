@@ -21,9 +21,15 @@ class Mouse:
         self._recent_rel = deque(maxlen=60)
 
     def _press(self, button):
+        # Ignores mouse wheel inputs for the pressed state since they can't
+        # be held down.
+        if button > 3:
+            return
         self._pressed[button - 1] = True
 
     def _release(self, button):
+        if button > 3:
+            return
         self._pressed[button - 1] = False
 
     def _set_pos(self, pos):
