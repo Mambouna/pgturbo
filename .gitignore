@@ -22,3 +22,5 @@ src/pgturbo/_version.py
 
 RELEASE.md
 TODO.md
+testing
+*.bak
