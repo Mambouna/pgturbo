@@ -1488,8 +1488,7 @@ learn about all of them in the method reference below.
     :param callback: A function name to call once the animation has finished
                      playing.
 
-.. method:: anim.add_spritesheet(name, width, height, [durations, offsets,
-                                 callback, vertical])
+.. method:: anim.add_spritesheet(name, width, height, [durations, offsets, callback, vertical])
 
     Adds an animation from a spritesheet to the actor's animation pool.
 
@@ -1609,44 +1608,44 @@ If you want to query the state of anything to do with animations, you have
 access to a number of properties that you can get the value of but can't set
 yourself:
 
-.. property:: anim.animation_pool
+.. attribute:: anim.animation_pool
 
     A tuple of all currently valid animation names.
 
-.. property:: anim.queue_pool
+.. attribute:: anim.queue_pool
 
     A tuple of all currently valid queue names.
 
-.. property:: anim.current
+.. attribute:: anim.current
 
     String name of the currently running animation or None if nothing is
     playing.
 
-.. property:: anim.current_queue
+.. attribute:: anim.current_queue
 
     String name of the currently running queue or None if nothing is
     playing or a single animation is running not as part of a queue.
 
-.. property:: anim.current_queue_position
+.. attribute:: anim.current_queue_position
 
     Integer index of which animation in the current queue is running. 0 is the
     first, 1 the second and so on to stay consistent with Python zero-indexing.
     Returns None if no queue is running.
 
-.. property:: anim.base_animation
+.. attribute:: anim.base_animation
 
     String name of the currently set base animation or None if no base
     animation is set.
 
-.. property:: anim.playing_base
+.. attribute:: anim.playing_base
 
     Boolean of whether the set base animation is currently running.
 
-.. property:: anim.paused
+.. attribute:: anim.paused
 
     Boolean of whether animations are currently paused.
 
-.. property:: anim.current_type
+.. attribute:: anim.current_type
 
     String for which type of animation is currently playing or None if nothing
     is playing.
