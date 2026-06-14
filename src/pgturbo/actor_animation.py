@@ -39,6 +39,10 @@ class ActorAnimationSystem:
     animations = animation_pool
 
     @property
+    def queue_pool(self):
+        return tuple(self._queue_pool.keys())
+
+    @property
     def current(self):
         if self._current_animation:
             return self._current_animation.name
@@ -60,10 +64,6 @@ class ActorAnimationSystem:
         if self._current_queue is not None:
             return self._current_queue._animation_index
         return None
-
-    @property
-    def queue_pool(self):
-        return tuple(self._queue_pool.keys())
 
     @property
     def base_animation(self):
@@ -102,8 +102,8 @@ class ActorAnimationSystem:
             # so this can be in an else block.
             else:
                 self._base_animation = None
-        # Otherwise raise the same error as check_animation_name().
-        # Since base_animation can be None, check_animation_name() cannot be
+        # Otherwise raise the same error as _check_animation_name().
+        # Since base_animation can be None, _check_animation_name() cannot be
         # used here to validate the given name.
         else:
             raise ValueError("Given animation name '{}' is not part of the "
@@ -131,7 +131,7 @@ class ActorAnimationSystem:
 
     # Checks whether the given name is actually a key for the animation pool.
     # If not, an error is raised that also lists available animations.
-    def check_animation_name(self, name):
+    def _check_animation_name(self, name):
         if name not in self._animation_pool:
             raise ValueError("Given animation name '{}' is not part of the "
                              "available animation pool. Valid animation names "
@@ -140,7 +140,7 @@ class ActorAnimationSystem:
 
     # Checks whether the given name is actually a key for the queue pool.
     # If not, an error is raised that also lists available queues.
-    def check_queue_name(self, name):
+    def _check_queue_name(self, name):
         if name not in self._queue_pool:
             raise ValueError("Given queue name {} is not part of the "
                              "available queue pool. Valid queue names "
@@ -254,7 +254,7 @@ class ActorAnimationSystem:
                              "chosen settings again.".format(name, name))
 
         for a in animation_names:
-            self.check_animation_name(a)
+            self._check_animation_name(a)
 
         q = ActorAnimationQueue(self, name, tuple(animation_names), callback,
                                 new_base)
@@ -273,7 +273,7 @@ class ActorAnimationSystem:
         """
         # If the animation is part of the pool, remove it an unload the
         # cached animation frames.
-        self.check_animation_name(name)
+        self._check_animation_name(name)
 
         # If we are currently playing the animation to be removed in a queue,
         # skip to the next animation in the queue.
@@ -321,7 +321,7 @@ class ActorAnimationSystem:
 
         :param name: Name of the queue to be removed.
         """
-        self.check_queue_name(name)
+        self._check_queue_name(name)
 
         # If we are playing the queue to be removed, stop it before removal.
         if self._current_queue and self._current_queue.name == name:
@@ -404,7 +404,7 @@ class ActorAnimationSystem:
 
     def play(self, name):
         # Check if the animation name is valid.
-        self.check_animation_name(name)
+        self._check_animation_name(name)
 
         # If we aren't running anything, run the animation.
         if not self._current_animation:
@@ -419,7 +419,7 @@ class ActorAnimationSystem:
 
     def play_queue(self, name, position=0):
         # Check if the queue name is valid.
-        self.check_queue_name(name)
+        self._check_queue_name(name)
 
         # Same logic as above.
         if not self._current_queue:
@@ -430,7 +430,7 @@ class ActorAnimationSystem:
 
     def start(self, name):
         # Check if the animation name is valid.
-        self.check_animation_name(name)
+        self._check_animation_name(name)
         # If something was playing before, check what and all info to be able
         # to resume it later.
         self._record_interruption()
@@ -439,7 +439,7 @@ class ActorAnimationSystem:
 
     def start_queue(self, name, position=0):
         # Check if the queue name is valid.
-        self.check_queue_name(name)
+        self._check_queue_name(name)
         self._record_interruption()
         # Start the given queue, even if it was already running.
         self._run_queue(name, position)
@@ -517,10 +517,10 @@ class ActorAnimationSystem:
 
         # Makes sure the animation that should be unpaused is still
         # in the animation pool.
-        self.check_animation_name(prev_animation_name)
+        self._check_animation_name(prev_animation_name)
         # If we were playing a queue before, check and resume that.
         if prev_queue_name:
-            self.check_queue_name(prev_queue_name)
+            self._check_queue_name(prev_queue_name)
             # If resume is True, the given position is ignored, so can be 0.
             self._run_queue(prev_queue_name, 0, True)
         # Otherwise just resume the single animation.
