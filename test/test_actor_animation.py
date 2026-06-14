@@ -21,7 +21,9 @@ def multitick(dt, num):
         clock.tick(dt)
 
 
-class ActorAnimationTest(unittest.TestCase):
+# There's multiple test cases to allow testing adding animations and also
+# using setUp() in the usage tests to not repeat a bunch of lines all the time.
+class ActorAnimationAddingAnimsTest(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         pygame.init()
@@ -144,149 +146,27 @@ class ActorAnimationTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.anim.add("walk_down")
 
-    def test_play_animation(self):
-        """We can play animations which switches actor images out correctly.
-        Calling the function mid animation again does not restart playing."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.play("walk_down")
-        # These are the frames we expect to be playing through.
-        frames = a.anim._animation_pool["walk_down"].frames
-        self.assertEqual(a.anim._current_animation,
-                         a.anim._animation_pool["walk_down"])
-        clock.tick(0.1)
-        # We can use this to change the actors _a_image without actually
-        # drawing the actor.
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[0])
-        clock.tick(0.25)
-        # Calling this again while the animation is running should not
-        # restart it.
-        a.anim.play("walk_down")
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[1])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[2])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[3])
-        # After the last step, the actor should return to its static image.
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertIsNone(a._a_image)
 
-    def test_start_animation(self):
-        """We can start playing animations just like before but calling the
-        function again will restart playing."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.start("walk_down")
-        frames = a.anim._animation_pool["walk_down"].frames
-        clock.tick(0.1)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[0])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[1])
-        # This restarts the animation.
-        a.anim.start("walk_down")
-        clock.tick(0.1)
-        a._manage_frame_advancement()
-        # Here we expect the first frame again since start() reset the
-        # animation progress.
-        self.assertEqual(a._a_image, frames[0])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[1])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[2])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[3])
-        # After the last step, the actor should return to its static image.
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertIsNone(a._a_image)
+class ActorAnimationAddingQueuesTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        pygame.init()
+        pygame.display.set_mode((TEST_DISP_W, TEST_DISP_H))
+        set_root(__file__)
 
-    def test_base_animation_playing(self):
-        """We can set a base animation that always plays when no other
-        animation is playing."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        # This animation should automatically play once the first is done.
-        a.anim.add("walk_up")
-        self.assertIsNone(a.anim._base_animation)
-        a.anim.set_base("walk_up")
-        self.assertEqual(a.anim._base_animation,
-                         a.anim._animation_pool["walk_up"])
-        frames = a.anim._animation_pool["walk_up"].frames
-        # We play the first animation.
-        a.anim.play("walk_down")
-        # We advance the clock manually multiple times since currently
-        # animations can only move at most one frame per tick.
-        clock.tick(0.1)
-        multitick(0.25, 4)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[0])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[1])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[2])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[3])
-        clock.tick(0.25)
-        a._manage_frame_advancement()
-        # Since it was set as a base animation, it should immediately play
-        # again.
-        self.assertEqual(a._a_image, frames[0])
+    @classmethod
+    def tearDownClass(self):
+        clock.clear()
+        pygame.display.quit()
 
-    def test_base_animation_changing(self):
-        """We can change the base animation while it is playing and it will
-        immediately switch to the new animation."""
+    def setUp(self):
+        global a
         a = Actor("ninja")
         a.anim.add("walk_down")
         a.anim.add("walk_up")
-        self.assertIsNone(a.anim._base_animation)
-        a.anim.set_base("walk_up")
-        self.assertEqual(a.anim._base_animation,
-                         a.anim._animation_pool["walk_up"])
-        frame = a.anim._animation_pool["walk_up"].frames[0]
-        clock.tick(0.1)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
-        clock.tick(0.25)
-        # Changing the set base animation should start the new one.
-        a.anim.set_base("walk_down")
-        frame = a.anim._animation_pool["walk_down"].frames[0]
-        clock.tick(0.1)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
-
-    def test_base_animation_remove(self):
-        """We can remove the base animation and if it is playing, it will be
-        stopped."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.set_base("walk_down")
-        frame = a.anim._animation_pool["walk_down"].frames[0]
-        clock.tick(0.1)
-        a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
-        a.anim.set_base(None)
-        self.assertIsNone(a.anim._base_animation)
-        a._manage_frame_advancement()
-        self.assertIsNone(a._a_image)
 
     def test_add_animation_queue(self):
         """We can add a sequence of animations as a queue with a name."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
         a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         self.assertEqual(a.anim.queue_pool, ("walking_queue",))
         self.assertEqual(a.anim._queue_pool["walking_queue"]._animations,
@@ -297,9 +177,6 @@ class ActorAnimationTest(unittest.TestCase):
     def test_add_animation_queue_with_callback(self):
         """We can also add a queue with a callback."""
         test_func_mock = Mock()
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
         a.anim.add_queue("walking_queue", ("walk_down", "walk_up"),
                          callback=test_func_mock)
         a.anim.play_queue("walking_queue")
@@ -311,9 +188,6 @@ class ActorAnimationTest(unittest.TestCase):
     def test_add_animation_queue_with_new_base(self):
         """We can also add a queue that change the base animation once
         finished."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
         a.anim.set_base("walk_down")
         a.anim.add_queue("walking_queue", ("walk_down", "walk_up"),
                          new_base="walk_up")
@@ -327,32 +201,161 @@ class ActorAnimationTest(unittest.TestCase):
     def test_adding_same_queue_again_errors(self):
         """When the user tries to add two queues with the same name, an error
         is thrown."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
         a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         with self.assertRaises(ValueError):
             a.anim.add_queue("walking_queue", ("walk_up", "walk_down"))
 
-    def test_play_animation_queue(self):
-        """We can play animation queues and calling it again does not restart
-        the queue."""
+
+class ActorAnimationUsingTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        pygame.init()
+        pygame.display.set_mode((TEST_DISP_W, TEST_DISP_H))
+        set_root(__file__)
+
+    @classmethod
+    def tearDownClass(self):
+        # Make sure we don't leave the clock with events left in the queue.
+        clock.clear()
+        pygame.display.quit()
+
+    def setUp(self):
+        global a, walk_down_frames, walk_up_frames
         a = Actor("ninja")
         a.anim.add("walk_down")
         a.anim.add("walk_up")
         a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
+        a.anim.add_queue("walking_reversed", ("walk_up", "walk_down"))
+        walk_down_frames = a.anim._animation_pool["walk_down"].frames
+        walk_up_frames = a.anim._animation_pool["walk_up"].frames
+
+    def test_play_animation(self):
+        """We can play animations which switches actor images out correctly.
+        Calling the function mid animation again does not restart playing."""
+        a.anim.play("walk_down")
+        self.assertEqual(a.anim._current_animation,
+                         a.anim._animation_pool["walk_down"])
+        clock.tick(0.1)
+        # We can use this to change the actors _a_image without actually
+        # drawing the actor.
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[0])
+        clock.tick(0.25)
+        # Calling this again while the animation is running should not
+        # restart it.
+        a.anim.play("walk_down")
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[1])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[2])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[3])
+        # After the last step, the actor should return to its static image.
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertIsNone(a._a_image)
+
+    def test_start_animation(self):
+        """We can start playing animations just like before but calling the
+        function again will restart playing."""
+        a.anim.start("walk_down")
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[0])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[1])
+        # This restarts the animation.
+        a.anim.start("walk_down")
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        # Here we expect the first frame again since start() reset the
+        # animation progress.
+        self.assertEqual(a._a_image, walk_down_frames[0])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[1])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[2])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[3])
+        # After the last step, the actor should return to its static image.
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertIsNone(a._a_image)
+
+    def test_base_animation_playing(self):
+        """We can set a base animation that always plays when no other
+        animation is playing."""
+        self.assertIsNone(a.anim._base_animation)
+        a.anim.set_base("walk_up")
+        self.assertEqual(a.anim._base_animation,
+                         a.anim._animation_pool["walk_up"])
+        # We play the first animation.
+        a.anim.play("walk_down")
+        # We advance the clock manually multiple times since currently
+        # animations can only move at most one frame per tick.
+        clock.tick(0.1)
+        multitick(0.25, 4)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_up_frames[0])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_up_frames[1])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_up_frames[2])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_up_frames[3])
+        clock.tick(0.25)
+        a._manage_frame_advancement()
+        # Since it was set as a base animation, it should immediately play
+        # again.
+        self.assertEqual(a._a_image, walk_up_frames[0])
+
+    def test_base_animation_changing(self):
+        """We can change the base animation while it is playing and it will
+        immediately switch to the new animation."""
+        a.anim.set_base("walk_up")
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_up_frames[0])
+        clock.tick(0.25)
+        # Changing the set base animation should start the new one.
+        a.anim.set_base("walk_down")
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[0])
+
+    def test_base_animation_remove(self):
+        """We can remove the base animation and if it is playing, it will be
+        stopped."""
+        a.anim.set_base("walk_down")
+        clock.tick(0.1)
+        a._manage_frame_advancement()
+        self.assertEqual(a._a_image, walk_down_frames[0])
+        a.anim.set_base(None)
+        self.assertIsNone(a.anim._base_animation)
+        a._manage_frame_advancement()
+        self.assertIsNone(a._a_image)
+
+    def test_play_animation_queue(self):
+        """We can play animation queues and calling it again does not restart
+        the queue."""
         a.anim.play_queue("walking_queue")
-        # These are the animation names we expect to be playing through.
-        anim_names = a.anim._queue_pool["walking_queue"]._animations
         # These are the frames of the first animation in the queue.
-        first_frame = a.anim._animation_pool[anim_names[0]].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_down"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         multitick(0.25, 4)
         # We should now be in the second animation
         # Calling this again while the queue is running should not restart it.
@@ -361,9 +364,8 @@ class ActorAnimationTest(unittest.TestCase):
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
-        first_frame = a.anim._animation_pool[anim_names[1]].frames[0]
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_up_frames[0])
         multitick(0.25, 4)
         # The second animation should now have finished, also finishing the
         # queue.
@@ -373,22 +375,15 @@ class ActorAnimationTest(unittest.TestCase):
     def test_play_animation_queue_with_starting_position(self):
         """We can play animation queues from an animation not starting at the
         beginning of the queue."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         # We start playing the queue from the second animation (index 1).
         a.anim.play_queue("walking_queue", 1)
-        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
-        # These are the frames of the first animation in the queue.
-        first_frame = a.anim._animation_pool[anim_name].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_up_frames[0])
         multitick(0.25, 2)
         # We are in the middle of the animation, calling play_queue() again
         # does not restart.
@@ -401,20 +396,14 @@ class ActorAnimationTest(unittest.TestCase):
     def test_playing_queue_with_negative_index(self):
         """When playing queues not from the start, negative indices also
         work."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.play_queue("walking_queue", -1)
-        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
-        first_frame = a.anim._animation_pool[anim_name].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_up_frames[0])
         multitick(0.25, 2)
         a.anim.play_queue("walking_queue", 0)
         multitick(0.25, 2)
@@ -424,21 +413,14 @@ class ActorAnimationTest(unittest.TestCase):
     def test_start_animation_queue(self):
         """We can play animation queues and calling it again will restart the
         queue."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.start_queue("walking_queue")
-        # First we check the same way we did for play_queue().
-        anim_names = a.anim._queue_pool["walking_queue"]._animations
-        first_frame = a.anim._animation_pool[anim_names[0]].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_down"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         multitick(0.25, 2)
         # Now we restart the queue in the middle of the first animation.
         a.anim.start_queue("walking_queue")
@@ -449,16 +431,15 @@ class ActorAnimationTest(unittest.TestCase):
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         multitick(0.25, 4)
         a._manage_frame_advancement()
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
-        first_frame = a.anim._animation_pool[anim_names[1]].frames[0]
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_up_frames[0])
         multitick(0.25, 4)
         a._manage_frame_advancement()
         self.assertIsNone(a._a_image)
@@ -466,13 +447,7 @@ class ActorAnimationTest(unittest.TestCase):
     def test_start_animation_queue_with_starting_position(self):
         """We can start playing animation queues from other indices as well
         and calling it again restarts the queue."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.start_queue("walking_queue", 1)
-        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
-        frames = a.anim._animation_pool[anim_name].frames
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
@@ -480,7 +455,7 @@ class ActorAnimationTest(unittest.TestCase):
         clock.tick(0.1)
         a._manage_frame_advancement()
         # The queue has correctly started at the second animation.
-        self.assertEqual(a._a_image, frames[0])
+        self.assertEqual(a._a_image, walk_up_frames[0])
         multitick(0.25, 2)
         # Calling start_queue() again restarts playback, again from the second
         # animation.
@@ -490,7 +465,7 @@ class ActorAnimationTest(unittest.TestCase):
         # ticks of 0.25.
         multitick(0.25, 2)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[2])
+        self.assertEqual(a._a_image, walk_up_frames[2])
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
@@ -503,26 +478,20 @@ class ActorAnimationTest(unittest.TestCase):
     def test_starting_queue_with_negative_index(self):
         """When starting queues not from the start, negative indices also
         work."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.start_queue("walking_queue", -1)
-        anim_name = a.anim._queue_pool["walking_queue"]._animations[1]
-        frames = a.anim._animation_pool[anim_name].frames
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[0])
+        self.assertEqual(a._a_image, walk_up_frames[0])
         multitick(0.25, 2)
         a.anim.start_queue("walking_queue", -1)
         clock.tick(0.1)
         multitick(0.25, 2)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frames[2])
+        self.assertEqual(a._a_image, walk_up_frames[2])
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
@@ -534,10 +503,6 @@ class ActorAnimationTest(unittest.TestCase):
     def test_wrong_index_for_playing_queues_errors(self):
         """If the user gives an invalid index for playing or starting a queue
         at, a descriptive error is raised."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         with self.assertRaises(IndexError):
             a.anim.play_queue("walking_queue", 5)
         # This is necessary as the exception being raised in the last test
@@ -552,125 +517,96 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_pause(self):
         """We can pause animation playback."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
-        frame = a.anim._animation_pool["walk_down"].frames[1]
         clock.tick(0.1)
         clock.tick(0.25)
         a._manage_frame_advancement()
         # We've started playing the animation.
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[1])
         # Now we pause, it, a._a_image should not advance.
         a.anim.pause()
         clock.tick(0.25)
         a._manage_frame_advancement()
         # We've stayed on the same frame.
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[1])
 
     def test_pause_then_play(self):
         """We can play animations normally after having paused before."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
-        frame = a.anim._animation_pool["walk_down"].frames[1]
         clock.tick(0.1)
         clock.tick(0.25)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[1])
         a.anim.pause()
         clock.tick(0.25)
         a._manage_frame_advancement()
         # We've stayed on the same frame.
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[1])
         # We can start playing again however we want with no interference.
         a.anim.play("walk_down")
-        frame = a.anim._animation_pool["walk_down"].frames[0]
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
 
     def test_unpause(self):
         """We can resume playback from a paused state with unpause."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
-        frame = a.anim._animation_pool["walk_down"].frames[1]
         clock.tick(0.1)
         clock.tick(0.25)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[1])
         a.anim.pause()
         clock.tick(0.25)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[1])
         # We can resume the previous playback with animation progress retained.
         a.anim.unpause()
-        frame = a.anim._animation_pool["walk_down"].frames[2]
         clock.tick(0.25)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, frame)
+        self.assertEqual(a._a_image, walk_down_frames[2])
 
     def test_pause_queue(self):
         """We can also pause queues with no problem."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.play_queue("walking_queue")
-        # These are the animation names we expect to be playing through.
-        anim_names = a.anim._queue_pool["walking_queue"]._animations
-        # This is the first frame of the first animation in the queue.
-        first_frame = a.anim._animation_pool[anim_names[0]].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_down"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         # Now the frame should not advance further.
         a.anim.pause()
         clock.tick(0.25)
         a._manage_frame_advancement()
         # We've stayed on the same frame.
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         # The whole queue should also not advance its animation once the
         # current one would have been done.
         multitick(0.25, 4)
         a._manage_frame_advancement()
         # We've stayed on the same frame.
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
 
     def test_pause_queue_then_play(self):
         """We can also play a queue after a pause."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.play_queue("walking_queue")
-        anim_names = a.anim._queue_pool["walking_queue"]._animations
-        first_frame = a.anim._animation_pool[anim_names[0]].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_down"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         a.anim.pause()
         clock.tick(0.25)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         multitick(0.25, 4)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
-        # We add a new queue so the expected image does not match the one
-        # we were holding on at during the pause.
-        a.anim.add_queue("walking_reversed", ("walk_up", "walk_down"))
+        self.assertEqual(a._a_image, walk_down_frames[0])
         a.anim.play_queue("walking_reversed")
         # This is the first frame of "walking_up" this time.
-        first_frame = a.anim._animation_pool[anim_names[1]].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_up"])
         self.assertEqual(a.anim._current_queue,
@@ -678,60 +614,44 @@ class ActorAnimationTest(unittest.TestCase):
         clock.tick(0.1)
         a._manage_frame_advancement()
         # We've correctly changed the animation image.
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_up_frames[0])
 
     def test_unpause_queue(self):
         """We can also unpause queues and retain their previous state."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.play_queue("walking_queue")
-        anim_names = a.anim._queue_pool["walking_queue"]._animations
-        first_frame = a.anim._animation_pool[anim_names[0]].frames[0]
         self.assertEqual(a.anim._current_animation,
                          a.anim._animation_pool["walk_down"])
         self.assertEqual(a.anim._current_queue,
                          a.anim._queue_pool["walking_queue"])
         clock.tick(0.1)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         a.anim.pause()
         clock.tick(0.25)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         multitick(0.25, 4)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_down_frames[0])
         # Now we should resume playback normally.
         a.anim.unpause()
-        second_frame = a.anim._animation_pool[anim_names[0]].frames[1]
         clock.tick(0.25)
         a._manage_frame_advancement()
         # Here should be the second frame of the first animation.
-        self.assertEqual(a._a_image, second_frame)
+        self.assertEqual(a._a_image, walk_down_frames[1])
         multitick(0.25, 3)
         a._manage_frame_advancement()
-        # And now we should be in the first frame of the second animation.
-        first_frame = a.anim._animation_pool[anim_names[1]].frames[0]
-        second_frame = a.anim._animation_pool[anim_names[1]].frames[1]
-        self.assertEqual(a._a_image, first_frame)
+        self.assertEqual(a._a_image, walk_up_frames[0])
         clock.tick(0.25)
         a._manage_frame_advancement()
-        self.assertEqual(a._a_image, second_frame)
+        self.assertEqual(a._a_image, walk_up_frames[1])
 
     def test_get_animation_pool_names(self):
         """The user can get all the valid loaded animation names."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        self.assertEqual(a.anim.animation_pool, ("walk_down",))
-        a.anim.add("walk_up")
         self.assertEqual(a.anim.animation_pool, ("walk_down", "walk_up"))
 
     def test_get_current_animation_name(self):
         """The user can get the name of the currently playing animation."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
         self.assertEqual(a.anim.current, "walk_down")
         clock.tick(0.1)
@@ -741,43 +661,28 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_get_base_animation_name(self):
         """The user can get the name of the currently set base animation."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.set_base("walk_down")
         self.assertEqual(a.anim.base_animation, "walk_down")
 
     def test_get_playing_base_boolean(self):
         """The user can get the boolean of whether the base animation is
         playing right now."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         self.assertFalse(a.anim.playing_base)
         a.anim.set_base("walk_down")
         self.assertTrue(a.anim.playing_base)
 
     def test_get_queue_pool_names(self):
         """The user can get all the valid loaded animation names."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
-        self.assertEqual(a.anim.queue_pool, ("walking_queue",))
-        a.anim.add_queue("walking_rev", ("walk_up", "walk_down"))
-        self.assertEqual(a.anim.queue_pool, ("walking_queue", "walking_rev"))
+        self.assertEqual(a.anim.queue_pool,
+                         ("walking_queue", "walking_reversed"))
 
     def test_get_current_queue_name(self):
         """The user can get the name of the currently playing queue."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         self.assertIsNone(a.anim.current_queue)
         a.anim.play_queue("walking_queue")
         self.assertEqual(a.anim.current_queue, "walking_queue")
 
     def test_get_paused_state(self):
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
         clock.tick(0.1)
         self.assertFalse(a.anim.paused)
@@ -790,10 +695,6 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_get_current_animation_type(self):
         """We can get the type of currently playing animation as a string."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         self.assertIsNone(a.anim.current_type)
         a.anim.set_base("walk_up")
         a.anim.play("walk_down")
@@ -814,8 +715,6 @@ class ActorAnimationTest(unittest.TestCase):
             self.fail("Stopping without playing crashed.")
 
     def test_stop_single_animation(self):
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
         self.assertEqual(a.anim.current, "walk_down")
         clock.tick(0.1)
@@ -824,9 +723,6 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_stop_single_to_base(self):
         """If a base animation is set, stop() will return to playing it."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
         a.anim.set_base("walk_up")
         a.anim.play("walk_down")
         self.assertEqual(a.anim.current, "walk_down")
@@ -836,10 +732,6 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_stop_queue_animation(self):
         """We can stop a running queue as well."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.play_queue("walking_queue")
         self.assertEqual(a.anim.current_queue, "walking_queue")
         clock.tick(0.1)
@@ -848,9 +740,6 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_stop_base_animation(self):
         """We can also stop everything playing including the base animation."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
         a.anim.set_base("walk_up")
         a.anim.play("walk_down")
         self.assertEqual(a.anim.current, "walk_down")
@@ -861,58 +750,45 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_remove_animation(self):
         """We can remove animations from the animation pool."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        self.assertEqual(a.anim.animation_pool, ("walk_down",))
+        self.assertEqual(a.anim.animation_pool, ("walk_down", "walk_up"))
         a.anim.remove("walk_down")
-        self.assertEqual(a.anim.animation_pool, ())
+        self.assertEqual(a.anim.animation_pool, ("walk_up",))
 
     def test_remove_animation_while_running(self):
         """The to be removed animation playing will stop playback."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
-        self.assertEqual(a.anim.animation_pool, ("walk_down",))
+        self.assertEqual(a.anim.animation_pool, ("walk_down", "walk_up"))
         self.assertEqual(a.anim.current, "walk_down")
         clock.tick(0.1)
         a.anim.remove("walk_down")
-        self.assertEqual(a.anim.animation_pool, ())
+        self.assertEqual(a.anim.animation_pool, ("walk_up",))
         self.assertIsNone(a.anim.current)
 
     def test_remove_base_animation_while_running(self):
         """The to be removed animation playing will stop playback."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.set_base("walk_down")
-        self.assertEqual(a.anim.animation_pool, ("walk_down",))
+        self.assertEqual(a.anim.animation_pool, ("walk_down", "walk_up"))
         self.assertEqual(a.anim.current, "walk_down")
         clock.tick(0.1)
         a.anim.remove("walk_down")
-        self.assertEqual(a.anim.animation_pool, ())
+        self.assertEqual(a.anim.animation_pool, ("walk_up",))
         self.assertIsNone(a.anim.current)
         self.assertIsNone(a.anim.base_animation)
 
     def test_remove_animation_in_queue(self):
         """Removing an animation that's in a queue smoothly reshuffles the
         queue."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue",
-                         ("walk_down", "walk_up", "walk_down"))
         a.anim.remove("walk_up")
         self.assertEqual(a.anim._queue_pool["walking_queue"]._animations,
-                         ("walk_down", "walk_down"))
+                         ("walk_down",))
 
     def test_remove_animation_in_queue_while_running(self):
         """Removing an animation while it is playing in a queue skips the
         queue to the following animation."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue",
+        # We need a third queue here to have a third animation to skip to.
+        a.anim.add_queue("walking_three",
                          ("walk_down", "walk_up", "walk_down"))
-        a.anim.play_queue("walking_queue")
+        a.anim.play_queue("walking_three")
         clock.tick(0.1)
         multitick(0.25, 4)
         # We are now in the second animation
@@ -922,14 +798,12 @@ class ActorAnimationTest(unittest.TestCase):
         clock.tick(0.1)
         multitick(0.25, 4)
         self.assertIsNone(a.anim.current)
-        self.assertEqual(a.anim._queue_pool["walking_queue"]._animations,
+        self.assertEqual(a.anim._queue_pool["walking_three"]._animations,
                          ("walk_down", "walk_down"))
 
     @patch("sys.stderr", new=StringIO())
     def test_remove_animation_on_pause(self):
         """Removing an animation that was paused will wipe the pause state."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
         a.anim.play("walk_down")
         clock.tick(0.1)
         a.anim.pause()
@@ -941,34 +815,23 @@ class ActorAnimationTest(unittest.TestCase):
 
     def test_remove_queue(self):
         """We can remove queues as well."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
-        self.assertEqual(a.anim.queue_pool, ("walking_queue",))
+        self.assertEqual(a.anim.queue_pool,
+                         ("walking_queue", "walking_reversed"))
         a.anim.remove_queue("walking_queue")
-        self.assertEqual(a.anim.queue_pool, ())
+        self.assertEqual(a.anim.queue_pool, ("walking_reversed",))
 
     def test_remove_queue_while_running(self):
         """Also works while running the queue."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.play_queue("walking_queue")
         self.assertEqual(a.anim.current_queue, "walking_queue")
         clock.tick(0.1)
         a.anim.remove_queue("walking_queue")
-        self.assertEqual(a.anim.queue_pool, ())
+        self.assertEqual(a.anim.queue_pool, ("walking_reversed",))
         self.assertIsNone(a.anim.current_queue)
 
     @patch("sys.stderr", new=StringIO())
     def test_remove_queue_on_pause(self):
         """Removing a queue that was paused will wipe the pause state."""
-        a = Actor("ninja")
-        a.anim.add("walk_down")
-        a.anim.add("walk_up")
-        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"))
         a.anim.play_queue("walking_queue")
         clock.tick(0.1)
         a.anim.pause()
@@ -982,8 +845,6 @@ class ActorAnimationTest(unittest.TestCase):
     def test_actors_get_individual_animation_systems(self):
         """All actors get their own animation system and are unaffected by
         operations done to others'."""
-        a = Actor("ninja")
         b = Actor("ninja")
-        a.anim.add("walk_down")
-        self.assertEqual(len(a.anim.animation_pool), 1)
+        self.assertEqual(len(a.anim.animation_pool), 2)
         self.assertEqual(len(b.anim.animation_pool), 0)
