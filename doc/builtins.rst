@@ -1324,6 +1324,361 @@ Remember that angles loop round, so 0 degrees == 360 degrees == 720 degrees.
 Likewise -180 degrees == 180 degrees.
 
 
+.. _actor_animation:
+
+Actor animations
+''''''''''''''''
+
+Most games don't use static images for characters but rather have lots of
+animations that play whenever characters walk around, jump or just stand
+around. Just like a video is a series of still images being played quickly,
+animations are made by just quickly cycling the display image of an actor
+through many frames in an animation. PGTurbo can do most of the work of putting
+animations in your game for you.
+
+There's two ways to get PGTurbo to recognize your animation resources. For this
+quick overview we'll stick with one approach but the other is described in
+detail further below.
+
+First of all, anything to do with animations has to be placed in a folder named
+``animations`` next to your game's main python file (the same place you have
+your ``images`` folder as well).
+
+Each animation is then another folder inside that ``animations`` folder. The
+name of that folder will be the name under which PGTurbo finds the animation.
+Place the individual frames of the animation in the folder as separate images.
+Make sure the file order reflects the order of frames in the animation. Here's
+an example folder structure with two animations:
+
+.. code-block:: none
+
+    .
+    ├── animations/
+    │   ├── walk_up/
+    │   │   ├── walk_up_1.png
+    │   │   ├── walk_up_2.png
+    │   │   ├── walk_up_3.png
+    │   │   └── walk_up_4.png
+    │   └── idle/
+    │       ├── idle_1.png
+    │       └── idle_2.png
+    └── main.py
+
+With this structure, PGTurbo will be able to find and load two animations:
+``walk_up`` and ``idle``. To do so, simply create an actor and load the
+animations into its ``anim`` component::
+
+    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
+    alien.anim.add("walk_up", 1.5)
+    alien.anim.add("idle", 1.0)
+
+``Actor.anim`` is the general manager for anything to do with actor animations.
+``Actor.anim.add()`` loads an animation to use with the actor. The string is
+the name of the animation to load while the number is the number of seconds
+that the animation should play out over. In the example above, playing
+the ``"walk_up"`` animation once will take 1.5 seconds where ``"idle"`` will
+play out in one second.
+
+Once your animations are loaded in, it's simple to play them::
+
+    def update():
+        if keyboard.up:
+            alien.y -= 5
+            alien.anim.play("walk_up")
+        else:
+            alien.anim.play("idle")
+
+That's it! The ``actor.anim.play()`` function will start to play the animation
+you tell it to. If that animation is already running, it won't do anything.
+This is perfect for animations that should run and repeat while the player is
+holding down a button for example.
+
+Another way to use an idle animation would be to set it as a base animation.
+This animation will always be played whenever other animations you set to play
+are finished. We could rewrite the above example as follows::
+
+    alien.anim.set_base("idle")
+
+    def update():
+        if keyboard.up:
+            alien.y -= 5
+            alien.anim.play("walk_up")
+
+Now even though we didn't call ``alien.anim.play("idle")``, the animation will
+run whenever no other animation is running. This is very typical for many kinds
+of games. Note though that with this approach, the ``"walk_up"`` animation
+won't be interrupted when you stop holding the up arrow but will play out
+before ``"idle"`` starts playing.
+
+The last big feature of animations are animation queues. With them, you can set
+multiple animations to run one after the other until all of them are done::
+
+    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
+    alien.anim.add("stretch", 1.5)
+    alien.anim.add("dance", 3.0)
+    alien.anim.add("relax", 1.5)
+    alien.anim.add_queue("dance_routine", ("stretch", "dance", "relax"))
+
+    def update():
+        if keyboard.space:
+            alien.anim.play_queue("dance_routine")
+
+As you can see, the animations first have to be added to the ``Actor.anim``
+manager normally before you can then add a named animation queue. The first
+argument is the name for the queue, the second a tuple or list of the animation
+names that should run in that order.
+
+Why not just put all those images in one big animation? Well maybe you'd like
+to reuse the ``"dance"`` animation somewhere else. Maybe some other time the
+alien should relax first before stretching but shouldn't dance. With queues,
+you can use animations individually and grouped up in any combination you want.
+
+With the basics out of the way, let's look at another way to store your
+animations in the ``animations`` folder: spritesheets. A spritesheet is a
+single image file that holds all the frame images for an entire animation. In
+general, a spritesheet can even hold frames of many different animations, but
+PGTurbo only supports spritesheets with a single animation on them. Here's an
+example of how such a spritesheet file can look like with the individual
+frames highlighted:
+
+.. image:: _static/walk_down_frames.png
+
+To use spritesheets to load animations, simply place the spritesheet file
+directly into the ``animations`` folder (instead of a subfolder). The name of
+the file will be the name of the animation. Then you can load it with the
+right function::
+
+    alien = Actor("alien", (150, 200), anchor=("center", "bottom"))
+    alien.anim.add_spritesheet("walk_down", 64, 64)
+
+What do these new arguments mean? The two numbers are the width and height of
+a single animation frame in the spritesheet. The animation frames will be read
+from the file from left to right. After these two numbers, you can give the
+duration and other parameters of the animation just like you can do with the
+normal ``anim.add()``.
+
+There's many more options like having certain functions run once an animation
+or queue is finished and pausing or stopping animations while they run. You can
+learn about all of them in the method reference below.
+
+.. method:: anim.add(name, [durations, offsets, callback])
+
+    Adds an animation from a folder with separate image files to the actor's
+    animation pool.
+
+    :param name: The name of the folder with the animation frames in it.
+    :param durations: Over what time the animation should play out. Default is
+                      one second. If given a single number, the animation
+                      frames will be evenly distributed over that time. If a
+                      list or tuple with a number of values equal to the number
+                      of animation frames is given instead, those specific
+                      values will be the duration of the respectiv frames.
+    :param offsets: How to move the animation frames in relation to the actor's
+                    base image. This can be used to properly align animation
+                    frames with sizes other than the base image size. Offsets
+                    are given as tuples of X and Y changes in relation to the
+                    base image topleft corner. For example, if one animation
+                    frame is taller than the base image, an offset of (0, -32)
+                    would shift it up by 32 pixels.
+
+                    If a single tuple of two numbers is given, that offset is
+                    applied to all animation frames. If a tuple or list of
+                    multiple offsets is given, each will be applied to only
+                    the respective animation frame.
+    :param callback: A function name to call once the animation has finished
+                     playing.
+
+.. method:: anim.add_spritesheet(name, width, height, [durations, offsets, callback, vertical])
+
+    Adds an animation from a spritesheet to the actor's animation pool.
+
+    :param name: The filename of the spritesheet without a file extension.
+    :param width: The width in pixels of an animation frame in the spritesheet.
+    :param height: The height in pixels of an animation frame in the sheet.
+    :param durations: The duration over which the animation will play. Same
+                      possible values and default as for anim.add() above.
+    :param offsets: The offsets to be applied to the animation frame whe
+                    drawing the actor. Same possible values and default as for
+                    anim.add() above.
+    :param callback: A function name to call once the animation has finished
+                     playing.
+    :param vertical: Boolean flag of whether the spritesheet is arranged
+                     vertically or not. Default is False, meaning that
+                     spritesheets are normally read left to right. If set to
+                     True, the spritesheet will be read top to bottom instead.
+
+.. method:: anim.add_queue(name, animation_names, [callback, new_base])
+
+    Adds a new animation queue made up of previously loaded animations.
+
+    :param name: The name for the new animation queue.
+    :param animation_names: A tuple or list of the animation names to be
+                            included in the queue.
+    :param callback: A function name to call once the animation queue has
+                     finished playing.
+    :param new_base: An animation name that should be set as the new base
+                     animation once the queue has finished playing.
+
+.. method:: anim.edit(name, **kwargs):
+
+    Edits the settings of an existing animation. You can edit any of the
+    optional parameters of an animation: durations, offsets, sound, callback
+    and new_base.
+
+    To change one, simply give that keyword with the new value as an argument
+    to edit().
+
+    Example: alien.anim.edit("walk_up", durations=2.0)
+
+    :param name: The name of the animation that should be edited.
+
+.. method:: anim.edit_queue(name, **kwargs):
+
+    Edits the settings of an existing queue. You can edit any of the
+    optional parameters of a queue: sound, callback and new_base. Additionaly,
+    you can also change what animations the queue plays by giving
+    animation_names as a keyword parameter.
+
+    Example: alien.anim.edit_queue("idle", animation_names=("stand", "sit"))
+
+    :param name: The name of the queue that should be edited.
+
+.. method:: anim.set_base(name)
+
+    Set the base animation to play when nothing else is running. If the
+    former base animation was running, switch it to the new one.
+
+    :param name: The name of the new base animation. Call with None to remove
+                 the base animation.
+
+.. method:: anim.remove(name)
+
+    Removes a loaded animation from the animation pool. If the animation is
+    currently playing as part of a queue, the queue will skip forward to the
+    next animation in its sequence. If the animation is playing outside of a
+    queue, it is stopped before removal. If the animation was on pause, the
+    pause state is wiped, meaning unpausing will only play the base animation
+    if there is one.
+
+    :param name: The name of the animation to remove.
+
+.. method:: anim.remove_queue(name)
+
+    Removes a named queue from the queue pool. If the queue is currently
+    playing, it will be stopped before removal. If the animation was on pause,
+    the pause state is wiped, meaning unpausing will only play the base
+    animation if there is one.
+
+    :param name: The name of the queue to remove.
+
+.. method:: anim.play(name)
+
+    Play a loaded animation. If the same animation is already running, nothing
+    is done. This means you can safely keep calling this without restarting the
+    same animation over and over again.
+
+    :param name: The name of the animation to play.
+
+.. method:: anim.play_queue(name, [position])
+
+    Play a named animation queue. If it is already playing, it won't be
+    restarted, just like with anim.play().
+
+    :param name: The name of the queue to play.
+    :param position: From what animation to start playing the queue. Default is
+                     0, which is the first animation. The position numbers
+                     reflect zero-indexing.
+
+.. method:: anim.start(name)
+
+    Play a loaded animation. If it is already running, restart the animation.
+    This is the important difference to anim.play(). If you want to definitely
+    start an animation from the beginning, even if it is already playing, use
+    this function.
+
+    :param name: The name of the animation to start playing.
+
+.. method:: anim.start_queue(name, [position])
+
+    Play a named animation queue. If it is already playing, restart it just
+    like anim.start().
+
+    :param name: The name of the queue to start playing.
+    :param position: From what animation to start playing the queue. Default is
+                     0, which is the first animation. The position numbers
+                     reflect zero-indexing.
+
+.. method:: anim.pause()
+
+    Pause all animation playback, returning the actor to its static image.
+
+.. method:: anim.unpause()
+
+    Allow all animation playback and return to the state in animation before
+    the pause. If something paused was removed, return to playing the base
+    animation if there is one. This will also print a warning.
+
+.. method:: anim.stop()
+
+    Stop any currently running animation and return to the base animation if
+    one is set.
+
+.. method:: anim.stop_all()
+
+    Stop any currently running animation as well as removing the base
+    animation. This returns the display of the actor to the static image.
+
+If you want to query the state of anything to do with animations, you have
+access to a number of properties that you can get the value of but can't set
+yourself:
+
+.. attribute:: anim.animation_pool
+
+    A tuple of all currently valid animation names.
+
+.. attribute:: anim.queue_pool
+
+    A tuple of all currently valid queue names.
+
+.. attribute:: anim.current
+
+    String name of the currently running animation or None if nothing is
+    playing.
+
+.. attribute:: anim.current_queue
+
+    String name of the currently running queue or None if nothing is
+    playing or a single animation is running not as part of a queue.
+
+.. attribute:: anim.current_queue_position
+
+    Integer index of which animation in the current queue is running. 0 is the
+    first, 1 the second and so on to stay consistent with Python zero-indexing.
+    Returns None if no queue is running.
+
+.. attribute:: anim.base_animation
+
+    String name of the currently set base animation or None if no base
+    animation is set.
+
+.. attribute:: anim.playing_base
+
+    Boolean of whether the set base animation is currently running.
+
+.. attribute:: anim.paused
+
+    Boolean of whether animations are currently paused.
+
+.. attribute:: anim.current_type
+
+    String for which type of animation is currently playing or None if nothing
+    is playing.
+
+    "base" means the base animation is playing, "queue" means a queue is
+    playing and "single" means any other animation which is not the base
+    animation is playing and not as part of a queue.
+
+
 Distance and angle to
 '''''''''''''''''''''
 
