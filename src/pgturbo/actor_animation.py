@@ -24,7 +24,6 @@ class ActorAnimationSystem:
         self._current_animation = None
         self._queue_pool = {}
         self._current_queue = None
-        self._queue_index = None
         self._base_animation = None
         self._paused = False
         self._pause_info = None
@@ -130,6 +129,21 @@ class ActorAnimationSystem:
         else:
             return None
 
+    def _reset(self):
+        """Resets any playing state of the actor. Doesn't unload anything, just
+        puts playback into a clean neutral state."""
+        if self._current_animation:
+            self._current_animation._reset()
+            self._current_animation = None
+
+        if self._current_queue:
+            self._current_queue._reset()
+            self._current_queue = None
+
+        self._paused = False
+        self._pause_info = None
+        self._run_info = None
+
     # Checks whether the given name is actually a key for the animation pool.
     # If not, an error is raised that also lists available animations.
     def _check_animation_name(self, name):
@@ -204,8 +218,11 @@ class ActorAnimationSystem:
         their individual ways."""
         if name in self._animation_pool:
             raise ValueError("Animation {} already in pool. If you want to "
-                             "change it, first remove('{}') and then add it"
-                             "with the new settings again.".format(name, name))
+                             "change it, use anim.edit() to do so."
+                             .format(name))
+
+        if new_base:
+            self._check_animation_name(new_base)
 
         num_frames = len(frames)
         durations = self._process_durations(durations, num_frames)
@@ -260,16 +277,72 @@ class ActorAnimationSystem:
         """
         if name in self._queue_pool:
             raise ValueError("A queue with the name {} is already in the queue"
-                             " pool. If you want to change it, first "
-                             "remove_queue('{}') and then add it with your "
-                             "chosen settings again.".format(name, name))
+                             " pool. If you want to change it, use "
+                             "anim.edit_queue() to do so.".format(name))
 
         for a in animation_names:
             self._check_animation_name(a)
 
+        if new_base:
+            self._check_animation_name(new_base)
+
         q = ActorAnimationQueue(self, name, tuple(animation_names), sound,
                                 callback, new_base)
         self._queue_pool[name] = q
+
+    def edit(self, name, **kwargs):
+        self._check_animation_name(name)
+
+        if self._current_animation and self._current_animation.name == name:
+            raise RuntimeError("Cannot edit an animation while it is playing.")
+
+        anim = self._animation_pool[name]
+        num_frames = len(anim._frames)
+        for kw, value in kwargs.items():
+            if kw == "durations":
+                durations = self._process_durations(value, num_frames)
+                anim._durations = durations
+                anim._total_duration = sum(durations)
+            elif kw == "offsets":
+                offsets = self._process_offsets(value, num_frames)
+                anim._offsets = offsets
+            elif kw == "sound":
+                anim._sound = value
+            elif kw == "callback":
+                anim._callback = value
+            elif kw == "new_base":
+                self._check_animation_name(value)
+                anim._new_base = value
+            else:
+                raise AttributeError("{} is not a valid keyword for editing "
+                                     "animation settings. Valid keywords are "
+                                     "durations, offsets, sound, callback, "
+                                     "new_base.".format(kw))
+
+    def edit_queue(self, name, **kwargs):
+        self._check_queue_name(name)
+
+        if self._current_queue and self._current_queue.name == name:
+            raise RuntimeError("Cannot edit a queue while it is playing.")
+
+        queue = self._queue_pool[name]
+        for kw, value in kwargs.items():
+            if kw == "animation_names":
+                for v in value:
+                    self._check_animation_name(v)
+                queue._animations = value
+            elif kw == "sound":
+                queue._sound = value
+            elif kw == "callback":
+                queue._callback = value
+            elif kw == "new_base":
+                self._check_animation_name(value)
+                queue._new_base = value
+            else:
+                raise AttributeError("{} is not a valid keyword for editing "
+                                     "animation settings. Valid keywords are "
+                                     "animation_names, sound, callback, "
+                                     "new_base.".format(kw))
 
     # set_base() is a courtesy function to make working with anim easier.
     # Since the user mostly makes something happen with anim through

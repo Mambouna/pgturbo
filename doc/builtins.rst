@@ -1519,6 +1519,30 @@ learn about all of them in the method reference below.
     :param new_base: An animation name that should be set as the new base
                      animation once the queue has finished playing.
 
+.. method:: anim.edit(name, **kwargs):
+
+    Edits the settings of an existing animation. You can edit any of the
+    optional parameters of an animation: durations, offsets, sound, callback
+    and new_base.
+
+    To change one, simply give that keyword with the new value as an argument
+    to edit().
+
+    Example: alien.anim.edit("walk_up", durations=2.0)
+
+    :param name: The name of the animation that should be edited.
+
+.. method:: anim.edit_queue(name, **kwargs):
+
+    Edits the settings of an existing queue. You can edit any of the
+    optional parameters of a queue: sound, callback and new_base. Additionaly,
+    you can also change what animations the queue plays by giving
+    animation_names as a keyword parameter.
+
+    Example: alien.anim.edit_queue("idle", animation_names=("stand", "sit"))
+
+    :param name: The name of the queue that should be edited.
+
 .. method:: anim.set_base(name)
 
     Set the base animation to play when nothing else is running. If the

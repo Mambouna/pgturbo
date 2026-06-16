@@ -6,7 +6,7 @@ from io import StringIO
 import pygame
 
 from pgturbo.actor import Actor
-from pgturbo.loaders import set_root
+from pgturbo.loaders import set_root, sounds
 from pgturbo.clock import clock
 
 
@@ -36,15 +36,17 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
         clock.clear()
         pygame.display.quit()
 
-    def test_missing_animation_errors(self):
+    def setUp(self):
+        global a
         a = Actor("ninja")
+
+    def test_missing_animation_errors(self):
         with self.assertRaises(KeyError):
             a.anim.add("nonsense")
 
     def test_add_animation_from_folder_with_defaults(self):
         """We can add animations from folders and defaults are correclty
         applied."""
-        a = Actor("ninja")
         a.anim.add("walk_down")
 
         self.assertEqual(a.anim.animation_pool, ("walk_down",))
@@ -59,7 +61,6 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
 
     def test_add_animation_from_spritesheet_horizontal(self):
         """We can add animations from horizontally arranged spritesheets."""
-        a = Actor("ninja")
         a.anim.add_spritesheet("walk_down", 64, 64)
 
         self.assertEqual(a.anim.animation_pool, ("walk_down",))
@@ -70,7 +71,6 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
 
     def test_add_animation_from_spritesheet_vertical(self):
         """We can also get vertically arranged spritesheets."""
-        a = Actor("ninja")
         a.anim.add_spritesheet("walk_down_ver", 64, 64, vertical=True)
 
         self.assertEqual(a.anim.animation_pool, ("walk_down_ver",))
@@ -79,14 +79,12 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
 
     def test_add_animation_custom_total_duration(self):
         """We can add animations with a custom total duration."""
-        a = Actor("ninja")
         a.anim.add("walk_down", 2.0)
         durations = a.anim._animation_pool["walk_down"].durations
         self.assertTrue(all(dur == 0.5 for dur in durations))
 
     def test_add_animation_custom_different_durations(self):
         """We can add animations with per frame durations."""
-        a = Actor("ninja")
         a.anim.add("walk_down", (0.5, 0.25, 0.25, 0.5))
         durations = a.anim._animation_pool["walk_down"].durations
         self.assertEqual(durations[0], 0.5)
@@ -97,20 +95,17 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
     def test_adding_animation_with_wrong_duration_num_errors(self):
         """Trying to add an animation with a number of durations different
         from the number of frames errors."""
-        a = Actor("ninja")
         with self.assertRaises(ValueError):
             a.anim.add("walk_down", (0.5, 0.25, 0.25))
 
     def test_add_animation_custom_general_offset(self):
         """We can add animations with a custom general offset."""
-        a = Actor("ninja")
         a.anim.add("walk_down", offsets=(0, -16))
         offsets = a.anim._animation_pool["walk_down"].offsets
         self.assertTrue(all(off == (0, -16) for off in offsets))
 
     def test_add_animation_custom_different_offsets(self):
         """We can add animations with per frame offsets."""
-        a = Actor("ninja")
         a.anim.add("walk_down", offsets=((0, 0), (0, -32), (16, 8), (32, 0)))
         offsets = a.anim._animation_pool["walk_down"].offsets
         self.assertEqual(offsets[0], (0, 0))
@@ -121,15 +116,20 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
     def test_adding_animation_with_wrong_offset_num_errors(self):
         """Trying to add an animation with a number of offsets different
         from the number of frames errors."""
-        a = Actor("ninja")
         with self.assertRaises(ValueError):
             a.anim.add("walk_down", offsets=((0, 0), (0, -32), (16, 8)))
+
+    def test_add_animation_with_custom_sound(self):
+        """We can add an animation with a sound to play once it starts."""
+        a.anim.add("walk_down", sound=sounds.powerup)
+        self.assertIsNotNone(a.anim._animation_pool["walk_down"]._sound)
+        self.assertIsInstance(a.anim._animation_pool["walk_down"]._sound,
+                              pygame.mixer.Sound)
 
     def test_add_animation_with_custom_callback(self):
         """A supplied callback function is called after the animation
         finishes running."""
         test_func_mock = Mock()
-        a = Actor("ninja")
         a.anim.add("walk_down", offsets=(0, -16), callback=test_func_mock)
         a.anim.play("walk_down")
         # We use clock.tick() to step through each animation frame here since
@@ -138,13 +138,55 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
         multitick(0.25, 4)
         test_func_mock.assert_called_once()
 
+    def test_add_animation_with_new_base(self):
+        """We can add an animation with a new base animation it should set once
+        it finished playing."""
+        a.anim.add("walk_up")
+        a.anim.add("walk_down", new_base="walk_up")
+        self.assertEqual(a.anim._animation_pool["walk_down"]._new_base,
+                         "walk_up")
+
     def test_adding_same_animation_again_errors(self):
         """When the user tries to add the same animation twice for a single
         actor, an error is thrown."""
-        a = Actor("ninja")
         a.anim.add("walk_down")
         with self.assertRaises(ValueError):
             a.anim.add("walk_down")
+
+    def test_edit_added_animation(self):
+        """We can edit the settings of animations after they have been
+        loaded."""
+        a.anim.add("walk_up")
+        a.anim.add("walk_down", sound=sounds.powerup, callback=multitick)
+        anim = a.anim._animation_pool["walk_down"]
+        # Hooks so far are correct after adding the animation.
+        self.assertIsNotNone(anim._sound)
+        self.assertIsNotNone(anim._callback)
+        self.assertIsNone(anim._new_base)
+        # We can remove a former hook and others remain unchanged.
+        a.anim.edit("walk_down", sound=None)
+        self.assertIsNone(anim._sound)
+        self.assertIsNotNone(anim._callback)
+        # We can add a new hook and others remain unchanged.
+        a.anim.edit("walk_down", new_base="walk_up")
+        self.assertIsNotNone(anim._callback)
+        self.assertIsNotNone(anim._new_base)
+        # We can also edit fields that require preprocessing for the Anim.
+        a.anim.edit("walk_down", durations=2.0)
+        self.assertEqual(anim._durations, (0.5, 0.5, 0.5, 0.5))
+        a.anim.edit("walk_down", offsets=((4, 6), (8, 10), (12, 14), (16, 18)))
+        self.assertEqual(anim._offsets, ((4, 6), (8, 10), (12, 14), (16, 18)))
+        # Correct errors are also raised when giving invalid values.
+        with self.assertRaises(ValueError):
+            a.anim.edit("walk_down", new_base="nonsense")
+        with self.assertRaises(ValueError):
+            a.anim.edit("walk_down", offsets=((4, 6), (8, 10)))
+        # Trying to edit a queue while it is running errors.
+        a.anim.play("walk_down")
+        with self.assertRaises(RuntimeError):
+            a.anim.edit("walk_down", new_base=None)
+        # We reset the state here to clean up any mess we left in clock events.
+        a.anim._reset()
 
 
 class ActorAnimationAddingQueuesTest(unittest.TestCase):
@@ -205,13 +247,56 @@ class ActorAnimationAddingQueuesTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.anim.add_queue("walking_queue", ("walk_up", "walk_down"))
 
+    def test_edit_added_queues(self):
+        """We can edit the settings of queues after they have been added."""
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"),
+                         sound=sounds.powerup, callback=multitick)
+        queue = a.anim._queue_pool["walking_queue"]
+        # Hooks so far are correct after adding the queue.
+        self.assertIsNotNone(queue._sound)
+        self.assertIsNotNone(queue._callback)
+        self.assertIsNone(queue._new_base)
+        # We can remove a former hook and others remain unchanged.
+        a.anim.edit_queue("walking_queue", sound=None)
+        self.assertIsNone(queue._sound)
+        self.assertIsNotNone(queue._callback)
+        # We can add a new hook and others remain unchanged.
+        a.anim.edit_queue("walking_queue", new_base="walk_up")
+        self.assertIsNotNone(queue._callback)
+        self.assertIsNotNone(queue._new_base)
+        # We can also change the animations in a queue.
+        a.anim.edit_queue("walking_queue",
+                          animation_names=("walk_up", "walk_down"))
+        self.assertEqual(queue._animations, ("walk_up", "walk_down"))
+        # Correct errors are also raised when giving invalid values.
+        with self.assertRaises(ValueError):
+            a.anim.edit_queue("walking_queue", new_base="nonsense")
+        with self.assertRaises(ValueError):
+            a.anim.edit_queue("walking_queue", animation_names=("nonsense"))
+        # Trying to edit a queue while it is running errors.
+        a.anim.play_queue("walking_queue")
+        with self.assertRaises(RuntimeError):
+            a.anim.edit_queue("walking_queue", new_base=None)
+        # We reset the state here to clean up any mess we left in clock events.
+        a.anim._reset()
+
 
 class ActorAnimationUsingTest(unittest.TestCase):
     @classmethod
     def setUpClass(self):
+        global sounds_powerup_play, sounds_powerdown_play
         pygame.init()
         pygame.display.set_mode((TEST_DISP_W, TEST_DISP_H))
         set_root(__file__)
+        # We first need to mock the sound object and then also the play
+        # function on it to separately give the object to the animation and
+        # then check whether play() was called on it later.
+        sounds.powerup = Mock()
+        sounds_powerup_play = Mock()
+        sounds.powerup.attach_mock(sounds_powerup_play, "play")
+        sounds.powerdown = Mock()
+        sounds_powerdown_play = Mock()
+        sounds.powerdown.attach_mock(sounds_powerdown_play, "play")
 
     @classmethod
     def tearDownClass(self):
@@ -228,6 +313,13 @@ class ActorAnimationUsingTest(unittest.TestCase):
         a.anim.add_queue("walking_reversed", ("walk_up", "walk_down"))
         walk_down_frames = a.anim._animation_pool["walk_down"].frames
         walk_up_frames = a.anim._animation_pool["walk_up"].frames
+        # Make sure no events are hanging around from other tests that weren't
+        # cleaned up.
+        clock.clear()
+        sounds.powerup.reset_mock()
+        sounds_powerup_play.reset_mock()
+        sounds.powerdown.reset_mock()
+        sounds_powerdown_play.reset_mock()
 
     def test_play_animation(self):
         """We can play animations which switches actor images out correctly.
@@ -256,6 +348,90 @@ class ActorAnimationUsingTest(unittest.TestCase):
         clock.tick(0.25)
         a._manage_frame_advancement()
         self.assertIsNone(a._a_image)
+
+    def test_play_animation_with_sound(self):
+        """If an animation has an associated sound, it will play when run."""
+        a.anim.edit("walk_down", sound=sounds.powerup)
+        a.anim.play("walk_down")
+        sounds_powerup_play.assert_called_once()
+        # Since both play() and start() call _run() internally and the sound
+        # is played there, we don't need to test separately for start().
+
+    def test_play_animation_with_callback(self):
+        """If an animation has an associated callback, it will be called after
+        the animation has played out."""
+        test_func_mock = Mock()
+        a.anim.edit("walk_down", callback=test_func_mock)
+        a.anim.play("walk_down")
+        multitick(0.25, 4)
+        test_func_mock.assert_called_once()
+
+    def test_play_animation_with_new_base(self):
+        """If an animation should set a new base animation after playing, it
+        does so."""
+        self.assertIsNone(a.anim.base_animation)
+        a.anim.edit("walk_down", new_base="walk_up")
+        a.anim.play("walk_down")
+        multitick(0.25, 4)
+        self.assertEqual(a.anim.base_animation, "walk_up")
+
+    def test_play_animation_with_override_sound(self):
+        """If an animation playback is done with overriden sound, the sound
+        plays correctly."""
+        a.anim.play("walk_down", sound=sounds.powerup)
+        sounds_powerup_play.assert_called_once()
+
+    def test_play_animation_with_override_callback(self):
+        """If an animation is called with an override callback, it is called
+        after the animation has run."""
+        test_func_mock = Mock()
+        a.anim.play("walk_down", callback=test_func_mock)
+        multitick(0.25, 4)
+        test_func_mock.assert_called_once()
+
+    def test_play_animation_with_override_new_base(self):
+        """If an animation is played with overriden new_base set, it's set
+        after playing out."""
+        self.assertIsNone(a.anim.base_animation)
+        a.anim.play("walk_down", new_base="walk_up")
+        multitick(0.25, 4)
+        self.assertEqual(a.anim.base_animation, "walk_up")
+
+    def test_play_animation_with_override_sound_no_base_sound(self):
+        """If an animation playback is done with overriden sound, the sound
+        plays correctly and any original set sound for the animation does
+        not."""
+        # powerup is the normally set sound for the animation, should not play
+        a.anim.edit("walk_down", sound=sounds.powerup)
+        # powerdown is the override which should play
+        a.anim.play("walk_down", sound=sounds.powerdown)
+        sounds_powerdown_play.assert_called_once()
+        sounds_powerup_play.assert_not_called()
+
+    def test_play_animation_with_override_callback_no_base_callback(self):
+        """If an animation is called with an override callback, it is called
+        after the animation has run and any originally set callback is not
+        called."""
+        test_func_mock_no_call = Mock()
+        test_func_mock_should_call = Mock()
+        # no_call is the mock original callback supplied to the animation
+        a.anim.edit("walk_down", callback=test_func_mock_no_call)
+        # play() overrides the callback with should_call
+        a.anim.play("walk_down", callback=test_func_mock_should_call)
+        multitick(0.25, 4)
+        test_func_mock_should_call.assert_called_once()
+        test_func_mock_no_call.assert_not_called()
+
+    def test_play_animation_with_override_new_base_no_base_new_base(self):
+        """If an animation is played with overriden new_base set, it's set
+        after playing out and any original new_base setting is not applied."""
+        self.assertIsNone(a.anim.base_animation)
+        # walk_up is the normal setting for the new base after playing
+        a.anim.edit("walk_down", new_base="walk_up")
+        # play() overrides it to be walk_down instead
+        a.anim.play("walk_down", new_base="walk_down")
+        multitick(0.25, 4)
+        self.assertEqual(a.anim.base_animation, "walk_down")
 
     def test_start_animation(self):
         """We can start playing animations just like before but calling the
@@ -393,7 +569,7 @@ class ActorAnimationUsingTest(unittest.TestCase):
         self.assertIsNone(a.anim._current_animation)
         self.assertIsNone(a.anim._current_queue)
 
-    def test_playing_queue_with_negative_index(self):
+    def test_play_queue_with_negative_index(self):
         """When playing queues not from the start, negative indices also
         work."""
         a.anim.play_queue("walking_queue", -1)
@@ -409,6 +585,90 @@ class ActorAnimationUsingTest(unittest.TestCase):
         multitick(0.25, 2)
         self.assertIsNone(a.anim._current_animation)
         self.assertIsNone(a.anim._current_queue)
+
+    def test_play_queue_with_sound(self):
+        """If an animation has an associated sound, it will play when run."""
+        a.anim.edit_queue("walking_queue", sound=sounds.powerup)
+        a.anim.play_queue("walking_queue")
+        sounds_powerup_play.assert_called_once()
+        # Since both play() and start() call _run() internally and the sound
+        # is played there, we don't need to test separately for start().
+
+    def test_play_queue_with_callback(self):
+        """If an animation has an associated callback, it will be called after
+        the animation has played out."""
+        test_func_mock = Mock()
+        a.anim.edit_queue("walking_queue", callback=test_func_mock)
+        a.anim.play_queue("walking_queue")
+        multitick(0.25, 8)
+        test_func_mock.assert_called_once()
+
+    def test_play_queue_with_new_base(self):
+        """If an animation should set a new base animation after playing, it
+        does so."""
+        self.assertIsNone(a.anim.base_animation)
+        a.anim.edit_queue("walking_queue", new_base="walk_up")
+        a.anim.play_queue("walking_queue")
+        multitick(0.25, 8)
+        self.assertEqual(a.anim.base_animation, "walk_up")
+
+    def test_play_queue_with_override_sound(self):
+        """If an animation playback is done with overriden sound, the sound
+        plays correctly."""
+        a.anim.play_queue("walking_queue", sound=sounds.powerup)
+        sounds_powerup_play.assert_called_once()
+
+    def test_play_queue_with_override_callback(self):
+        """If an animation is called with an override callback, it is called
+        after the animation has run."""
+        test_func_mock = Mock()
+        a.anim.play_queue("walking_queue", callback=test_func_mock)
+        multitick(0.25, 8)
+        test_func_mock.assert_called_once()
+
+    def test_play_queue_with_override_new_base(self):
+        """If an animation is played with overriden new_base set, it's set
+        after playing out."""
+        self.assertIsNone(a.anim.base_animation)
+        a.anim.play_queue("walking_queue", new_base="walk_up")
+        multitick(0.25, 8)
+        self.assertEqual(a.anim.base_animation, "walk_up")
+
+    def test_play_queue_with_override_sound_no_base_sound(self):
+        """If an animation playback is done with overriden sound, the sound
+        plays correctly and any original set sound for the animation does
+        not."""
+        # powerup is the normally set sound for the animation, should not play
+        a.anim.edit_queue("walking_queue", sound=sounds.powerup)
+        # powerdown is the override which should play
+        a.anim.play_queue("walking_queue", sound=sounds.powerdown)
+        sounds_powerdown_play.assert_called_once()
+        sounds_powerup_play.assert_not_called()
+
+    def test_play_queue_with_override_callback_no_base_callback(self):
+        """If an queue is called with an override callback, it is called
+        after the queue has run and any originally set callback is not
+        called."""
+        test_func_mock_no_call = Mock()
+        test_func_mock_should_call = Mock()
+        # no_call is the mock original callback supplied to the animation
+        a.anim.edit_queue("walking_queue", callback=test_func_mock_no_call)
+        # play() overrides the callback with should_call
+        a.anim.play_queue("walking_queue", callback=test_func_mock_should_call)
+        multitick(0.25, 8)
+        test_func_mock_should_call.assert_called_once()
+        test_func_mock_no_call.assert_not_called()
+
+    def test_play_queue_with_override_new_base_no_base_new_base(self):
+        """If a queue is played with overriden new_base set, it's set
+        after playing out and any original new_base setting is not applied."""
+        self.assertIsNone(a.anim.base_animation)
+        # walk_up is the normal setting for the new base after playing
+        a.anim.edit_queue("walking_queue", new_base="walk_up")
+        # play() overrides it to be walking_queue instead
+        a.anim.play_queue("walking_queue", new_base="walk_down")
+        multitick(0.25, 8)
+        self.assertEqual(a.anim.base_animation, "walk_down")
 
     def test_start_animation_queue(self):
         """We can play animation queues and calling it again will restart the
