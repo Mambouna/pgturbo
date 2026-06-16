@@ -1329,6 +1329,8 @@ Likewise -180 degrees == 180 degrees.
 Actor animations
 ''''''''''''''''
 
+.. versionadded:: 1.9
+
 Most games don't use static images for characters but rather have lots of
 animations that play whenever characters walk around, jump or just stand
 around. Just like a video is a series of still images being played quickly,

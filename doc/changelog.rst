@@ -11,6 +11,8 @@ Running overview
 New features
 ''''''''''''
 
+* Sprite animation system for actors, easy to start using but with deep
+  customization available.
 * A proper ``mouse`` builtin to get the state of different mouse properties
   like positions, relative movements, state of buttons being pressed and
   more. Also allows changing of visibility, cursor shape and others.
@@ -69,6 +71,12 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.9.0 - 2026-06-16
+------------------
+
+Sprite animation system for actors.
 
 
 1.8.0 - 2026-06-06
