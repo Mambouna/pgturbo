@@ -28,6 +28,7 @@ class ActorAnimationSystem:
         self._base_animation = None
         self._paused = False
         self._pause_info = None
+        self._run_info = None
 
     # Properties are defined to allow reading of values but not setting them.
     # Some of these include aliases for properties to allow easier or more
@@ -196,7 +197,8 @@ class ActorAnimationSystem:
         else:
             return tuple([offsets] * num_frames)
 
-    def _add_animation(self, name, frames, durations, offsets, callback):
+    def _add_animation(self, name, frames, durations, offsets, sound, callback,
+                       new_base):
         """Helper function to not repeat code unnecessarily. Both add() and
         add_spritesheet() just call this once they got the animation frames by
         their individual ways."""
@@ -210,11 +212,13 @@ class ActorAnimationSystem:
         offsets = self._process_offsets(offsets, num_frames)
 
         # Create the new animation and add it to the available pool.
-        a = ActorAnimation(self, name, frames, durations, offsets, callback)
+        a = ActorAnimation(self, name, frames, durations, offsets, sound,
+                           callback, new_base)
         self._animation_pool[name] = a
 
     # Managing animations in the pool
-    def add(self, name, durations=1.0, offsets=(0, 0), callback=None):
+    def add(self, name, durations=1.0, offsets=(0, 0), sound=None,
+            callback=None, new_base=None):
         """Adds a given animation to the animation pool by its name.
 
         :param name: Name of the animation to be added.
@@ -222,10 +226,12 @@ class ActorAnimationSystem:
         # Load the animation frames via ResourceLoader
         frames = loaders.animations.load(name)
         # Call the helper function to actually add the animation.
-        self._add_animation(name, frames, durations, offsets, callback)
+        self._add_animation(name, frames, durations, offsets, sound, callback,
+                            new_base)
 
     def add_spritesheet(self, name, frame_width, frame_height, durations=1.0,
-                        offsets=(0, 0), callback=None, vertical=False):
+                        offsets=(0, 0), sound=None, callback=None,
+                        new_base=None, vertical=False):
         """Adds a given animation from a spritesheet to the animation pool by
         its name.
 
@@ -235,14 +241,19 @@ class ActorAnimationSystem:
         frames = loaders.spritesheets.load(name, vertical, frame_width,
                                            frame_height)
         # Call the helper function to actually add the animation.
-        self._add_animation(name, frames, durations, offsets, callback)
+        self._add_animation(name, frames, durations, offsets, sound, callback,
+                            new_base)
 
-    def add_queue(self, name, animation_names, callback=None, new_base=None):
+    def add_queue(self, name, animation_names, sound=None, callback=None,
+                  new_base=None):
         """Adds a new queue to the animation system. All animations that are
         part of the queue must already be valid animations in the system.
 
         :param name: Name of the new queue to be added.
-        :param animations: List or tuple of the animations in the queue.
+        :param animation_names: List or tuple of the animation names in the
+                                queue.
+        :param sound: A PGTurbo sound object to play when the animation first
+                      starts playing.
         :param callback: What function to call once the queue finishes playing.
         :param new_base: What to set the systems base animation to once the
                          queue finishes playing.
@@ -256,8 +267,8 @@ class ActorAnimationSystem:
         for a in animation_names:
             self._check_animation_name(a)
 
-        q = ActorAnimationQueue(self, name, tuple(animation_names), callback,
-                                new_base)
+        q = ActorAnimationQueue(self, name, tuple(animation_names), sound,
+                                callback, new_base)
         self._queue_pool[name] = q
 
     # set_base() is a courtesy function to make working with anim easier.
@@ -353,6 +364,8 @@ class ActorAnimationSystem:
         # in case they hadn't been already and run it.
         else:
             self._current_animation._reset()
+            if self._current_animation._sound:
+                self._current_animation._sound.play()
             self._current_animation._next_frame()
 
         # Reset pause state.
@@ -396,6 +409,11 @@ class ActorAnimationSystem:
                 num_anims = len(self._current_queue._animations)
                 # We add here since position is negative in this branch.
                 self._current_queue._animation_index = num_anims + position - 1
+            else:
+                # Only if the queue starts from the beginning we play its
+                # associated sound.
+                if self._current_sound._sound:
+                    self._current_sound._sound.play()
             self._current_queue._next_animation()
 
         # Reset pause state.
@@ -532,6 +550,13 @@ class ActorAnimationSystem:
     # Ending animations
     def _done(self):
         """Function called by the running animation when it finishes."""
+        # If there was a function callback set for the animation, call it.
+        if self._current_animation._callback:
+            self._current_animation._callback()
+        # If the animation included a new base animation to set, do so now.
+        if self._current_animation._new_base:
+            new_base_name = self._current_animation._new_base
+            self._base_animation = self._animation_pool[new_base_name]
         # If there's a base animation, play it.
         if self._base_animation:
             self._run(self._base_animation.name)
@@ -542,6 +567,9 @@ class ActorAnimationSystem:
     # Ending queues
     def _done_queue(self):
         """Function called by the running queue when it finishes."""
+        # If there was a function callback set for the queue, call it.
+        if self._current_queue._callback:
+            self._current_queue._callback()
         # If the queue included a new base animation to set, do so now.
         if self._current_queue._new_base:
             new_base_name = self._current_queue._new_base
@@ -591,7 +619,8 @@ class ActorAnimationSystem:
 
 class ActorAnimationQueue:
 
-    def __init__(self, anim_system, name, animations, callback, new_base):
+    def __init__(self, anim_system, name, animations, sound, callback,
+                 new_base):
         # Actor the queue is attached to.
         self._anim_system = anim_system
         # Name of the animation queue.
@@ -604,6 +633,8 @@ class ActorAnimationQueue:
         self._new_animation = False
         # Time when this animation started playing.
         self._animation_started = None
+        # A sound object to play when the queue first starts playing.
+        self._sound = sound
         # What function to call when the queue finishes.
         self._callback = callback
         # What to set the actors base animation to once the queue finishes.
@@ -621,11 +652,7 @@ class ActorAnimationQueue:
         # the function telling the animation manager that the queue is done.
         if self._animation_index >= len(self._animations):
             self._animation_index = None
-            # TODO: Necessary? Counterproductive? : self._new_animation = False
             self._anim_system._done_queue()
-            # If there was a function callback set for the animation, call it.
-            if self._callback:
-                self._callback()
         # If the animation is not done, schedule the next frame advancement.
         else:
             # Indicates actor.draw() should get the new frame.
@@ -692,7 +719,8 @@ class ActorAnimationQueue:
 
 class ActorAnimation:
 
-    def __init__(self, anim_sys, name, frames, durations, offsets, callback):
+    def __init__(self, anim_sys, name, frames, durations, offsets, sound,
+                 callback, new_base):
         # Actor object that holds the animation.
         self._anim_system = anim_sys
         # Name of the animation.
@@ -710,8 +738,12 @@ class ActorAnimation:
         self._total_duration = sum(durations)
         # Tuple of spacial offsets for frames.
         self._offsets = offsets
+        # A sound object to play when the animation first starts.
+        self._sound = sound
         # Callback function for the animation.
         self._callback = callback
+        # What to set the actors base animation to once playing finishes.
+        self._new_base = new_base
 
     # Function to advance the current frame and schedule the next advancement
     def _next_frame(self):
@@ -724,11 +756,7 @@ class ActorAnimation:
         # the function telling the animation manager that the animation is done.
         if self._frame_index >= len(self._frames):
             self._frame_index = None
-            # TODO: Necessary? Counterproductive? : self._new_frame = False
             self._anim_system._done()
-            # If there was a function callback set for the animation, call it.
-            if self._callback:
-                self._callback()
         # If the animation is not done, schedule the next frame advancement.
         else:
             # Indicates actor.draw() should get the new frame.
