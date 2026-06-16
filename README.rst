@@ -47,6 +47,8 @@ they will be removed from the running list.
 New features
 ''''''''''''
 
+* Sprite animation system for actors, easy to start using but with deep
+  customization available.
 * A proper ``mouse`` builtin to get the state of different mouse properties
   like positions, relative movements, state of buttons being pressed and
   more. Also allows changing of visibility, cursor shape and others.
