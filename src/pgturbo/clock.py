@@ -238,12 +238,10 @@ class Clock:
         """Unschedule a callback with specified arguments."""
         self._internal_unschedule(callback, True, *args, **kwargs)
 
-    def unschedule_all(self, callback, **kwargs):
+    def unschedule_all(self, callback, absolute=False):
         """Unschedule all callbacks of the same function regardless of their
         specified arguments."""
-        # We take and pass kwargs to allow unschedule all to work with absolute
-        # time as well.
-        self._internal_unschedule(callback, False, **kwargs)
+        self._internal_unschedule(callback, False, absolute=absolute)
 
     def each_tick(self, callback):
         """Schedule a callback to be called every tick.
