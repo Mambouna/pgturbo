@@ -916,9 +916,9 @@ called four seconds later in real time. If you want your whole game to respect
 this timescale you need to make sure anything involving movement or counting
 over time is affected by the timescale::
 
-    def update(dt):
+    def update():
         if keyboard.w:
-            alien.y -= 10 * dt * clock.timescale
+            alien.y -= 10 * clock.timescale
 
 Now when you change the timescale, it will look to the player like the whole
 game has slowed down, sped up or been paused.
@@ -928,17 +928,35 @@ and time marks. This is usually good, but if you want to get the total time
 elapsed since program start without respecting changes to timescale, you can
 get it with ``clock.absolute_time``.
 
+In the same way, you can do anything related to scheduling in an absolute
+timeframe too. Simply pass ``absolute=True`` to functions like ``schedule()``
+and the callback you schedule will be unaffected by ``timescale``. If you want
+to unschedule this event, you also need to do so with
+``unschedule(callback, absolute=True)``. Internally, clock maintains two
+separate queues, one affected by ``timeframe`` and one not. So if you do
+anything with ``absolute=True``, you'll need to pass the same when wanting to
+check or affect it later.
+
+This also means that ``absolute`` is the one keyword that cannot be used in
+your own callback signatures as it is intercepted for the use of ``clock`` and
+not passed on to the callback functions.
+
+Marks always save a timestamp in absolute time and in the time affected by
+timescale. If you want to get either their timestamp or the elapsed time since
+marking in absolute time, simply call any of the associated methods with
+``absolute=True`` or just ``True`` as a second argument.
+
 ``clock`` provides the following useful methods:
 
 .. class:: Clock
 
-    .. property:: time
+    .. attribute:: time
 
         Returns the elapsed time while respecting timescale changes.
 
         Cannot be set by the user.
 
-    .. property:: absolute_time
+    .. attribute:: absolute_time
 
         Returns the elapsed time without respecting timescale changes.
 
@@ -946,20 +964,24 @@ get it with ``clock.absolute_time``.
 
         Cannot be set by the user.
 
-    .. property:: timescale
+    .. attribute:: timescale
 
         Controls the speed at which time is counted for ``time`` property and
         scheduling of function calls.
 
         ``1.0`` is normal game time, values above will increase the speed while
-        values above zero slow the timing down. ``0.0`` will pause the time
-        counting.
+        values between 0 and 1 slow the timing down. ``0.0`` will pause the
+        time counting. This can be used to pause the game when set up
+        correctly.
 
     .. method:: schedule(callback, delay, *args, **kwargs)
 
         Schedule `callback` to be called after the given delay.
 
         Repeated calls will schedule the callback repeatedly.
+
+        Calling with ``absolute=True`` will schedule the callback such that it
+        will not be affected by timescale.
 
         :param callback: A callable (usually a function you wrote).
         :param delay: The delay, in seconds, before the function should be
@@ -968,6 +990,9 @@ get it with ``clock.absolute_time``.
                      positional arguments when called.
         :param kwargs: Any further named arguments will be given to callback
                        as keyword arguments when called.
+
+                       Note that the keyword `absolute` is reserved and won't
+                       be passed on.
 
     .. method:: schedule_unique(callback, delay, *args, **kwargs)
 
@@ -977,6 +1002,9 @@ get it with ``clock.absolute_time``.
         applies also if it was scheduled multiple times: after calling
         ``schedule_unique``, it will be scheduled exactly once.
 
+        Calling with ``absolute=True`` will schedule the callback such that it
+        will not be affected by timescale.
+
         :param callback: A callable (usually a function you wrote).
         :param delay: The delay, in seconds, before the function should be
                       called.
@@ -985,9 +1013,15 @@ get it with ``clock.absolute_time``.
         :param kwargs: Any further named arguments will be given to callback
                        as keyword arguments when called.
 
+                       Note that the keyword `absolute` is reserved and won't
+                       be passed on.
+
     .. method:: schedule_interval(callback, interval, *args, **kwargs)
 
         Schedule `callback` to be called repeatedly.
+
+        Calling with ``absolute=True`` will schedule the callback such that it
+        will not be affected by timescale.
 
         :param callback: A callable (usually a function you wrote).
         :param interval: The interval in seconds between calls to `callback`.
@@ -995,6 +1029,9 @@ get it with ``clock.absolute_time``.
                      positional arguments when called.
         :param kwargs: Any further named arguments will be given to callback
                        as keyword arguments when called.
+
+                       Note that the keyword `absolute` is reserved and won't
+                       be passed on.
 
     .. method:: unschedule(callback, *args, **kwargs)
 
@@ -1008,13 +1045,19 @@ get it with ``clock.absolute_time``.
         ``clock.unschedule(set_gem_color, "red")`` only the call with ``"red"``
         as an argument will be unscheduled.
 
-        :param callback: A callable (usually a function you wrote).
-        :param args: Any further arguments will be given to callback as
-                     positional arguments when called.
-        :param kwargs: Any further named arguments will be given to callback
-                       as keyword arguments when called.
+        Calling with ``absolute=True`` will schedule the callback such that it
+        will not be affected by timescale.
 
-    .. method:: unschedule_all(callback)
+        :param callback: A callable (usually a function you wrote).
+        :param args: Any further arguments will be used to identify which
+                     specific scheduled call to remove.
+        :param kwargs: Any further named arguments will be used to identify
+                       which specific scheduled call to remove.
+
+                       Note that the keyword `absolute` is reserved and won't
+                       be passed on.
+
+    .. method:: unschedule_all(callback, [absolute])
 
         Unschedule all calls of the given callback, ignoring any arguments
         supplied to them.
@@ -1022,7 +1065,13 @@ get it with ``clock.absolute_time``.
         This means that if you scheduled ``set_gem_color`` with ``"red"`` and
         ``"blue"`` for separate delays before, both will be unscheduled.
 
+        Calling with ``absolute=True`` will unschedule those callbacks that had
+        been scheduled to be unaffected by timescale before.
+
         :param callback: A callable (usually a function you wrote).
+        :param absolute: Boolean of whether to unschedule the callbacks in the
+                         absolute time event queue or the other one. Default is
+                         ``False``.
 
 Note that the Pygame Turbo clock only holds weak references to each callback
 you give it. It will not fire scheduled events if the objects and methods are
@@ -1040,27 +1089,39 @@ will have to keep a reference to the object.
         Calling the function again overwrites the previous timestamp with the
         new one.
 
-        :param name: A string name for the time mark.
-
-    .. method:: get_mark_time(name)
-
-        Returns the timestamp that was saved under `name`. If the mark does not
-        exist (yet), returns ``None`` instead.
+        Saves both the absolute timestamp and the one affected by timescale.
 
         :param name: A string name for the time mark.
 
-    .. method:: time_since_mark(name)
+    .. method:: get_mark_time(name, [absolute])
 
-        Returns the time elapsed since the mark `name` was created. If the mark
-        does not exist (yet), returns ``None`` instead.
+        Returns the timestamp that was saved under `name`. If the mark does
+        not exist (yet), returns ``None`` instead.
 
         :param name: A string name for the time mark.
+        :param absolute: Boolean of whether to return the absolute timestamp
+                         instead of the one affected by timescale. Default is
+                         ``False``.
 
-    .. method:: get_all_marks()
+    .. method:: time_since_mark(name, [absolute])
+
+        Returns the time elapsed since the mark `name` was created. If the
+        mark does not exist (yet), returns ``None`` instead.
+
+        :param name: A string name for the time mark.
+        :param absolute: Boolean of whether to return the absolute time since
+                         the mark was created instead of the one affected by
+                         timescale. Default is ``False``.
+
+    .. method:: get_all_marks([absolute])
 
         Returns a dictionary of all currently saved marks and their timestamps.
         Note that changing this dictionary does not affect the underlying data
         in clock.
+
+        :param absolute: Boolean of whether to return all the absolute
+                         timestamps instead of the ones affected by timescale.
+                         Default is False.
 
 
 .. _actor:
