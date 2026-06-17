@@ -95,6 +95,7 @@ class Clock:
         self._absolute_t = 0
         self.fired = False
         self.events = []
+        self.events_absolute = []
         self._each_tick = []
         self._marks = {}
         self._timescale = 1.0
@@ -126,32 +127,37 @@ class Clock:
         self._timescale = value
 
     def mark_time(self, name):
-        """Save a timestamp with a name for later. Also returns that time."""
-        self._marks[name] = self._t
-        return self._t
+        """Save a timestamp with a name for later."""
+        self._marks[name] = (self._t, self._absolute_t)
 
-    def get_mark_time(self, name):
+    def get_mark_time(self, name, absolute=False):
         """Get the time saved with a mark name or return None if it doesn't
         exist."""
-        return self._marks.get(name)
-
-    def time_since_mark(self, name):
-        """Get the elapsed time since a mark was made or return None if it
-        doesn't exist."""
-        timestamp = self._marks.get(name)
-        if timestamp is not None:
-            return self._t - timestamp
+        mark = self._marks.get(name)
+        if mark:
+            return mark[1] if absolute else mark[0]
         return None
 
-    def get_all_marks(self):
+    def time_since_mark(self, name, absolute=False):
+        """Get the elapsed time since a mark was made or return None if it
+        doesn't exist."""
+        m = self._marks.get(name)
+        if m:
+            return self._absolute_t - m[1] if absolute else self._t - m[0]
+        return None
+
+    def get_all_marks(self, absolute=False):
         """Return a copy of the current state of the marks dictionary. A copy
         is made to make sure users don't accidentally change the contents of
         the actual marks dict."""
-        return self._marks.copy()
+        i = 1 if absolute else 0
+        return {k: v[i] for k, v in self._marks.items()}
 
     def clear(self):
-        """Remove all handlers from this clock."""
+        """Remove all handlers from this clock and clears the marks."""
         self.events.clear()
+        self.events_absolute.clear()
+        self._marks = {}
         self._each_tick.clear()
 
     def schedule(self, callback, delay, *args, **kwargs):
@@ -159,10 +165,17 @@ class Clock:
 
         :param callback: A parameterless callable to be called.
         :param delay: The delay before the call (in clock time / seconds).
-
         """
-        heapq.heappush(self.events, Event(self._t + delay, callback, None,
-                                          *args, **kwargs))
+        absolute = kwargs.pop("absolute", False)
+        if absolute:
+            event_list = self.events_absolute
+            timestamp = self._absolute_t
+        else:
+            event_list = self.events
+            timestamp = self._t
+
+        heapq.heappush(event_list, Event(timestamp + delay, callback, None,
+                                         *args, **kwargs))
 
     def schedule_unique(self, callback, delay, *args, **kwargs):
         """Schedule callback to be called once, at `delay` seconds from now.
@@ -185,8 +198,16 @@ class Clock:
         :param delay: The interval in seconds.
 
         """
-        heapq.heappush(self.events, Event(self._t + delay, callback, delay,
-                                          *args, **kwargs))
+        absolute = kwargs.pop("absolute", False)
+        if absolute:
+            event_list = self.events_absolute
+            timestamp = self._absolute_t
+        else:
+            event_list = self.events
+            timestamp = self._t
+
+        heapq.heappush(event_list, Event(timestamp + delay, callback, delay,
+                                         *args, **kwargs))
 
     def _internal_unschedule(self, callback, with_args, *args, **kwargs):
         """Unschedule callbacks either with specified arguments or all
@@ -194,25 +215,35 @@ class Clock:
 
         If scheduled multiple times all instances will be unscheduled.
         """
-        self.events = [
-            e for e in self.events
+        absolute = kwargs.pop("absolute", False)
+
+        # Reference the same object as whichever event queue we want to edit.
+        event_list = self.events_absolute if absolute else self.events
+        # By using event_list[:] = we update the existing list object instead
+        # of creating a new one and assigning it. This ensures we modify
+        # whatever self.events or self.events_absolute are pointing to.
+        event_list[:] = [
+            e for e in event_list
             if e.callback is not None
             if (with_args and not (e.callback == callback
                                    and e.bound.args == args
                                    and e.bound.kwargs == kwargs)
                 ) or (not with_args and e.callback != callback)
         ]
-        heapq.heapify(self.events)
+        heapq.heapify(event_list)
+
         self._each_tick = [e for e in self._each_tick if e() != callback]
 
     def unschedule(self, callback, *args, **kwargs):
         """Unschedule a callback with specified arguments."""
         self._internal_unschedule(callback, True, *args, **kwargs)
 
-    def unschedule_all(self, callback):
+    def unschedule_all(self, callback, **kwargs):
         """Unschedule all callbacks of the same function regardless of their
         specified arguments."""
-        self._internal_unschedule(callback, False)
+        # We take and pass kwargs to allow unschedule all to work with absolute
+        # time as well.
+        self._internal_unschedule(callback, False, **kwargs)
 
     def each_tick(self, callback):
         """Schedule a callback to be called every tick.
@@ -263,6 +294,24 @@ class Clock:
                 import traceback
                 traceback.print_exc()
                 self.unschedule(cb)
+
+        while (self.events_absolute
+               and self.events_absolute[0].time <= self._absolute_t):
+            ev = heapq.heappop(self.events_absolute)
+            cb = ev.callback
+            if not cb:
+                continue
+
+            if ev.repeat is not None:
+                self.schedule_interval(cb, ev.repeat, absolute=True)
+
+            self.fired = True
+            try:
+                cb(*ev.bound.args, **ev.bound.kwargs)
+            except Exception:
+                import traceback
+                traceback.print_exc()
+                self.unschedule(cb, absolute=True)
 
 
 # One instance of a clock is available by default, to simplify the API
