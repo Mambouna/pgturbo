@@ -120,6 +120,58 @@ class ClockTest(unittest.TestCase):
         returned_dict.pop("test_mark")
         self.assertEqual(clock.get_all_marks(True), compare_dict)
 
+    def test_add_timer_single_two_values(self):
+        """We can add timers to countdown later with two individual values."""
+        clock.add_timer("jump_ready", 2.0)
+        self.assertEqual(len(clock._timers), 1)
+
+    def test_add_timer_single_one_tuple(self):
+        """We can add timers to countdown later with one tuple."""
+        clock.add_timer(("jump_ready", 2))
+        self.assertEqual(len(clock._timers), 1)
+
+    def test_add_timer_multiple(self):
+        """We can add multiple timers at the same time to countdown later with
+        tuples or lists."""
+        clock.add_timer(("jump_ready", 2.0), ["double_jump_ready", 1])
+        self.assertEqual(len(clock._timers), 2)
+
+    def test_add_timer_errors_with_wrong_args(self):
+        """Trying to add timers with other types or values errors."""
+        with self.assertRaises(TypeError):
+            clock.add_timer("jump_ready")
+        with self.assertRaises(TypeError):
+            clock.add_timer("jump_ready", 2, "double_jump_ready", 1)
+        with self.assertRaises(TypeError):
+            clock.add_timer(("jump_ready", 2), ("double_jump_ready", 1, True))
+
+    def test_add_timer_same_name_errors(self):
+        """Trying to add a new timer with an existing name errors."""
+        clock.add_timer("jump_ready", 2)
+        with self.assertRaises(KeyError):
+            clock.add_timer("jump_ready", 2)
+
+    def test_is_timer_ready(self):
+        """We can see if a timer is currently ready (not running down)."""
+        clock.add_timer("jump_ready", 2)
+        self.assertTrue(clock.is_timer_ready("jump_ready"))
+
+    def test_is_timer_ready_errors_with_wrong_name(self):
+        """If a name is checked that doesn't exist, an error is thrown."""
+        with self.assertRaises(KeyError):
+            clock.is_timer_ready("jump_ready")
+
+    def test_run_timer(self):
+        """We can run a timer which first disables and then enables it
+        again."""
+        clock.add_timer("jump_ready", 2.0)
+        self.assertTrue(clock._timers["jump_ready"].ready)
+        clock.run_timer("jump_ready")
+        clock.tick(1)
+        self.assertFalse(clock._timers["jump_ready"].ready)
+        clock.tick(1)
+        self.assertTrue(clock._timers["jump_ready"].ready)
+
     def test_schedule_single_no_args(self):
         """Scheduled functions are called but only after the right amount of
         time."""

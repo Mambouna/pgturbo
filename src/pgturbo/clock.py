@@ -44,6 +44,15 @@ def mkref(o):
             raise
 
 
+class Timer:
+    """Very small helper class for timer objects."""
+
+    def __init__(self, name, timeout):
+        self.name = name
+        self.timeout = timeout
+        self.ready = True
+
+
 @total_ordering
 class Event:
     """An event scheduled for a future time.
@@ -98,6 +107,7 @@ class Clock:
         self.events_absolute = []
         self._each_tick = []
         self._marks = {}
+        self._timers = {}
         self._timescale = 1.0
 
     @property
@@ -153,11 +163,68 @@ class Clock:
         i = 1 if absolute else 0
         return {k: v[i] for k, v in self._marks.items()}
 
+    def _add_timer_internal(self, name, timeout):
+        """Helper function to add a timer or error if one with the name
+        exists."""
+        if name not in self._timers:
+            self._timers[name] = Timer(name, timeout)
+        else:
+            raise KeyError("A timer with name {} already "
+                           "exists.".format(name))
+
+    def add_timer(self, *args):
+        """Adds every argument as a tracked countdown. Each argument should be
+        a tuple of a string and a number in seconds. If there are two args
+        and the first is a string and the second is a number, that is used
+        for one timer."""
+        match args:
+            # If we get two args exactly how we need them, add one timer.
+            case (str(name), float(timeout) | int(timeout)):
+                self._add_timer_internal(name, timeout)
+            # Otherwise we have to deal with the individual items.
+            case _:
+                for arg in args:
+                    match arg:
+                        # Same thing, if the format is right, add it.
+                        case (str(name), float(timeout) | int(timeout)):
+                            self._add_timer_internal(name, timeout)
+                        # Otherwise, error.
+                        case _:
+                            raise TypeError("Timers must be given as tuples "
+                                            "of a string and a number. You "
+                                            "gave: {}".format(arg))
+
+    def _check_timer_name(self, name):
+        if name not in self._timers:
+            raise KeyError("No timer with the name {} exists. These are the "
+                           "current timer names: {}"
+                           .format(name, ", ".join(self._timers.keys())))
+
+    def is_timer_ready(self, name):
+        """Returns whether a timer is currently ready (is not currently
+        running down)."""
+        self._check_timer_name(name)
+        return self._timers[name].ready
+
+    def _set_timer(self, name, value):
+        """Internal function that actually sets the ready value of a timer."""
+        self._timers[name].ready = value
+
+    def run_timer(self, name, absolute=False):
+        """Set the timer ready to False and only set it back after the
+        timeout."""
+        self._check_timer_name(name)
+        timer = self._timers[name]
+        timer.ready = False
+        self.schedule_unique(self._set_timer, timer.timeout, name, True,
+                             absolute=absolute)
+
     def clear(self):
         """Remove all handlers from this clock and clears the marks."""
         self.events.clear()
         self.events_absolute.clear()
         self._marks = {}
+        self._timers = {}
         self._each_tick.clear()
 
     def schedule(self, callback, delay, *args, **kwargs):
