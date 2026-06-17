@@ -266,6 +266,28 @@ class Clock:
                     dead.append(cb)
         self._each_tick = [e for e in self._each_tick if e() not in dead]
 
+    def _work_through_events(self, event_list, absolute):
+        """Helper function that iterates through and triggers any necessary
+        events from one of the two queues."""
+        t = self._absolute_t if absolute else self._t
+        while event_list and event_list[0].time <= t:
+            ev = heapq.heappop(event_list)
+            cb = ev.callback
+            if not cb:
+                continue
+
+            if ev.repeat is not None:
+                self.schedule_interval(cb, ev.repeat, absolute=absolute)
+
+            self.fired = True
+            try:
+                cb(*ev.bound.args, **ev.bound.kwargs)
+            except Exception:
+                import traceback
+                traceback.print_exc()
+                self.unschedule(cb, absolute=absolute)
+
+
     def tick(self, dt):
         """Update the clock time and fire all scheduled events.
 
@@ -276,40 +298,9 @@ class Clock:
         self._t += float(dt) * self._timescale
         self._absolute_t += float(dt)
         self._fire_each_tick(dt)
-        while self.events and self.events[0].time <= self._t:
-            ev = heapq.heappop(self.events)
-            cb = ev.callback
-            if not cb:
-                continue
 
-            if ev.repeat is not None:
-                self.schedule_interval(cb, ev.repeat)
-
-            self.fired = True
-            try:
-                cb(*ev.bound.args, **ev.bound.kwargs)
-            except Exception:
-                import traceback
-                traceback.print_exc()
-                self.unschedule(cb)
-
-        while (self.events_absolute
-               and self.events_absolute[0].time <= self._absolute_t):
-            ev = heapq.heappop(self.events_absolute)
-            cb = ev.callback
-            if not cb:
-                continue
-
-            if ev.repeat is not None:
-                self.schedule_interval(cb, ev.repeat, absolute=True)
-
-            self.fired = True
-            try:
-                cb(*ev.bound.args, **ev.bound.kwargs)
-            except Exception:
-                import traceback
-                traceback.print_exc()
-                self.unschedule(cb, absolute=True)
+        self._work_through_events(self.events, False)
+        self._work_through_events(self.events_absolute, True)
 
 
 # One instance of a clock is available by default, to simplify the API
