@@ -287,7 +287,6 @@ class Clock:
                 traceback.print_exc()
                 self.unschedule(cb, absolute=absolute)
 
-
     def tick(self, dt):
         """Update the clock time and fire all scheduled events.
 
