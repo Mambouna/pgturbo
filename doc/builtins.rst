@@ -937,9 +937,12 @@ separate queues, one affected by ``timeframe`` and one not. So if you do
 anything with ``absolute=True``, you'll need to pass the same when wanting to
 check or affect it later.
 
-This also means that ``absolute`` is the one keyword that cannot be used in
-your own callback signatures as it is intercepted for the use of ``clock`` and
-not passed on to the callback functions.
+It's recommended to always put ``absolute=True`` as the last argument in your
+scheduling calls so you don't accidentally mess up the order of arguments you
+might want to feed to the scheduled callback. This also means that ``absolute``
+is the one keyword that cannot be used in your own callback signatures as it is
+intercepted for the use of ``clock`` and not passed on to the callback
+functions.
 
 Marks always save a timestamp in absolute time and in the time affected by
 timescale. If you want to get either their timestamp or the elapsed time since
