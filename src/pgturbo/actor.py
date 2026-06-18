@@ -440,7 +440,7 @@ class Actor:
 
     @scale.setter
     def scale(self, value):
-        if isinstance(value, (int, float)):
+        if not isinstance(value, bool) and isinstance(value, (int, float)):
             if value == self._scale_x and value == self._scale_y:
                 return
             self._scale_x = value
@@ -598,7 +598,7 @@ class Actor:
 
     @vx.setter
     def vx(self, value):
-        if isinstance(value, (int, float)):
+        if not isinstance(value, bool) and isinstance(value, (int, float)):
             self._vx = value
         else:
             raise TypeError("Velocity components must be integers or floats,"
@@ -610,7 +610,7 @@ class Actor:
 
     @vy.setter
     def vy(self, value):
-        if isinstance(value, (int, float)):
+        if not isinstance(value, bool) and isinstance(value, (int, float)):
             self._vy = value
         else:
             raise TypeError("Velocity components must be integers or floats,"
@@ -777,7 +777,7 @@ class Actor:
         """Moves the position of the actor by its velocity. scale can be set
         to slow down or quicken the movement, for example if the game's
         timescale is not 1."""
-        if not isinstance(scale, (int, float)):
+        if isinstance(scale, bool) or not isinstance(scale, (int, float)):
             raise TypeError("The velocity scaling must be of type integer or"
                             " float, not {}.".format(type(scale)))
         self.x += self._vx * scale
