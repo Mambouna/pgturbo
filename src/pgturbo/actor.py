@@ -773,6 +773,25 @@ class Actor:
         return not (self.right < 0 or self.left > game.screen.get_width() or
                     self.bottom < 0 or self.top > game.screen.get_height())
 
+    def add_to_vel(self, add, add_vy=None):
+        """Adds x and y values to the current actor velocity."""
+        error_msg = ("add_to_vel() accepts either one tuple with two elements "
+                     "as an argument or two separate arguments.")
+        match add:
+            case (x, y):
+                self.vx += x
+                self.vy += y
+            case _:
+                if not add_vy:
+                    raise TypeError(error_msg)
+                self.vx += add
+                self.vy += add_vy
+
+    def multiply_vel_by(self, multiplier):
+        """Multiplies the actor velocity by the given number."""
+        self.vx *= multiplier
+        self.vy *= multiplier
+
     def move_by_vel(self, scale=1.0):
         """Moves the position of the actor by its velocity. scale can be set
         to slow down or quicken the movement, for example if the game's

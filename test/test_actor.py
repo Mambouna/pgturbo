@@ -767,6 +767,41 @@ class ActorTest(unittest.TestCase):
         self.assertEqual(a.vy, -5)
         self.assertEqual(a.vel, (15, -5))
 
+    def test_add_to_vel_tuple(self):
+        """We can add to both elements of the vel together."""
+        a = Actor("alien")
+        a.vel = (15, -5)
+        a.add_to_vel((5, -5))
+        self.assertEqual(a.vx, 20)
+        self.assertEqual(a.vy, -10)
+        self.assertEqual(a.vel, (20, -10))
+
+    def test_add_to_vel_two_values(self):
+        """We can add to both elements of the vel together."""
+        a = Actor("alien")
+        a.vel = (15, -5)
+        a.add_to_vel(5, -5)
+        self.assertEqual(a.vx, 20)
+        self.assertEqual(a.vy, -10)
+        self.assertEqual(a.vel, (20, -10))
+
+    def test_add_to_vel_raises_with_wrong_args(self):
+        """If the wrong argument combination is given, add_to_vel() will raise
+        a clear error message."""
+        a = Actor("alien")
+        a.vel = (15, -5)
+        with self.assertRaises(TypeError):
+            a.add_to_vel(5)
+
+    def test_multiply_vel_by(self):
+        """We can multiply the current velocity with any number."""
+        a = Actor("alien")
+        a.vel = (15, -5)
+        a.multiply_vel_by(1.5)
+        self.assertEqual(a.vx, 22.5)
+        self.assertEqual(a.vy, -7.5)
+        self.assertEqual(a.vel, (22.5, -7.5))
+
     def test_move_by_vel(self):
         """We can move an actor by its velocity."""
         a = Actor("alien", (10, 10))

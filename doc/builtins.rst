@@ -1904,6 +1904,21 @@ calculated interception velocity.::
         catcher.draw()
         ball.draw()
 
+To do some basic math with velocities, you can use the following functions:
+
+.. method:: Actor.add_to_vel(add, [add_vy])
+
+    Adds the given value to the actor velocity. The function accepts two
+    numbers to be added to vx and vy of the actor.
+    
+    Alternatively, a single tuple of two numbers can be given as the first
+    argument and the function will use those values for vx and vy.
+
+.. method:: Actor.multiply_vel_by(multiplier)
+
+    Multiplies the vx and vy velocities of the actor both by the given
+    multiplier.
+
 
 .. _transparency:
 
