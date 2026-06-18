@@ -128,7 +128,7 @@ class Clock:
     @timescale.setter
     def timescale(self, value):
         """Property to control how fast the user facing clock is running."""
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError("Timescale must be of type int or float, not "
                             "{}.".format(type(value)))
         elif value < 0:
@@ -208,18 +208,31 @@ class Clock:
 
     get_ready = is_ready
 
+    def get_ready_timeout(self, name):
+        self._check_ready_timer_name(name)
+        return self._ready_timers[name].timeout
+
     def _set_ready(self, name, value):
         """Internal function that actually sets the ready value of a timer."""
         # Since it's not userfacing, we don't check the name is valid.
         self._ready_timers[name].ready = value
 
-    def timeout_ready(self, name, absolute=False):
+    def timeout_ready(self, name, time=None, absolute=False):
         """Set the timer ready to False and only set it back after the
         timeout."""
         self._check_ready_timer_name(name)
         timer = self._ready_timers[name]
         timer.ready = False
-        self.schedule_unique(self._set_ready, timer.timeout, name, True,
+        if time:
+            if not isinstance(time, bool) and isinstance(time, (int, float)):
+                timeout = time
+            else:
+                raise TypeError("Time override values for ready timers must "
+                                "be of type int or float, not {}"
+                                .format(type(time)))
+        else:
+            timeout = timer.timeout
+        self.schedule_unique(self._set_ready, timeout, name, True,
                              absolute=absolute)
 
     def set_ready(self, name, value):
@@ -227,7 +240,23 @@ class Clock:
         that if the user unschedules their own set_ready calls it won't affect
         the internal ones."""
         self._check_ready_timer_name(name)
-        self._ready_timers[name].ready = value
+        if isinstance(value, bool):
+            self._ready_timers[name].ready = value
+        else:
+            raise TypeError("Ready timers can only be True or False, not {}"
+                            .format(value))
+
+    def set_ready_timeout(self, name, value):
+        self._check_ready_timer_name(name)
+        # We need to check against bool first since bool is a subclass of int.
+        if not isinstance(value, bool) and isinstance(value, (int, float)):
+            self._ready_timers[name].timeout = value
+        else:
+            raise TypeError("Timeout values can only be of type int or float, "
+                            "not {}".format(type(value)))
+
+    def get_all_ready(self):
+        return {k: v.ready for k, v in self._ready_timers.items()}
 
     def clear(self):
         """Remove all handlers from this clock and clears the marks."""
