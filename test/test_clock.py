@@ -1,7 +1,7 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import patch, Mock
 
-from pgturbo.clock import clock
+from pgturbo.clock import clock, ReadyTimerSystem
 
 
 class ClockTest(unittest.TestCase):
@@ -120,144 +120,25 @@ class ClockTest(unittest.TestCase):
         returned_dict.pop("test_mark")
         self.assertEqual(clock.get_all_marks(True), compare_dict)
 
-    def test_track_ready_timer_single_two_values(self):
-        """We can add timers to countdown later with two individual values."""
+    @patch("pgturbo.clock.ReadyTimerSystem")
+    def test_ready_timer_calls_passed_on(self, rts_mock):
+        """Calls to the clocks methods around ready timers are simply passed
+        on to its ready timer system."""
+        clock._ready_timer_system = rts_mock
         clock.track_ready("jump", 2.0)
-        self.assertEqual(len(clock._ready_timers), 1)
-
-    def test_track_ready_timer_single_one_tuple(self):
-        """We can add timers to countdown later with one tuple."""
-        clock.track_ready(("jump", 2))
-        self.assertEqual(len(clock._ready_timers), 1)
-
-    def test_track_ready_timer_multiple(self):
-        """We can add multiple timers at the same time to countdown later with
-        tuples or lists."""
-        clock.track_ready(("jump", 2.0), ["double_jump", 1])
-        self.assertEqual(len(clock._ready_timers), 2)
-
-    def test_track_ready_timer_errors_with_wrong_args(self):
-        """Trying to add timers with other types or values errors."""
-        with self.assertRaises(TypeError):
-            clock.track_ready("jump")
-        with self.assertRaises(TypeError):
-            clock.track_ready("jump", 2, "double_jump", 1)
-        with self.assertRaises(TypeError):
-            clock.track_ready(("jump", 2), ("double_jump", 1, True))
-
-    def test_track_ready_timer_same_name_errors(self):
-        """Trying to add a new timer with an existing name errors."""
-        clock.track_ready("jump", 2)
-        with self.assertRaises(KeyError):
-            clock.track_ready("jump", 2)
-
-    def test_is_ready_timer_ready(self):
-        """We can see if a timer is currently ready (not running down)."""
-        clock.track_ready("jump", 2)
-        self.assertTrue(clock.is_ready("jump"))
-
-    def test_is_ready_timer_ready_alias(self):
-        """We can also use get_ready for the same purpose."""
-        clock.track_ready("jump", 2)
-        self.assertTrue(clock.get_ready("jump"))
-
-    def test_is_ready_timer_ready_errors_with_wrong_name(self):
-        """If a name is checked that doesn't exist, an error is thrown."""
-        clock.track_ready("jump", 2)
-        with self.assertRaises(KeyError):
-            clock.is_ready("double_jump")
-
-    def test_timeout_ready_timer(self):
-        """We can run the ready timer which first disables and then enables it
-        again after the timeout period."""
-        clock.track_ready("jump", 2.0)
-        self.assertTrue(clock.is_ready("jump"))
-        clock.timeout_ready("jump")
-        clock.tick(1)
-        self.assertFalse(clock.is_ready("jump"))
-        clock.tick(1)
-        self.assertTrue(clock.is_ready("jump"))
-
-    def test_timeout_ready_timer_with_time_override(self):
-        """We can override the normal timeout period when unreadying a
-        timer."""
-        clock.track_ready("jump", 2.0)
-        self.assertTrue(clock.is_ready("jump"))
-        clock.timeout_ready("jump", 3.0)
-        clock.tick(2.5)
-        self.assertFalse(clock.is_ready("jump"))
-        clock.tick(1)
-        self.assertTrue(clock.is_ready("jump"))
-
-    def test_timeout_ready_timer_with_time_override_wrong_value_errors(self):
-        """If a wrong kind of value is given for the time override, an error
-        is thrown."""
-        clock.track_ready("jump", 2.0)
-        with self.assertRaises(TypeError):
-            clock.timeout_ready("jump", "five seconds")
-
-    def test_timeout_ready_timer_affected_by_timescale(self):
-        """Running the timeout normally means its affected by timescale."""
-        clock.track_ready("jump", 2.0)
-        self.assertTrue(clock._ready_timers["jump"].ready)
-        clock.timescale = 0.5
-        clock.timeout_ready("jump")
-        clock.tick(1)
-        self.assertFalse(clock._ready_timers["jump"].ready)
-        clock.tick(1)
-        self.assertFalse(clock._ready_timers["jump"].ready)
-        clock.tick(2)
-        self.assertTrue(clock._ready_timers["jump"].ready)
-
-    def test_timeout_ready_timer_absolute_unaffected_by_timescale(self):
-        """If we run the timeout with absolute=True instead, timescale is
-        ignored."""
-        clock.track_ready("jump", 2.0)
-        self.assertTrue(clock._ready_timers["jump"].ready)
-        clock.timescale = 0.5
-        clock.timeout_ready("jump", absolute=True)
-        clock.tick(1)
-        self.assertFalse(clock._ready_timers["jump"].ready)
-        clock.tick(1)
-        self.assertTrue(clock._ready_timers["jump"].ready)
-
-    def test_set_ready_timer(self):
-        """We can permanently set the ready value of a ready timer."""
-        clock.track_ready("jump", 2.0)
-        self.assertTrue(clock._ready_timers["jump"].ready)
-        clock.set_ready("jump", False)
-        self.assertFalse(clock._ready_timers["jump"].ready)
-
-    def test_set_ready_timer_wrong_value_errors(self):
-        """If a non-boolean is given, throw a descriptive error."""
-        clock.track_ready("jump", 2.0)
-        with self.assertRaises(TypeError):
-            clock.set_ready("jump", "true")
-
-    def test_set_ready_timer_timeout(self):
-        """We can change the timeout value of a ready timer."""
-        clock.track_ready("jump", 2.0)
-        self.assertEqual(clock._ready_timers["jump"].timeout, 2.0)
-        clock.set_ready_timeout("jump", 3.0)
-        self.assertEqual(clock._ready_timers["jump"].timeout, 3.0)
-
-    def test_set_ready_timer_timeout_wrong_value_errors(self):
-        """If the wrong type of value is given, throw an error."""
-        clock.track_ready("jump", 2.0)
-        with self.assertRaises(TypeError):
-            clock.set_ready_timeout("jump", True)
-
-    def test_get_all_ready_timers(self):
-        """We can get the ready state of all ready timers at once."""
-        clock.track_ready("jump", 2.0)
-        clock.track_ready("double_jump", 1.0)
-        compare_dict = {"jump": False, "double_jump": True}
-        clock.timeout_ready("jump")
-        clock.tick(1)
-        self.assertEqual(clock.get_all_ready(), compare_dict)
-        clock.tick(1)
-        compare_dict["jump"] = True
-        self.assertEqual(clock.get_all_ready(), compare_dict)
+        rts_mock.track_ready.assert_called_with("jump", 2.0)
+        clock.is_ready("jimp")
+        rts_mock.is_ready.assert_called_with("jimp")
+        clock.get_ready("jamp")
+        rts_mock.is_ready.assert_called_with("jamp")
+        clock.timeout_ready("jemp", 3, absolute=True)
+        rts_mock.timeout_ready.assert_called_with("jemp", 3, True)
+        clock.set_ready("jomp", False)
+        rts_mock.set_ready.assert_called_with("jomp", False)
+        clock.set_ready_timeout("jaemp", 3.5)
+        rts_mock.set_ready_timeout.assert_called_with("jaemp", 3.5)
+        clock.get_all_ready()
+        rts_mock.get_all_ready.assert_called_once()
 
     def test_schedule_single_no_args(self):
         """Scheduled functions are called but only after the right amount of
@@ -619,3 +500,159 @@ class ClockTest(unittest.TestCase):
         self.assertEqual(len(clock.events_absolute), 0)
         clock.tick(2.0)
         test_func_mock.assert_not_called()
+
+
+class ReadyTimerSystemTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        global test_func_mock, rts
+        clock.clear()
+        # This creates a mock function signature where we can check later
+        # if it was called.
+        test_func_mock = Mock()
+        rts = ReadyTimerSystem()
+
+    def setUp(self):
+        rts._clear()
+        clock.clear()
+        clock.timescale = 1.0
+        test_func_mock.reset_mock()
+
+    def test_track_ready_timer_single_two_values(self):
+        """We can add timers to countdown later with two individual values."""
+        rts.track_ready("jump", 2.0)
+        self.assertEqual(len(rts._ready_timers), 1)
+
+    def test_track_ready_timer_single_one_tuple(self):
+        """We can add timers to countdown later with one tuple."""
+        rts.track_ready(("jump", 2))
+        self.assertEqual(len(rts._ready_timers), 1)
+
+    def test_track_ready_timer_multiple(self):
+        """We can add multiple timers at the same time to countdown later with
+        tuples or lists."""
+        rts.track_ready(("jump", 2.0), ["double_jump", 1])
+        self.assertEqual(len(rts._ready_timers), 2)
+
+    def test_track_ready_timer_errors_with_wrong_args(self):
+        """Trying to add timers with other types or values errors."""
+        with self.assertRaises(TypeError):
+            rts.track_ready("jump")
+        with self.assertRaises(TypeError):
+            rts.track_ready("jump", 2, "double_jump", 1)
+        with self.assertRaises(TypeError):
+            rts.track_ready(("jump", 2), ("double_jump", 1, True))
+
+    def test_track_ready_timer_same_name_errors(self):
+        """Trying to add a new timer with an existing name errors."""
+        rts.track_ready("jump", 2)
+        with self.assertRaises(KeyError):
+            rts.track_ready("jump", 2)
+
+    def test_is_ready_timer_ready(self):
+        """We can see if a timer is currently ready (not running down)."""
+        rts.track_ready("jump", 2)
+        self.assertTrue(rts.is_ready("jump"))
+
+    def test_is_ready_timer_ready_alias(self):
+        """We can also use get_ready for the same purpose."""
+        rts.track_ready("jump", 2)
+        self.assertTrue(rts.get_ready("jump"))
+
+    def test_is_ready_timer_ready_errors_with_wrong_name(self):
+        """If a name is checked that doesn't exist, an error is thrown."""
+        rts.track_ready("jump", 2)
+        with self.assertRaises(KeyError):
+            rts.is_ready("double_jump")
+
+    def test_timeout_ready_timer(self):
+        """We can run the ready timer which first disables and then enables it
+        again after the timeout period."""
+        rts.track_ready("jump", 2.0)
+        self.assertTrue(rts.is_ready("jump"))
+        rts.timeout_ready("jump")
+        clock.tick(1)
+        self.assertFalse(rts.is_ready("jump"))
+        clock.tick(1)
+        self.assertTrue(rts.is_ready("jump"))
+
+    def test_timeout_ready_timer_with_time_override(self):
+        """We can override the normal timeout period when unreadying a
+        timer."""
+        rts.track_ready("jump", 2.0)
+        self.assertTrue(rts.is_ready("jump"))
+        rts.timeout_ready("jump", 3.0)
+        clock.tick(2.5)
+        self.assertFalse(rts.is_ready("jump"))
+        clock.tick(1)
+        self.assertTrue(rts.is_ready("jump"))
+
+    def test_timeout_ready_timer_with_time_override_wrong_value_errors(self):
+        """If a wrong kind of value is given for the time override, an error
+        is thrown."""
+        rts.track_ready("jump", 2.0)
+        with self.assertRaises(TypeError):
+            rts.timeout_ready("jump", "five seconds")
+
+    def test_timeout_ready_timer_affected_by_timescale(self):
+        """Running the timeout normally means its affected by timescale."""
+        rts.track_ready("jump", 2.0)
+        self.assertTrue(rts._ready_timers["jump"].ready)
+        clock.timescale = 0.5
+        rts.timeout_ready("jump")
+        clock.tick(1)
+        self.assertFalse(rts._ready_timers["jump"].ready)
+        clock.tick(1)
+        self.assertFalse(rts._ready_timers["jump"].ready)
+        clock.tick(2)
+        self.assertTrue(rts._ready_timers["jump"].ready)
+
+    def test_timeout_ready_timer_absolute_unaffected_by_timescale(self):
+        """If we run the timeout with absolute=True instead, timescale is
+        ignored."""
+        rts.track_ready("jump", 2.0)
+        self.assertTrue(rts._ready_timers["jump"].ready)
+        clock.timescale = 0.5
+        rts.timeout_ready("jump", absolute=True)
+        clock.tick(1)
+        self.assertFalse(rts._ready_timers["jump"].ready)
+        clock.tick(1)
+        self.assertTrue(rts._ready_timers["jump"].ready)
+
+    def test_set_ready_timer(self):
+        """We can permanently set the ready value of a ready timer."""
+        rts.track_ready("jump", 2.0)
+        self.assertTrue(rts._ready_timers["jump"].ready)
+        rts.set_ready("jump", False)
+        self.assertFalse(rts._ready_timers["jump"].ready)
+
+    def test_set_ready_timer_wrong_value_errors(self):
+        """If a non-boolean is given, throw a descriptive error."""
+        rts.track_ready("jump", 2.0)
+        with self.assertRaises(TypeError):
+            rts.set_ready("jump", "true")
+
+    def test_set_ready_timer_timeout(self):
+        """We can change the timeout value of a ready timer."""
+        rts.track_ready("jump", 2.0)
+        self.assertEqual(rts._ready_timers["jump"].timeout, 2.0)
+        rts.set_ready_timeout("jump", 3.0)
+        self.assertEqual(rts._ready_timers["jump"].timeout, 3.0)
+
+    def test_set_ready_timer_timeout_wrong_value_errors(self):
+        """If the wrong type of value is given, throw an error."""
+        rts.track_ready("jump", 2.0)
+        with self.assertRaises(TypeError):
+            rts.set_ready_timeout("jump", True)
+
+    def test_get_all_ready_timers(self):
+        """We can get the ready state of all ready timers at once."""
+        rts.track_ready("jump", 2.0)
+        rts.track_ready("double_jump", 1.0)
+        compare_dict = {"jump": False, "double_jump": True}
+        rts.timeout_ready("jump")
+        clock.tick(1)
+        self.assertEqual(rts.get_all_ready(), compare_dict)
+        clock.tick(1)
+        compare_dict["jump"] = True
+        self.assertEqual(rts.get_all_ready(), compare_dict)

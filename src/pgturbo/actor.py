@@ -5,6 +5,7 @@ from . import game
 from . import loaders
 from . import rect
 from . import spellcheck
+from .clock import ReadyTimerSystem
 from .validation import validate_position_value
 from .actor_animation import ActorAnimationSystem
 
@@ -183,6 +184,10 @@ class Actor:
         # This image is separate from the static image so that falling back to
         # it is possible if something goes wrong with the animations.
         self._a_image = None
+
+        # Object that allows actors to use the same kind of ready tracking as
+        # clock has.
+        self._ready_timer_system = ReadyTimerSystem()
 
         self.image = image
         self._init_position(pos, anchor, **kwargs)
@@ -390,7 +395,6 @@ class Actor:
     # recalculates the proper anchor position for the new dimensions, resetting
     # the position afterwards to realign the image properly.
     def _transform(self):
-        # TODO: Should this be done? Does this cause fuckery with the anchors?
         if self._anim._current_animation:
             w, h = self._a_image.get_size()
         else:
@@ -669,15 +673,6 @@ class Actor:
             self._anim._current_animation.new_frame = False
             # Clear the surface cache for the new image.
             self._surface_cache.clear()
-            """
-            DEBUG PRINTS
-            print("\nPos:", self.pos)
-            print("Anchor:", self._anchor)
-            print("Topleft:", self.topleft)
-            print("Added:", self._anchor[0] + self.topleft[0],
-                  self._anchor[1] + self.topleft[1])
-            print("Width:", self.width, "Height:", self.height)
-            """
             # Update actor position to incorporate frame offsets.
             # TODO: Same note as above? Refactor to avoid duplicating many
             # calls?
@@ -926,3 +921,28 @@ class Actor:
 
     def unload_image(self):
         loaders.images.unload(self._image_name)
+
+    def track_ready(self, *args):
+        """The following methods all simply pass on calls to the ready timer
+        system. This is so the calls can be made to clock directly."""
+        self._ready_timer_system.track_ready(*args)
+
+    def is_ready(self, name):
+        return self._ready_timer_system.is_ready(name)
+
+    get_ready = is_ready
+
+    def get_ready_timeout(self, name):
+        return self._ready_timer_system.get_ready_timeout(name)
+
+    def timeout_ready(self, name, time=None, absolute=False):
+        self._ready_timer_system.timeout_ready(name, time, absolute)
+
+    def set_ready(self, name, value):
+        self._ready_timer_system.set_ready(name, value)
+
+    def set_ready_timeout(self, name, value):
+        self._ready_timer_system.set_ready_timeout(name, value)
+
+    def get_all_ready(self):
+        return self._ready_timer_system.get_all_ready()

@@ -819,3 +819,25 @@ class ActorTest(unittest.TestCase):
         a2.pos = (10, 87)
         # No collision is detected.
         self.assertIsNone(a1.collidemask(a2))
+
+    @patch("pgturbo.clock.ReadyTimerSystem")
+    def test_ready_timer_calls_passed_on(self, rts_mock):
+        """Calls to the actor methods around ready timers are simply passed
+        on to its ready timer system. The ReadyTimerSystem class is thoroughly
+        tested in test_clock.py separately."""
+        a = Actor("alien")
+        a._ready_timer_system = rts_mock
+        a.track_ready("jump", 2.0)
+        rts_mock.track_ready.assert_called_with("jump", 2.0)
+        a.is_ready("jimp")
+        rts_mock.is_ready.assert_called_with("jimp")
+        a.get_ready("jamp")
+        rts_mock.is_ready.assert_called_with("jamp")
+        a.timeout_ready("jemp", 3, absolute=True)
+        rts_mock.timeout_ready.assert_called_with("jemp", 3, True)
+        a.set_ready("jomp", False)
+        rts_mock.set_ready.assert_called_with("jomp", False)
+        a.set_ready_timeout("jaemp", 3.5)
+        rts_mock.set_ready_timeout.assert_called_with("jaemp", 3.5)
+        a.get_all_ready()
+        rts_mock.get_all_ready.assert_called_once()

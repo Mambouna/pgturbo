@@ -53,115 +53,15 @@ class ReadyTimer:
         self.ready = True
 
 
-@total_ordering
-class Event:
-    """An event scheduled for a future time.
-
-    Events are ordered by their scheduled execution time.
-
-    """
-
-    def __init__(self, time, cb, repeat=None, *args, **kwargs):
-        self.time = time
-        self.repeat = repeat
-        self.cb = mkref(cb)
-        # This function signature allows us to ensure invalid arguments
-        # are immediately detected and rejected before the function is called.
-        self.cb_signature = signature(cb)
-        self.bound = self.cb_signature.bind(*args, **kwargs)
-        self.bound.apply_defaults()
-        self.name = str(cb)
-        self.repeat = repeat
-
-    def __lt__(self, ano):
-        return self.time < ano.time
-
-    def __eq__(self, ano):
-        return self.time == ano.time
-
-    @property
-    def callback(self):
-        return self.cb()
-
-
-class Clock:
-    """A clock used for event scheduling.
-
-    When tick() is called, all events scheduled for before now will be called
-    in order.
-
-    tick() would typically be called from the game loop for the default clock.
-
-    Additional clocks could be created - for example, a game clock that could
-    be suspended in pause screens. Your code must take care of calling tick()
-    or not. You could also run the clock at a different rate if desired, by
-    scaling dt before passing it to tick().
-
-    """
+class ReadyTimerSystem:
+    """Class to manage ready timers both globally in clock and for
+    individual actors."""
 
     def __init__(self):
-        self._t = 0
-        self._absolute_t = 0
-        self.fired = False
-        self.events = []
-        self.events_absolute = []
-        self._each_tick = []
-        self._marks = {}
         self._ready_timers = {}
-        self._timescale = 1.0
 
-    @property
-    def time(self):
-        """Simple property to return the total elapsed time affected by
-        pauses."""
-        return self._t
-
-    @property
-    def absolute_time(self):
-        """Returns the elapsed time without respecting timescale changes."""
-        return self._absolute_t
-
-    @property
-    def timescale(self):
-        return self._timescale
-
-    @timescale.setter
-    def timescale(self, value):
-        """Property to control how fast the user facing clock is running."""
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise TypeError("Timescale must be of type int or float, not "
-                            "{}.".format(type(value)))
-        elif value < 0:
-            raise ValueError("Timescale values must not be negative. You set "
-                             "it to {}.".format(value))
-        self._timescale = value
-
-    def mark_time(self, name):
-        """Save a timestamp with a name for later."""
-        self._marks[name] = (self._t, self._absolute_t)
-
-    def get_mark_time(self, name, absolute=False):
-        """Get the time saved with a mark name or return None if it doesn't
-        exist."""
-        mark = self._marks.get(name)
-        if mark:
-            return mark[1] if absolute else mark[0]
-        return None
-
-    def time_since_mark(self, name, absolute=False):
-        """Get the elapsed time since a mark was made or return None if it
-        doesn't exist."""
-        m = self._marks.get(name)
-        if m:
-            return self._absolute_t - m[1] if absolute else self._t - m[0]
-        return None
-
-    def get_all_marks(self, absolute=False):
-        """Return a copy of the current state of the marks dictionary. A copy
-        is made to make sure users don't accidentally change the contents of
-        the actual marks dict."""
-        i = 1 if absolute else 0
-        return {k: v[i] for k, v in self._marks.items()}
+    def _clear(self):
+        self._ready_timers = {}
 
     def _add_ready_timer_internal(self, name, timeout):
         """Helper function to add a ready timer or error if one with the name
@@ -232,8 +132,8 @@ class Clock:
                                 .format(type(time)))
         else:
             timeout = timer.timeout
-        self.schedule_unique(self._set_ready, timeout, name, True,
-                             absolute=absolute)
+        clock.schedule_unique(self._set_ready, timeout, name, True,
+                              absolute=absolute)
 
     def set_ready(self, name, value):
         """Userfacing version of _set_ready(). The reason we have both is so
@@ -258,12 +158,148 @@ class Clock:
     def get_all_ready(self):
         return {k: v.ready for k, v in self._ready_timers.items()}
 
+
+@total_ordering
+class Event:
+    """An event scheduled for a future time.
+
+    Events are ordered by their scheduled execution time.
+
+    """
+
+    def __init__(self, time, cb, repeat=None, *args, **kwargs):
+        self.time = time
+        self.repeat = repeat
+        self.cb = mkref(cb)
+        # This function signature allows us to ensure invalid arguments
+        # are immediately detected and rejected before the function is called.
+        self.cb_signature = signature(cb)
+        self.bound = self.cb_signature.bind(*args, **kwargs)
+        self.bound.apply_defaults()
+        self.name = str(cb)
+        self.repeat = repeat
+
+    def __lt__(self, ano):
+        return self.time < ano.time
+
+    def __eq__(self, ano):
+        return self.time == ano.time
+
+    @property
+    def callback(self):
+        return self.cb()
+
+
+class Clock:
+    """A clock used for event scheduling.
+
+    When tick() is called, all events scheduled for before now will be called
+    in order.
+
+    tick() would typically be called from the game loop for the default clock.
+
+    Additional clocks could be created - for example, a game clock that could
+    be suspended in pause screens. Your code must take care of calling tick()
+    or not. You could also run the clock at a different rate if desired, by
+    scaling dt before passing it to tick().
+
+    """
+
+    def __init__(self):
+        self._t = 0
+        self._absolute_t = 0
+        self.fired = False
+        self.events = []
+        self.events_absolute = []
+        self._each_tick = []
+        self._marks = {}
+        self._ready_timer_system = ReadyTimerSystem()
+        self._timescale = 1.0
+
+    @property
+    def time(self):
+        """Simple property to return the total elapsed time affected by
+        pauses."""
+        return self._t
+
+    @property
+    def absolute_time(self):
+        """Returns the elapsed time without respecting timescale changes."""
+        return self._absolute_t
+
+    @property
+    def timescale(self):
+        return self._timescale
+
+    @timescale.setter
+    def timescale(self, value):
+        """Property to control how fast the user facing clock is running."""
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError("Timescale must be of type int or float, not "
+                            "{}.".format(type(value)))
+        elif value < 0:
+            raise ValueError("Timescale values must not be negative. You set "
+                             "it to {}.".format(value))
+        self._timescale = value
+
+    def mark_time(self, name):
+        """Save a timestamp with a name for later."""
+        self._marks[name] = (self._t, self._absolute_t)
+
+    def get_mark_time(self, name, absolute=False):
+        """Get the time saved with a mark name or return None if it doesn't
+        exist."""
+        mark = self._marks.get(name)
+        if mark:
+            return mark[1] if absolute else mark[0]
+        return None
+
+    def time_since_mark(self, name, absolute=False):
+        """Get the elapsed time since a mark was made or return None if it
+        doesn't exist."""
+        m = self._marks.get(name)
+        if m:
+            return self._absolute_t - m[1] if absolute else self._t - m[0]
+        return None
+
+    def get_all_marks(self, absolute=False):
+        """Return a copy of the current state of the marks dictionary. A copy
+        is made to make sure users don't accidentally change the contents of
+        the actual marks dict."""
+        i = 1 if absolute else 0
+        return {k: v[i] for k, v in self._marks.items()}
+
+    def track_ready(self, *args):
+        """The following methods all simply pass on calls to the ready timer
+        system. This is so the calls can be made to clock directly."""
+        self._ready_timer_system.track_ready(*args)
+
+    def is_ready(self, name):
+        return self._ready_timer_system.is_ready(name)
+
+    get_ready = is_ready
+
+    def get_ready_timeout(self, name):
+        return self._ready_timer_system.get_ready_timeout(name)
+
+    def timeout_ready(self, name, time=None, absolute=False):
+        self._ready_timer_system.timeout_ready(name, time, absolute)
+
+    def set_ready(self, name, value):
+        self._ready_timer_system.set_ready(name, value)
+
+    def set_ready_timeout(self, name, value):
+        self._ready_timer_system.set_ready_timeout(name, value)
+
+    def get_all_ready(self):
+        return self._ready_timer_system.get_all_ready()
+
     def clear(self):
         """Remove all handlers from this clock and clears the marks."""
         self.events.clear()
         self.events_absolute.clear()
         self._marks = {}
-        self._ready_timers = {}
+        self._ready_timer_system._clear()
         self._each_tick.clear()
 
     def schedule(self, callback, delay, *args, **kwargs):
