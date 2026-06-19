@@ -55,12 +55,16 @@ New features
 * Easy to use and feature rich controller support making coding games with
   controller controls easy while also allowing multiple controllers for
   multiplayer support with simple interfaces.
-* Convenience property and functions for ``clock`` that allow checking total
-  elapsed time and saving timestamps with names and checking them / time
-  elapsed since their creation.
+* Convenience functions for ``clock`` that allow checking total elapsed time
+  and saving timestamps with names and checking them / time elapsed since their
+  creation.
 * ``clock.timescale`` property that allows slowing down, speeding up or pausing
   the game time. Integrating the different timescale with actor movements or
   other time relevant code is up to the user.
+* Global ready timers in ``clock`` and for each individual actors that make
+  tracking if triggerable thing or cooldown is ready far easier.
+* Take screenshots with F12 in the game window or manually from code with
+  ``screen.screenshot()``.
 
 
 Feature enhancements
@@ -85,6 +89,9 @@ Feature enhancements
   ``.is_onscreen()``.
 * More understandable error reporting for wrong positional values.
 * String color names are spellchecked to make fixing typos easier.
+* Schedule functions with arguments instead of only ones without any.
+* Optionally schedule functions in absolute time unaffected by
+  ``clock.timescale``.
 
 
 Bug fixes

@@ -928,6 +928,8 @@ and time marks. This is usually good, but if you want to get the total time
 elapsed since program start without respecting changes to timescale, you can
 get it with ``clock.absolute_time``.
 
+.. versionadded:: 1.10
+
 In the same way, you can do anything related to scheduling in an absolute
 timeframe too. Simply pass ``absolute=True`` to functions like ``schedule()``
 and the callback you schedule will be unaffected by ``timescale``. If you want
@@ -954,6 +956,8 @@ marking in absolute time, simply call any of the associated methods with
 
 Ready timers
 ''''''''''''
+
+.. versionadded:: 1.10
 
 Often in games you'll want to only allow certain things to happen if they are
 "ready". Say for example a character has a special ability to jump higher than
@@ -1846,6 +1850,8 @@ yourself:
 
 Actor ready timers
 ''''''''''''''''''
+
+.. versionadded:: 1.10
 
 Just like ``clock`` itself, you can also give actors ready timers to keep track
 of whether a certain ability or other timer is ready. These are explained in

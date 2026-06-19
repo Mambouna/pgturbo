@@ -25,6 +25,8 @@ New features
 * ``clock.timescale`` property that allows slowing down, speeding up or pausing
   the game time. Integrating the different timescale with actor movements or
   other time relevant code is up to the user.
+* Global ready timers in ``clock`` and for each individual actors that make
+  tracking if triggerable thing or cooldown is ready far easier.
 * Take screenshots with F12 in the game window or manually from code with
   ``screen.screenshot()``.
 
@@ -52,6 +54,8 @@ Feature enhancements
 * More understandable error reporting for wrong positional values.
 * String color names are spellchecked to make fixing typos easier.
 * Schedule functions with arguments instead of only ones without any.
+* Optionally schedule functions in absolute time unaffected by
+  ``clock.timescale``.
 
 
 Bug fixes
@@ -71,6 +75,13 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.10.0 - 2026-06-19
+-------------------
+
+Global ready timers in clock and individual ones for each actor. Ability to
+schedule function calls optionally in absolute timeframe.
 
 
 1.9.0 - 2026-06-16
