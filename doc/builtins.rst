@@ -950,6 +950,8 @@ marking in absolute time, simply call any of the associated methods with
 ``absolute=True`` or just ``True`` as a second argument.
 
 
+.. _clock_ready_timers:
+
 Ready timers
 ''''''''''''
 
@@ -1840,6 +1842,32 @@ yourself:
     "base" means the base animation is playing, "queue" means a queue is
     playing and "single" means any other animation which is not the base
     animation is playing and not as part of a queue.
+
+
+Actor ready timers
+''''''''''''''''''
+
+Just like ``clock`` itself, you can also give actors ready timers to keep track
+of whether a certain ability or other timer is ready. These are explained in
+more detail in the
+:ref:`relevant section for the clock builtin <clock_ready_timers>`.
+
+If you want to use them for individual actors, you do so exactly the same way,
+just substituting ``clock`` for the variable the actor is in::
+
+    alien = Actor("alien")
+    alien.track_ready("jump", 0.8)
+
+    def update():
+        if keyboard.space and alien.is_ready("jump")
+            alien.vy -= 20
+            alien.timeout_ready("jump")
+
+In this case you could have also used the ready timers on ``clock`` itself for
+the same effect. Ready timers on actors are useful when there are many actors
+of the same type active in your game. For example, if there are 20 aliens all
+jumping at different times, each alien having its own timer to see when jump is
+available again simplifies your code a lot.
 
 
 Distance and angle to
