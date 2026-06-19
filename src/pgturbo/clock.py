@@ -44,6 +44,121 @@ def mkref(o):
             raise
 
 
+class ReadyTimer:
+    """Very small helper class for timer objects."""
+
+    def __init__(self, name, timeout):
+        self.name = name
+        self.timeout = timeout
+        self.ready = True
+
+
+class ReadyTimerSystem:
+    """Class to manage ready timers both globally in clock and for
+    individual actors."""
+
+    def __init__(self):
+        self._ready_timers = {}
+
+    def _clear(self):
+        self._ready_timers = {}
+
+    def _add_ready_timer_internal(self, name, timeout):
+        """Helper function to add a ready timer or error if one with the name
+        exists."""
+        if name not in self._ready_timers:
+            self._ready_timers[name] = ReadyTimer(name, timeout)
+        else:
+            raise KeyError("A timer with name {} already "
+                           "exists.".format(name))
+
+    def track_ready(self, *args):
+        """Adds every argument as a tracked countdown. Each argument should be
+        a tuple of a string and a number in seconds. If there are two args
+        and the first is a string and the second is a number, that is used
+        for one ready timer."""
+        match args:
+            # If we get two args exactly how we need them, add one timer.
+            case (str(name), float(timeout) | int(timeout)):
+                self._add_ready_timer_internal(name, timeout)
+            # Otherwise we have to deal with the individual items.
+            case _:
+                for arg in args:
+                    match arg:
+                        # Same thing, if the format is right, add it.
+                        case (str(name), float(timeout) | int(timeout)):
+                            self._add_ready_timer_internal(name, timeout)
+                        # Otherwise, error.
+                        case _:
+                            raise TypeError("Ready timers must be given as "
+                                            "tuples of a string and a number. "
+                                            "You gave: {}".format(arg))
+
+    def _check_ready_timer_name(self, name):
+        if name not in self._ready_timers:
+            raise KeyError("No ready timer with the name {} exists. These are "
+                           "the current ready timer names: {}"
+                           .format(name, ", ".join(self._ready_timers.keys())))
+
+    def is_ready(self, name):
+        """Returns whether a ready timer is currently ready (is not currently
+        running down)."""
+        self._check_ready_timer_name(name)
+        return self._ready_timers[name].ready
+
+    get_ready = is_ready
+
+    def get_ready_timeout(self, name):
+        self._check_ready_timer_name(name)
+        return self._ready_timers[name].timeout
+
+    def _set_ready(self, name, value):
+        """Internal function that actually sets the ready value of a timer."""
+        # Since it's not userfacing, we don't check the name is valid.
+        self._ready_timers[name].ready = value
+
+    def timeout_ready(self, name, time=None, absolute=False):
+        """Set the timer ready to False and only set it back after the
+        timeout."""
+        self._check_ready_timer_name(name)
+        timer = self._ready_timers[name]
+        timer.ready = False
+        if time:
+            if not isinstance(time, bool) and isinstance(time, (int, float)):
+                timeout = time
+            else:
+                raise TypeError("Time override values for ready timers must "
+                                "be of type int or float, not {}"
+                                .format(type(time)))
+        else:
+            timeout = timer.timeout
+        clock.schedule_unique(self._set_ready, timeout, name, True,
+                              absolute=absolute)
+
+    def set_ready(self, name, value):
+        """Userfacing version of _set_ready(). The reason we have both is so
+        that if the user unschedules their own set_ready calls it won't affect
+        the internal ones."""
+        self._check_ready_timer_name(name)
+        if isinstance(value, bool):
+            self._ready_timers[name].ready = value
+        else:
+            raise TypeError("Ready timers can only be True or False, not {}"
+                            .format(value))
+
+    def set_ready_timeout(self, name, value):
+        self._check_ready_timer_name(name)
+        # We need to check against bool first since bool is a subclass of int.
+        if not isinstance(value, bool) and isinstance(value, (int, float)):
+            self._ready_timers[name].timeout = value
+        else:
+            raise TypeError("Timeout values can only be of type int or float, "
+                            "not {}".format(type(value)))
+
+    def get_all_ready(self):
+        return {k: v.ready for k, v in self._ready_timers.items()}
+
+
 @total_ordering
 class Event:
     """An event scheduled for a future time.
@@ -98,6 +213,7 @@ class Clock:
         self.events_absolute = []
         self._each_tick = []
         self._marks = {}
+        self._ready_timer_system = ReadyTimerSystem()
         self._timescale = 1.0
 
     @property
@@ -118,7 +234,7 @@ class Clock:
     @timescale.setter
     def timescale(self, value):
         """Property to control how fast the user facing clock is running."""
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError("Timescale must be of type int or float, not "
                             "{}.".format(type(value)))
         elif value < 0:
@@ -153,11 +269,37 @@ class Clock:
         i = 1 if absolute else 0
         return {k: v[i] for k, v in self._marks.items()}
 
+    def track_ready(self, *args):
+        """The following methods all simply pass on calls to the ready timer
+        system. This is so the calls can be made to clock directly."""
+        self._ready_timer_system.track_ready(*args)
+
+    def is_ready(self, name):
+        return self._ready_timer_system.is_ready(name)
+
+    get_ready = is_ready
+
+    def get_ready_timeout(self, name):
+        return self._ready_timer_system.get_ready_timeout(name)
+
+    def timeout_ready(self, name, time=None, absolute=False):
+        self._ready_timer_system.timeout_ready(name, time, absolute)
+
+    def set_ready(self, name, value):
+        self._ready_timer_system.set_ready(name, value)
+
+    def set_ready_timeout(self, name, value):
+        self._ready_timer_system.set_ready_timeout(name, value)
+
+    def get_all_ready(self):
+        return self._ready_timer_system.get_all_ready()
+
     def clear(self):
         """Remove all handlers from this clock and clears the marks."""
         self.events.clear()
         self.events_absolute.clear()
         self._marks = {}
+        self._ready_timer_system._clear()
         self._each_tick.clear()
 
     def schedule(self, callback, delay, *args, **kwargs):

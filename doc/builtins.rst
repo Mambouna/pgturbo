@@ -949,6 +949,43 @@ timescale. If you want to get either their timestamp or the elapsed time since
 marking in absolute time, simply call any of the associated methods with
 ``absolute=True`` or just ``True`` as a second argument.
 
+
+.. _clock_ready_timers:
+
+Ready timers
+''''''''''''
+
+Often in games you'll want to only allow certain things to happen if they are
+"ready". Say for example a character has a special ability to jump higher than
+normal but they should only be able to do that again after five seconds have
+passed. For any such scenario, you can use clock ready timers. To do so, first
+you add something to track::
+
+    clock.track_ready("superjump", 5.0)
+
+Now you can check whether the tracked thing is ready like so::
+
+    clock.is_ready("superjump")
+
+This will return ``True`` if the ability can be used. If the ability is used,
+you can then disable it for the timeout duration you added it with before as
+follows::
+
+    def update():
+        if keyboard.space and clock.is_ready("superjump"):
+            player.vy -= 25
+            clock.timeout_ready("superjump")
+
+When you call ``timeout_ready(name)`` the ready timer of the given name will be
+set to ``False`` and only be set back to ``True`` once five seconds have passed
+in this case.
+
+If you want to add many different things to track, you can either call
+``clock.track_ready()`` multiple times or add each ability as a tuple of a name
+and the timeout period:
+``clock.track_ready(("superjump", 5.0), ("slide", 2.5), ("jump", 0.75))``
+
+
 ``clock`` provides the following useful methods:
 
 .. class:: Clock
@@ -1125,6 +1162,68 @@ will have to keep a reference to the object.
         :param absolute: Boolean of whether to return all the absolute
                          timestamps instead of the ones affected by timescale.
                          Default is False.
+
+    .. method:: track_ready(*args)
+
+        Adds one or multiple ready timers that the clock can return and
+        time out. If given one string and one number, a single ready timer is
+        added. If you want to add multiple, call the function with tuples where
+        each tuple contains one string and one number for the timers.
+
+        :param args: Argument sink to turn into one or more added ready timers.
+
+    .. method:: is_ready(name)
+
+        Returns ``True`` if the given timer is currently ready or ``False`` if
+        not.
+
+        :param name: Name of the ready timer to check.
+
+    .. method:: get_ready_timeout(name)
+
+        Returns the current timeout period set for a ready timer.
+
+        :param name: String for which timer to get the timeout period of.
+
+    .. method:: timeout_ready(name, [time, absolute])
+
+        Set a ready timer to ``False`` for the duration of its set timeout
+        period, after which it will be returned to ``True`` again.
+
+        :param name: The name of the ready timer to time out.
+        :param time: An override for how long the timer should remain
+                     ``False``. Give a number to use a timeout period other
+                     than the default set for the ready timer.
+        :param absolute: Boolean of whether the timeout period should be
+                         tracked in absolute time or time affected by
+                         timescale. Default is ``False``.
+
+    .. method:: set_ready(name, value)
+
+        Set the ready value of a ready timer manually and permanently. This
+        could be used to disable an ability in general based on some state.
+        Calling ``timeout_ready()`` will still set the timer back to ready
+        after the timeout period.
+
+        :param name: What timer to change the ready value on.
+        :param value: Boolean of whether the ready timer should be permanently
+                      ready (``True``) or not (``False``) until a timeout is
+                      triggered.
+
+    .. method:: set_ready_timeout(name, value)
+
+        Set the timeout period for the given ready timer. Doesn't affect a
+        timeout that is already running.
+
+        :param name: The timer for which to change the timeout period.
+        :param value: Number value for the seconds the timeout period should
+                      last.
+
+    .. method:: get_all_ready()
+
+        Returns a dictionary of all ready timers with their names as keys and
+        their ready state as values. Changing the data in this dictionary does
+        not change anything about the ready timers kept by ``clock``.
 
 
 .. _actor:
@@ -1743,6 +1842,32 @@ yourself:
     "base" means the base animation is playing, "queue" means a queue is
     playing and "single" means any other animation which is not the base
     animation is playing and not as part of a queue.
+
+
+Actor ready timers
+''''''''''''''''''
+
+Just like ``clock`` itself, you can also give actors ready timers to keep track
+of whether a certain ability or other timer is ready. These are explained in
+more detail in the
+:ref:`relevant section for the clock builtin <clock_ready_timers>`.
+
+If you want to use them for individual actors, you do so exactly the same way,
+just substituting ``clock`` for the variable the actor is in::
+
+    alien = Actor("alien")
+    alien.track_ready("jump", 0.8)
+
+    def update():
+        if keyboard.space and alien.is_ready("jump")
+            alien.vy -= 20
+            alien.timeout_ready("jump")
+
+In this case you could have also used the ready timers on ``clock`` itself for
+the same effect. Ready timers on actors are useful when there are many actors
+of the same type active in your game. For example, if there are 20 aliens all
+jumping at different times, each alien having its own timer to see when jump is
+available again simplifies your code a lot.
 
 
 Distance and angle to
