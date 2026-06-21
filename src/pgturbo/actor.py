@@ -193,6 +193,8 @@ class Actor:
         self._init_position(pos, anchor, **kwargs)
         self._vx = 0
         self._vy = 0
+        self._limit_x = (None, None)
+        self._limit_y = (None, None)
 
     def __getattr__(self, attr):
         if attr in self.__class__.DELEGATED_ATTRIBUTES:
@@ -539,6 +541,17 @@ class Actor:
     @pos.setter
     def pos(self, pos):
         px, py = pos
+        # Limit the values of x and y if necessary.
+        lower_limit_x, upper_limit_x = self._limit_x
+        if lower_limit_x and px < lower_limit_x:
+            px = lower_limit_x
+        elif upper_limit_x and px > upper_limit_x:
+            px = upper_limit_x
+        lower_limit_y, upper_limit_y = self._limit_y
+        if lower_limit_y and py < lower_limit_y:
+            py = lower_limit_y
+        elif upper_limit_y and py > upper_limit_y:
+            py = upper_limit_y
         ax, ay = self._anchor
         self.topleft = px - ax, py - ay
 
@@ -585,6 +598,11 @@ class Actor:
 
     @x.setter
     def x(self, px):
+        lower_limit_x, upper_limit_x = self._limit_x
+        if lower_limit_x and px < lower_limit_x:
+            px = lower_limit_x
+        elif upper_limit_x and px > upper_limit_x:
+            px = upper_limit_x
         self.left = px - self._anchor[0]
 
     @property
@@ -594,6 +612,11 @@ class Actor:
 
     @y.setter
     def y(self, py):
+        lower_limit_y, upper_limit_y = self._limit_y
+        if lower_limit_y and py < lower_limit_y:
+            py = lower_limit_y
+        elif upper_limit_y and py > upper_limit_y:
+            py = upper_limit_y
         self.top = py - self._anchor[1]
 
     @property
