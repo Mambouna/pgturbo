@@ -794,6 +794,140 @@ class ActorTest(unittest.TestCase):
         v = a.intercept_velocity(b, 1)
         self.assertIsNone(v)
 
+    def test_x_limits_stops_movement(self):
+        """We can limit an actors movement in the X axis in different ways."""
+        a = Actor.Rectangle(5, 5, "red", (10, 10))
+        # Actors start of with no movement restraints.
+        self.assertEqual(a.x_limits, (None, None))
+        # We can set restraints with ints.
+        a.x_limits = (5, 15)
+        # When an actor tries to move beyond a limit, the value is clamped to
+        # the limit instead
+        a.x = 0
+        self.assertEqual(a.left, 5)
+        a.x = 20
+        self.assertEqual(a.right, 15)
+        # We can remove former limits.
+        a.x_limits = (None, None)
+        a.x = 0
+        self.assertEqual(a.x, 0)
+        a.x = 20
+        self.assertEqual(a.x, 20)
+        a.x = 10
+        # We can set one sided limits.
+        a.x_limits = (5, None)
+        a.x = 0
+        self.assertEqual(a.left, 5)
+        a.x = 20
+        self.assertEqual(a.x, 20)
+        a.x = 10
+        # And in the other direction.
+        a.x_limits = (None, 15)
+        a.x = 0
+        self.assertEqual(a.x, 0)
+        a.x = 20
+        self.assertEqual(a.right, 15)
+
+        a.x = 10
+        # Limits can be set individually instead of as a tuple too. We can
+        # check them individually as well.
+        a.left_limit = None
+        self.assertIsNone(a.left_limit)
+        a.x = 0
+        self.assertEqual(a.x, 0)
+        a.x = 10
+        a.left_limit = 5
+        self.assertEqual(a.left_limit, 5)
+        a.x = 0
+        self.assertEqual(a.left, 5)
+        a.x = 10
+        a.right_limit = None
+        self.assertIsNone(a.right_limit)
+        a.x = 20
+        self.assertEqual(a.x, 20)
+        a.x = 10
+        a.right_limit = 15
+        self.assertEqual(a.right_limit, 15)
+        a.x = 20
+        self.assertEqual(a.right, 15)
+
+    def test_y_limits_stops_movement(self):
+        """We can limit an actors movement in the Y axis in different ways."""
+        a = Actor.Rectangle(5, 5, "red", (10, 10))
+        # Actors start of with no movement restraints.
+        self.assertEqual(a.y_limits, (None, None))
+        # We can set restraints with ints.
+        a.y_limits = (5, 15)
+        # When an actor tries to move beyond a limit, the value is clamped to
+        # the limit instead
+        a.y = 0
+        self.assertEqual(a.top, 5)
+        a.y = 20
+        self.assertEqual(a.bottom, 15)
+        # We can remove former limits.
+        a.y_limits = (None, None)
+        a.y = 0
+        self.assertEqual(a.y, 0)
+        a.y = 20
+        self.assertEqual(a.y, 20)
+        a.y = 10
+        # We can set one sided limits.
+        a.y_limits = (5, None)
+        a.y = 0
+        self.assertEqual(a.top, 5)
+        a.y = 20
+        self.assertEqual(a.y, 20)
+        a.y = 10
+        # And in the other direction.
+        a.y_limits = (None, 15)
+        a.y = 0
+        self.assertEqual(a.y, 0)
+        a.y = 20
+        self.assertEqual(a.bottom, 15)
+
+        a.y = 10
+        # Limits can be set individually instead of as a tuple too. We can
+        # check them individually as well.
+        a.top_limit = None
+        self.assertIsNone(a.top_limit)
+        a.y = 0
+        self.assertEqual(a.y, 0)
+        a.y = 10
+        a.top_limit = 5
+        self.assertEqual(a.top_limit, 5)
+        a.y = 0
+        self.assertEqual(a.top, 5)
+        a.y = 10
+        a.bottom_limit = None
+        self.assertIsNone(a.bottom_limit)
+        a.y = 20
+        self.assertEqual(a.y, 20)
+        a.y = 10
+        a.bottom_limit = 15
+        self.assertEqual(a.bottom_limit, 15)
+        a.y = 20
+        self.assertEqual(a.bottom, 15)
+
+    def test_pos_limits_work_with_symbolic_positions(self):
+        """Setting position via 'left' or 'bottomright' also limits values."""
+        a = Actor.Rectangle(5, 5, "red")
+        self.assertEqual(a.topleft, (0, 0))
+        a.right_limit = 10
+        a.topleft = (15, 15)
+        self.assertEqual(a.topright, (10, 15))
+        a.top_limit = -20
+        a.top = -30
+        self.assertEqual(a.top, -20)
+
+    def test_invalid_limits_throw_error(self):
+        a = Actor.Rectangle(50, 50, "red")
+        with self.assertRaises(ValueError):
+            a.x_limits = (25, 50)
+        a.x_limits = (None, None)
+        with self.assertRaises(ValueError):
+            a.left_limit = -20
+            a.right_limit = -80
+
     def test_mask_collision(self):
         """Collisions are detected with masks in use."""
         a1 = Actor("alien")

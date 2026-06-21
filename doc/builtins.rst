@@ -1312,6 +1312,30 @@ Changing ``center=(100, 100)`` to ``midbottom=(100, 200)`` gives you:
 If you don't specify an initial position, the actor will initially be
 positioned in the top-left corner (equivalent to ``topleft=(0, 0)``).
 
+
+.. _actor_movement_limits:
+
+Movement limits
+'''''''''''''''
+
+If you want to restrict where an actor can move (for example to prevent the
+player from running of the screen), you can use the "limit" properties::
+
+    alien = Actor("alien", (400, 300))
+    alien.x_limits = (10, 390)
+    alien.top_limit = None
+    alien.bottom_limit = 290
+
+These commands will limit the actors positioning so that the actor will never
+cross under ten pixels distance to any window edge except the top one. Limits
+always affect the outermost edge of an actor. So if you set a left limit, the
+left edge of the actor will not cross under that value. Same for the right edge
+and crossing over it if you set a right limit.
+
+To set or check upper and lower limits for an axis together, use either
+``x_limits`` or ``y_limits``. If you want to work with a single limit, use
+``left_limit``, ``right_limit``, ``top_limit`` and ``bottom_limit``.
+
 .. _anchor:
 
 Anchor point
