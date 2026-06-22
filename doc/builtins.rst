@@ -1318,6 +1318,8 @@ positioned in the top-left corner (equivalent to ``topleft=(0, 0)``).
 Movement limits
 '''''''''''''''
 
+.. versionadded:: 1.11
+
 If you want to restrict where an actor can move (for example to prevent the
 player from running off the screen), you can use the "limit" properties::
 

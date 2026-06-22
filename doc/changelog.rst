@@ -51,6 +51,7 @@ Feature enhancements
   ``Actor.Triangle(width, height, color)``.
 * Function to check if an actor is currently withing the screen bounds:
   ``.is_onscreen()``.
+* Setting movement limits for actors for example to keep them on the screen.
 * More understandable error reporting for wrong positional values.
 * String color names are spellchecked to make fixing typos easier.
 * Schedule functions with arguments instead of only ones without any.
@@ -75,6 +76,12 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.11.0 - 2026-06-22
+-------------------
+
+Movement limits for actors.
 
 
 1.10.0 - 2026-06-19
