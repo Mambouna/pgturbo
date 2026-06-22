@@ -222,14 +222,7 @@ class Actor:
             if attr in SYMBOLIC_POSITIONS or attr in SYMBOLIC_SIDES:
                 return_value = setattr(self._rect, attr, value)
 
-                if self._left_limit and self.left < self._left_limit:
-                    self.left = self._left_limit
-                if self._right_limit and self.right > self._right_limit:
-                    self.right = self._right_limit
-                if self._top_limit and self.top < self._top_limit:
-                    self.top = self._top_limit
-                if self._bottom_limit and self.bottom > self._bottom_limit:
-                    self.bottom = self._bottom_limit
+                self._enforce_position_limits()
 
                 return return_value
 
@@ -571,6 +564,16 @@ class Actor:
                              "bounds must be larger than lower ones and "
                              "between them must be enough room for the actor.")
 
+    def _enforce_position_limits(self):
+        if self._left_limit and self.left < self._left_limit:
+            self.left = self._left_limit
+        elif self._right_limit and self.right > self._right_limit:
+            self.right = self._right_limit
+        if self._top_limit and self.top < self._top_limit:
+            self.top = self._top_limit
+        elif self._bottom_limit and self.bottom > self._bottom_limit:
+            self.bottom = self._bottom_limit
+
     @property
     def x_limits(self):
         return (self._left_limit, self._right_limit)
@@ -581,6 +584,17 @@ class Actor:
         self._left_limit = value[0]
         self._right_limit = value[1]
         self._check_limit_sizes()
+        self._enforce_position_limits()
+    
+    def _set_single_limit(self, limit, value):
+        """Helper function to reduce duplicate code."""
+        if value is None or isinstance(value, (int, float)):
+            setattr(self, limit, value)
+            self._check_limit_sizes()
+            self._enforce_position_limits()
+        else:
+            raise TypeError("Limit value must be of type None, int or float, "
+                            "not {}.".format(type(value)))
 
     @property
     def left_limit(self):
@@ -588,12 +602,7 @@ class Actor:
 
     @left_limit.setter
     def left_limit(self, value):
-        if value is None or isinstance(value, (int, float)):
-            self._left_limit = value
-            self._check_limit_sizes()
-        else:
-            raise TypeError("Limit value must be of type None, int or float, "
-                            "not {}.".format(type(value)))
+        self._set_single_limit("_left_limit", value)
 
     @property
     def right_limit(self):
@@ -601,12 +610,7 @@ class Actor:
 
     @right_limit.setter
     def right_limit(self, value):
-        if value is None or isinstance(value, (int, float)):
-            self._right_limit = value
-            self._check_limit_sizes()
-        else:
-            raise TypeError("Limit value must be of type None, int or float, "
-                            "not {}.".format(type(value)))
+        self._set_single_limit("_right_limit", value)
 
     @property
     def y_limits(self):
@@ -617,6 +621,8 @@ class Actor:
         validate_limit_tuple(value)
         self._top_limit = value[0]
         self._bottom_limit = value[1]
+        self._check_limit_sizes()
+        self._enforce_position_limits()
 
     @property
     def top_limit(self):
@@ -624,11 +630,7 @@ class Actor:
 
     @top_limit.setter
     def top_limit(self, value):
-        if value is None or isinstance(value, (int, float)):
-            self._top_limit = value
-        else:
-            raise TypeError("Limit value must be of type None, int or float, "
-                            "not {}.".format(type(value)))
+        self._set_single_limit("_top_limit", value)
 
     @property
     def bottom_limit(self):
@@ -636,11 +638,7 @@ class Actor:
 
     @bottom_limit.setter
     def bottom_limit(self, value):
-        if value is None or isinstance(value, (int, float)):
-            self._bottom_limit = value
-        else:
-            raise TypeError("Limit value must be of type None, int or float, "
-                            "not {}.".format(type(value)))
+        self._set_single_limit("_top_limit", value)
 
     @property
     def pos(self):
