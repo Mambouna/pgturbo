@@ -908,6 +908,17 @@ class ActorTest(unittest.TestCase):
         a.y = 20
         self.assertEqual(a.bottom, 15)
 
+    def test_setting_limits_enforces_them(self):
+        """When limits are set and the actor currently breaks them, its
+        position is immediately changed to match the limits."""
+        a = Actor.Rectangle(5, 5, "red", topleft=(10, 10))
+        self.assertEqual(a.left, 10)
+        a.left_limit = 15
+        self.assertEqual(a.left, 15)
+        self.assertEqual(a.top, 10)
+        a.top_limit = 15
+        self.assertEqual(a.top, 15)
+
     def test_pos_limits_work_with_symbolic_positions(self):
         """Setting position via 'left' or 'bottomright' also limits values."""
         a = Actor.Rectangle(5, 5, "red")
