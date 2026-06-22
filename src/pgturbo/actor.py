@@ -585,7 +585,7 @@ class Actor:
         self._right_limit = value[1]
         self._check_limit_sizes()
         self._enforce_position_limits()
-    
+
     def _set_single_limit(self, limit, value):
         """Helper function to reduce duplicate code."""
         if value is None or isinstance(value, (int, float)):
@@ -638,7 +638,7 @@ class Actor:
 
     @bottom_limit.setter
     def bottom_limit(self, value):
-        self._set_single_limit("_top_limit", value)
+        self._set_single_limit("_bottom_limit", value)
 
     @property
     def pos(self):
