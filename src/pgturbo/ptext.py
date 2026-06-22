@@ -20,7 +20,7 @@ from __future__ import division
 
 from math import ceil, sin, cos, radians
 import pygame
-from .validation import validate_position_value
+from .validation import validate_position_tuple
 from . import spellcheck
 
 DEFAULT_FONT_SIZE = 24
@@ -422,7 +422,7 @@ def draw(text, pos=None,
     # If a position was set, we check that it is a valid one with the same
     # function as in actor.py.
     if pos:
-        validate_position_value(pos)
+        validate_position_tuple(pos)
         x, y = pos
     else:
         x, y = (None, None)

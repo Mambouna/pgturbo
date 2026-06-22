@@ -6,7 +6,7 @@ from . import loaders
 from . import rect
 from . import spellcheck
 from .clock import ReadyTimerSystem
-from .validation import validate_position_value
+from .validation import validate_position_tuple, validate_limit_tuple
 from .actor_animation import ActorAnimationSystem
 
 
@@ -43,6 +43,7 @@ SYMBOLIC_POSITIONS = set((
     "midtop", "midleft", "midbottom", "midright",
     "center",
 ))
+SYMBOLIC_SIDES = set(("left", "right", "top", "bottom"))
 
 # Provides more meaningful default-arguments e.g. for display in IDEs etc.
 POS_TOPLEFT = None
@@ -175,7 +176,7 @@ class Actor:
         # Only done here to not incur performance costs, though it could be
         # moved to the pos.setter for better coverage.
         if pos:
-            validate_position_value(pos)
+            validate_position_tuple(pos)
 
         # Initialize any actor with a new animation system. This needs to be
         # done here so all Actors don't share the same animation system.
@@ -189,10 +190,23 @@ class Actor:
         # clock has.
         self._ready_timer_system = ReadyTimerSystem()
 
+        # Limits for actor movements if set by the user.
+        self._left_limit = None
+        self._right_limit = None
+        self._top_limit = None
+        self._bottom_limit = None
+
         self.image = image
         self._init_position(pos, anchor, **kwargs)
         self._vx = 0
         self._vy = 0
+
+    def _clamp_value(self, value, lower_limit, upper_limit):
+        if lower_limit and value < lower_limit:
+            value = lower_limit
+        elif upper_limit and value > upper_limit:
+            value = upper_limit
+        return value
 
     def __getattr__(self, attr):
         if attr in self.__class__.DELEGATED_ATTRIBUTES:
@@ -203,6 +217,15 @@ class Actor:
     def __setattr__(self, attr, value):
         """Assign rect attributes to the underlying rect."""
         if attr in self.__class__.DELEGATED_ATTRIBUTES:
+            # If we set a position, we set it first and then set it back
+            # afterwards if the movement exceeded the set limits.
+            if attr in SYMBOLIC_POSITIONS or attr in SYMBOLIC_SIDES:
+                return_value = setattr(self._rect, attr, value)
+
+                self._enforce_position_limits()
+
+                return return_value
+
             return setattr(self._rect, attr, value)
         else:
             # Ensure data descriptors are set normally
@@ -529,6 +552,93 @@ class Actor:
         # Clamp the opacity to the allowable range.
         self._opacity = min(1.0, max(0.0, opacity))
         self._update_transform(_set_opacity)
+
+    def _check_limit_sizes(self):
+        # If there are limits on both sides of an axis, check that the actor
+        # can actually fit inside them.
+        if ((self._right_limit and self._left_limit
+                and self._right_limit - self._left_limit < self.width)
+                or (self._top_limit and self._bottom_limit
+                    and self._bottom_limit - self._top_limit < self.height)):
+            raise ValueError("Movement limit conflict detected. Upper limit "
+                             "bounds must be larger than lower ones and "
+                             "between them must be enough room for the actor.")
+
+    def _enforce_position_limits(self):
+        if self._left_limit and self.left < self._left_limit:
+            self.left = self._left_limit
+        elif self._right_limit and self.right > self._right_limit:
+            self.right = self._right_limit
+        if self._top_limit and self.top < self._top_limit:
+            self.top = self._top_limit
+        elif self._bottom_limit and self.bottom > self._bottom_limit:
+            self.bottom = self._bottom_limit
+
+    @property
+    def x_limits(self):
+        return (self._left_limit, self._right_limit)
+
+    @x_limits.setter
+    def x_limits(self, value):
+        validate_limit_tuple(value)
+        self._left_limit = value[0]
+        self._right_limit = value[1]
+        self._check_limit_sizes()
+        self._enforce_position_limits()
+
+    def _set_single_limit(self, limit, value):
+        """Helper function to reduce duplicate code."""
+        if value is None or isinstance(value, (int, float)):
+            setattr(self, limit, value)
+            self._check_limit_sizes()
+            self._enforce_position_limits()
+        else:
+            raise TypeError("Limit value must be of type None, int or float, "
+                            "not {}.".format(type(value)))
+
+    @property
+    def left_limit(self):
+        return self._left_limit
+
+    @left_limit.setter
+    def left_limit(self, value):
+        self._set_single_limit("_left_limit", value)
+
+    @property
+    def right_limit(self):
+        return self._right_limit
+
+    @right_limit.setter
+    def right_limit(self, value):
+        self._set_single_limit("_right_limit", value)
+
+    @property
+    def y_limits(self):
+        return (self._top_limit, self._bottom_limit)
+
+    @y_limits.setter
+    def y_limits(self, value):
+        validate_limit_tuple(value)
+        self._top_limit = value[0]
+        self._bottom_limit = value[1]
+        self._check_limit_sizes()
+        self._enforce_position_limits()
+
+    @property
+    def top_limit(self):
+        return self._top_limit
+
+    @top_limit.setter
+    def top_limit(self, value):
+        self._set_single_limit("_top_limit", value)
+
+    @property
+    def bottom_limit(self):
+        return self._bottom_limit
+
+    @bottom_limit.setter
+    def bottom_limit(self, value):
+        self._set_single_limit("_bottom_limit", value)
 
     @property
     def pos(self):
