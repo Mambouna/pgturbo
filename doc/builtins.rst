@@ -1692,7 +1692,7 @@ There's many more options like having certain functions run once an animation
 or queue is finished and pausing or stopping animations while they run. You can
 learn about all of them in the method reference below.
 
-.. method:: anim.add(name, [durations, offsets, callback])
+.. method:: anim.add(name, [durations, offsets, sound, callback, new_base])
 
     Adds an animation from a folder with separate image files to the actor's
     animation pool.
@@ -1716,10 +1716,16 @@ learn about all of them in the method reference below.
                     applied to all animation frames. If a tuple or list of
                     multiple offsets is given, each will be applied to only
                     the respective animation frame.
+    :param sound: A sound to play when the animation starts running, for
+                  example ``sounds.trumpet`` if such a sound is in the
+                  ``sounds`` resource folder. Default is ``None``.
     :param callback: A function name to call once the animation has finished
-                     playing.
+                     playing. Default is ``None``.
+    :param new_base: A string name for an animation to make the new base
+                     animation once this one has finished playing. Default is
+                     ``None``.
 
-.. method:: anim.add_spritesheet(name, width, height, [durations, offsets, callback, vertical])
+.. method:: anim.add_spritesheet(name, width, height, [durations, offsets, sound, callback, new_base, vertical])
 
     Adds an animation from a spritesheet to the actor's animation pool.
 
@@ -1731,24 +1737,33 @@ learn about all of them in the method reference below.
     :param offsets: The offsets to be applied to the animation frame whe
                     drawing the actor. Same possible values and default as for
                     anim.add() above.
+    :param sound: A sound to play when the animation starts running. Default is
+                  ``None``.
     :param callback: A function name to call once the animation has finished
                      playing.
+    :param new_base: A string name for an animation to make the new base
+                     animation once this one has finished playing. Default is
+                     ``None``.
     :param vertical: Boolean flag of whether the spritesheet is arranged
-                     vertically or not. Default is False, meaning that
+                     vertically or not. Default is ``False``, meaning that
                      spritesheets are normally read left to right. If set to
-                     True, the spritesheet will be read top to bottom instead.
+                     ``True``, the spritesheet will be read top to bottom
+                     instead.
 
-.. method:: anim.add_queue(name, animation_names, [callback, new_base])
+.. method:: anim.add_queue(name, animation_names, [sound, callback, new_base])
 
     Adds a new animation queue made up of previously loaded animations.
 
     :param name: The name for the new animation queue.
     :param animation_names: A tuple or list of the animation names to be
                             included in the queue.
+    :param sound: A sound to play when the queue starts running. Default is
+                  ``None``.
     :param callback: A function name to call once the animation queue has
-                     finished playing.
+                     finished playing. Default is ``None``.
     :param new_base: An animation name that should be set as the new base
-                     animation once the queue has finished playing.
+                     animation once the queue has finished playing. Default is
+                     ``None``.
 
 .. method:: anim.edit(name, **kwargs):
 

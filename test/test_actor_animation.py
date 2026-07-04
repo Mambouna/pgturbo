@@ -126,6 +126,13 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
         self.assertIsInstance(a.anim._animation_pool["walk_down"]._sound,
                               pygame.mixer.Sound)
 
+    def test_add_animation_with_custom_sound_validated(self):
+        """If we accidentally give sound for example a callback function, a
+        descriptive error is thrown."""
+        test_func_mock = Mock()
+        with self.assertRaises(TypeError):
+            a.anim.add("walk_down", test_func_mock)
+
     def test_add_animation_with_custom_callback(self):
         """A supplied callback function is called after the animation
         finishes running."""
@@ -138,6 +145,12 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
         multitick(0.25, 4)
         test_func_mock.assert_called_once()
 
+    def test_add_animation_with_custom_callback_validated(self):
+        """If we accidentally give callback for example a sound to play, a
+        descriptive error is thrown."""
+        with self.assertRaises(TypeError):
+            a.anim.add("walk_down", callback=sounds.powerup)
+
     def test_add_animation_with_new_base(self):
         """We can add an animation with a new base animation it should set once
         it finished playing."""
@@ -145,6 +158,12 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
         a.anim.add("walk_down", new_base="walk_up")
         self.assertEqual(a.anim._animation_pool["walk_down"]._new_base,
                          "walk_up")
+
+    def test_add_animation_with_new_base_validated(self):
+        """If we give a new base animation that isn't in the animation pool,
+        a descriptive error is thrown."""
+        with self.assertRaises(ValueError):
+            a.anim.add("walk_down", new_base="walk_up")
 
     def test_adding_same_animation_again_errors(self):
         """When the user tries to add the same animation twice for a single
