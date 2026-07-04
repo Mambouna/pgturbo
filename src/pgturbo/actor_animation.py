@@ -1,5 +1,7 @@
 # We need sys to print warnings when pause state is wiped.
 import sys
+# Needed to validate sound arguments for new animations or queues.
+from pygame.mixer import Sound as SoundObj
 
 from . import loaders
 from .clock import clock
@@ -221,6 +223,16 @@ class ActorAnimationSystem:
                              "change it, use anim.edit() to do so."
                              .format(name))
 
+        if sound and not isinstance(sound, SoundObj):
+            raise TypeError("The sound argument must be given a sound resource"
+                            " (sounds.bing or similar, matching a filename in "
+                            "the 'sounds' folder). You gave a {} instead."
+                            .format(type(sound)))
+
+        if callback and not callable(callback):
+            raise TypeError("The callback must be given a function to call, "
+                            "instead you gave a {}.".format(type(callback)))
+
         if new_base:
             self._check_animation_name(new_base)
 
@@ -282,6 +294,16 @@ class ActorAnimationSystem:
 
         for a in animation_names:
             self._check_animation_name(a)
+
+        if sound and not isinstance(sound, SoundObj):
+            raise TypeError("The sound argument must be given a sound resource"
+                            " (sounds.bing or similar, matching a filename in "
+                            "the 'sounds' folder). You gave a {} instead."
+                            .format(type(sound)))
+
+        if callback and not callable(callback):
+            raise TypeError("The callback must be given a function to call, "
+                            "instead you gave a {}.".format(type(callback)))
 
         if new_base:
             self._check_animation_name(new_base)
