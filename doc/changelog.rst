@@ -80,6 +80,13 @@ Dependencies
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
 
 
+1.12.1 - 2026-07-04
+-------------------
+
+Fixed an oversight in the documentation for adding sprite animations and queues
+for actors.
+
+
 1.12.0 - 2026-07-04
 -------------------
 
