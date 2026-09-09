@@ -169,7 +169,7 @@ Game controllers also have their own events:
     Called when a controller button is depressed.
 
     :param joybtn: An integer indicating the button that was pressed (see
-                   :ref:`below <buttons-and-keys>`).
+                   :ref:`below <class_def_joybutton>`).
     :param instance_id: An integer identifying the device on which the button
                         was pressed. This can be used to distinguish controls
                         for multiple controllers for example in co-op games.
@@ -179,7 +179,7 @@ Game controllers also have their own events:
     Called when a controller button is released.
 
     :param joybtn: An integer indicating the button that was let go off (see
-                   :ref:`below <buttons-and-keys>`).
+                   :ref:`below <class_def_joybutton>`).
     :param instance_id: An integer identifying the device on which the button
                         was released.
 
@@ -189,7 +189,7 @@ Game controllers also have their own events:
     typical console controller.
 
     :param axis: An integer indicating the axis that had its value change
-                 (see :ref:`below <buttons-and-keys>`).
+                 (see :ref:`below <class_def_joyaxis>`).
     :param value: The new value of the changed axis. Values for thumbsticks
                   range from -1 to 1 with 0 being centered while shoulder
                   triggers range from 0 to 1 with 1 being fully pressed in.
@@ -230,6 +230,9 @@ or keys were pressed in the above events.
 Note that mouse scrollwheel events appear as button presses with the below
 ``WHEEL_UP``/``WHEEL_DOWN`` button constants.
 
+
+.. _class_def_mouse:
+
 .. class:: mouse
 
     A built-in enumeration of buttons that can be received by the
@@ -240,6 +243,9 @@ Note that mouse scrollwheel events appear as button presses with the below
     .. attribute:: RIGHT
     .. attribute:: WHEEL_UP
     .. attribute:: WHEEL_DOWN
+
+
+.. _class_def_keys:
 
 .. class:: keys
 
@@ -383,6 +389,9 @@ Note that mouse scrollwheel events appear as button presses with the below
 
 Additionally you can access a set of constants that represent modifier keys:
 
+
+.. _class_def_keymods:
+
 .. class:: keymods
 
     Constants representing modifier keys that may have been depressed during
@@ -403,3 +412,50 @@ Additionally you can access a set of constants that represent modifier keys:
     .. attribute:: NUM
     .. attribute:: CAPS
     .. attribute:: MODE
+
+
+.. _class_def_joyaxis:
+
+.. class:: joyaxis
+
+    Constants representing the moveable axes of a joystick or controller for
+    use with the ``on_joy_move`` event.
+
+    .. attribute:: LEFT_X
+    .. attribute:: LEFT_Y
+    .. attribute:: LEFT_TRIGGER
+    .. attribute:: RIGHT_X
+    .. attribute:: RIGHT_Y
+    .. attribute:: RIGHT_TRIGGER
+    .. attribute:: UNKNOWN
+
+    Whenever an axis is used that is not recognized for the standard layout
+    PGTurbo supports, the ``UNKNOWN`` axis is reported used.
+
+
+.. _class_def_joybutton:
+
+.. class:: joybutton
+
+    Constants representing buttons on joysticks and controllers for use with
+    the ``on_joy_down`` and ``on_joy_up`` events.
+
+    .. attribute:: FACE_UP
+    .. attribute:: FACE_DOWN
+    .. attribute:: FACE_LEFT
+    .. attribute:: FACE_RIGHT
+    .. attribute:: DPAD_UP
+    .. attribute:: DPAD_DOWN
+    .. attribute:: DPAD_LEFT
+    .. attribute:: DPAD_RIGHT
+    .. attribute:: SHOULDER_LEFT
+    .. attribute:: SHOULDER_RIGHT
+    .. attribute:: PUSH_LEFT
+    .. attribute:: PUSH_RIGHT
+    .. attribute:: CENTER_LEFT
+    .. attribute:: CENTER_MIDDLE
+    .. attribute:: CENTER_RIGHT
+    .. attribute:: UNKNOWN
+
+    Whenever a button is used that is not recognized for the standard layout
+    PGTurbo supports, the ``UNKNOWN`` button is reported used.
