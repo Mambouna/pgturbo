@@ -587,12 +587,83 @@ class ActorTest(unittest.TestCase):
     @patch("pgturbo.actor.game.screen.get_height")
     @patch("pgturbo.actor.game.screen.get_width")
     @patch("pgturbo.actor.game.screen")
-    def test_not_onscreen(self, mock_screen, mock_get_width, mock_get_height):
-        """We can check if the Actor is not within the screen bounds."""
-        a = Actor("alien", (10, 1000))
+    def test_onscreen_with_both_margin(self, mock_screen, mock_get_width,
+                                       mock_get_height):
+        """We can check if the Actor is in the screen bounds with a uniform
+        margin for both X and Y."""
         mock_get_width.return_value = 200
         mock_get_height.return_value = 100
+        a = Actor("alien")
+        # This ensures none of the actor is in the screen bounds. With a
+        # margin, the call should still return True.
+        a.x = -1 * a.width - 1
+        self.assertTrue(a.is_onscreen(a.width + 1))
+
+    @patch("pgturbo.actor.game.screen.get_height")
+    @patch("pgturbo.actor.game.screen.get_width")
+    @patch("pgturbo.actor.game.screen")
+    def test_onscreen_with_separate_margins(self, mock_screen, mock_get_width,
+                                            mock_get_height):
+        """We can check if the Actor is in the screen bounds with separate
+        margins for X and Y."""
+        mock_get_width.return_value = 200
+        mock_get_height.return_value = 100
+        a = Actor("alien")
+        a.x = -1 * a.width - 1
+        a.y = -2 * a.height - 1
+        self.assertTrue(a.is_onscreen(a.width + 1, a.height * 2 + 1))
+
+    @patch("pgturbo.actor.game.screen.get_height")
+    @patch("pgturbo.actor.game.screen.get_width")
+    @patch("pgturbo.actor.game.screen")
+    def test_not_onscreen(self, mock_screen, mock_get_width, mock_get_height):
+        """We can check if the Actor is not within the screen bounds."""
+        mock_get_width.return_value = 200
+        mock_get_height.return_value = 100
+        a = Actor("alien", (10, 1000))
         self.assertFalse(a.is_onscreen())
+
+    @patch("pgturbo.actor.game.screen.get_height")
+    @patch("pgturbo.actor.game.screen.get_width")
+    @patch("pgturbo.actor.game.screen")
+    def test_not_onscreen_with_both_margin(self, mock_screen, mock_get_width,
+                                           mock_get_height):
+        """We can check if the Actor is not in the screen bounds with a unified
+        margin for X and Y."""
+        mock_get_width.return_value = 200
+        mock_get_height.return_value = 100
+        a = Actor("alien")
+        # A position outside the given margin still counts as offscreen.
+        a.x = -2 * a.width - 1
+        self.assertFalse(a.is_onscreen(a.width + 1))
+
+    @patch("pgturbo.actor.game.screen.get_height")
+    @patch("pgturbo.actor.game.screen.get_width")
+    @patch("pgturbo.actor.game.screen")
+    def test_not_onscreen_with_separate_margins(self, mock_screen,
+                                                mock_get_width,
+                                                mock_get_height):
+        """We can check if the Actor is not in the screen bounds with separate
+        margins for X and Y."""
+        mock_get_width.return_value = 200
+        mock_get_height.return_value = 100
+        a = Actor("alien")
+        a.x = -2 * a.width - 1
+        a.y = -3 * a.height - 1
+        self.assertFalse(a.is_onscreen(a.width + 1, a.height * 2 + 1))
+
+    @patch("pgturbo.actor.game.screen.get_height")
+    @patch("pgturbo.actor.game.screen.get_width")
+    @patch("pgturbo.actor.game.screen")
+    def test_partially_onscreen(self, mock_screen, mock_get_width,
+                                mock_get_height):
+        """If an actor is partially on the screen, it is counted as onscreen
+        and is_onscreen() returns True."""
+        mock_get_width.return_value = 200
+        mock_get_height.return_value = 100
+        # -33 means the actor is half offscreen.
+        a = Actor("alien", (-33, 10))
+        self.assertTrue(a.is_onscreen())
 
     def test_move_to_angle(self):
         """Ensure moving towards an arbitrary angle works."""
