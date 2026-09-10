@@ -1390,8 +1390,9 @@ be "standing on" something)::
     spaceship = Actor('spaceship', anchor=(10, 50))
 
 ``anchor`` is specified as a tuple ``(xanchor, yanchor)``, where the values can
-be floats or the strings ``left``, ``center``/``middle``, ``right``, ``top`` or
-``bottom`` as appropriate.
+be integers or floats for a pixel position relative to the top left corner of
+the actor image or the strings ``left``, ``center``/``middle``, ``right``,
+``top`` or ``bottom`` for automatic positions along an axis.
 
 
 .. _scale:
