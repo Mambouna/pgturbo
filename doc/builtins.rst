@@ -2198,10 +2198,16 @@ On screen or not
 
 There is a simple function to check whether an Actor is visible on the screen:
 
-.. method:: Actor.is_onscreen()
+.. method:: Actor.is_onscreen([margin, margin_y])
 
     Returns ``True`` if the Actor is currently inside the screen bounds and
     ``False`` if not.
+
+    If margins are provided via arguments, the screen will be interpreted as
+    that much larger on either side when checking if the actor is still
+    onscreen. If only one argument is given, that value is the margin in both
+    X and Y directions. If two arguments are given, the first is for the X
+    axis and the second for the Y axis.
 
 This can be useful if you have many game objects flying around the screen that
 should disappear as soon as they are out of sight.

@@ -873,10 +873,14 @@ class Actor:
         dy = ty - myy
         return sqrt(dx * dx + dy * dy)
 
-    def is_onscreen(self):
+    def is_onscreen(self, margin=0, margin_y=None):
         """Returns whether the Actor is within the screen bounds or not."""
-        return not (self.right < 0 or self.left > game.screen.get_width() or
-                    self.bottom < 0 or self.top > game.screen.get_height())
+        if not margin_y:
+            margin_y = margin
+        return not (self.right < -1 * margin
+                    or self.left > game.screen.get_width() + margin
+                    or self.bottom < -1 * margin_y
+                    or self.top > game.screen.get_height() + margin_y)
 
     def move_by_vel(self, scale=1.0):
         """Moves the position of the actor by its velocity. scale can be set
