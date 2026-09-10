@@ -830,14 +830,14 @@ class Actor:
         self.x += move_x
         self.y += move_y
 
-    def move_towards_point(self, point, distance, overshoot=False):
+    def move_towards_point(self, target, distance, overshoot=False):
         """Figure out the angle to the given point and then
         move the actor towards it by the given distance."""
-        angle = self.angle_to(point)
+        angle = self.angle_to(target)
         if overshoot:
             self.move_towards_angle(angle, distance)
         else:
-            m_distance = min(self.distance_to(point), distance)
+            m_distance = min(self.distance_to(target), distance)
             self.move_towards_angle(angle, m_distance)
 
     def move_forward(self, distance):

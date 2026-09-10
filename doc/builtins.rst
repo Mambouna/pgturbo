@@ -1994,13 +1994,15 @@ actors around their rotation easier, Pygame Turbo provides built-in functions.
     Moves the actor the given distance along the given angle.
 
 
-.. method:: Actor.move_towards_point(point, distance, [overshoot])
+.. method:: Actor.move_towards_point(target, distance, [overshoot])
 
-    Moves the actor the given distance towards the given point of X and Y.
+    Moves the actor the given distance towards the given target point. The
+    target can be either a position tuple of X and Y or another actor object.
+    If it is another actor, its position attribute is used as the target point.
 
     By default, if the distance to the point is smaller than the given
     distance, the actor will only move up to the point but not overshoot it.
-    If the optional parameter ``overshoot`` is given as True however, the
+    If the optional parameter ``overshoot`` is given as ``True`` however, the
     actor will move past the target point if the given distance is far enough.
 
 
