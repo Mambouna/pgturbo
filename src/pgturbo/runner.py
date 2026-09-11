@@ -3,7 +3,7 @@ from . import screen
 from . import clock
 from . import loaders
 from . import __version__
-from .game import PGZeroGame, DISPLAY_FLAGS
+from .game import PGTurboGame, DISPLAY_FLAGS
 from types import ModuleType
 from argparse import ArgumentParser
 import warnings
@@ -24,7 +24,7 @@ pygame.init()
 # The lines below ensure there is a valid display created directly when the
 # import of pgtrun happens, meaning any Actor definitions or image operations
 # in the game code can run successfully.
-PGZeroGame.show_default_icon()
+PGTurboGame.show_default_icon()
 pygame.display.set_mode(
     (100, 100),
     flags=(DISPLAY_FLAGS & ~pygame.SHOWN) | pygame.HIDDEN,
@@ -175,7 +175,7 @@ You can also run a specific file with:
         exec(code, mod.__dict__)
 
     pygame.display.init()
-    PGZeroGame.show_default_icon()
+    PGTurboGame.show_default_icon()
     try:
         run_mod(mod, fps=fps)
     finally:
@@ -208,7 +208,7 @@ def temp_window():
 
     """
     # An icon needs to exist before the window is created.
-    PGZeroGame.show_default_icon()
+    PGTurboGame.show_default_icon()
     pygame.display.set_mode(
         (100, 100),
         flags=(DISPLAY_FLAGS & ~pygame.SHOWN) | pygame.HIDDEN,
@@ -247,4 +247,4 @@ def prepare_mod(mod):
 
 def run_mod(mod, **kwargs):
     """Run the module."""
-    PGZeroGame(mod, **kwargs).run()
+    PGTurboGame(mod, **kwargs).run()

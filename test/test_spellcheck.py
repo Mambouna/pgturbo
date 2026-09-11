@@ -3,7 +3,7 @@ from pgturbo import spellcheck, game
 
 
 class SuggestionTest(TestCase):
-    HOOKS = spellcheck.HOOKS + list(game.PGZeroGame.EVENT_HANDLERS.values())
+    HOOKS = spellcheck.HOOKS + list(game.PGTurboGame.EVENT_HANDLERS.values())
 
     def assert_suggestions(self, w, candidates, expected):
         suggestions = spellcheck.suggest(w, candidates)
@@ -112,7 +112,7 @@ class SpellCheckerTest(TestCase):
 
     def spellcheck(self, namespace):
         spellcheck.spellcheck(namespace,
-                              list(game.PGZeroGame.EVENT_HANDLERS.values()),
+                              list(game.PGTurboGame.EVENT_HANDLERS.values()),
                               self.result)
 
     def test_misspelled_mousedown(self):
