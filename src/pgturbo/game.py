@@ -27,7 +27,9 @@ def exit():
         time.sleep(0.1)
         if time.time() - t0 > 1.0:
             break
-    sys.exit()
+    # We manually trigger a QUIT event so that user defined on_exit() is run.
+    e = pygame.event.Event(pygame.QUIT)
+    pygame.event.post(e)
 
 
 def positional_parameters(handler):
@@ -68,6 +70,8 @@ class PGTurboGame:
         self.mouse = pgturbo.mouse.mouse_instance
         self.joysticks = pgturbo.joystick.joysticks_instance
         self.handlers = {}
+        # Used to make sure we only run the on_exit() hook once.
+        self.exit_hook_called = False
 
     def reinit_screen(self) -> bool:
         """Reinitialise the window.
@@ -154,6 +158,7 @@ class PGTurboGame:
         pygame.JOYDEVICEADDED: "on_joy_added",
         pygame.JOYDEVICEREMOVED: "on_joy_removed",
         pygame.WINDOWRESIZED: "on_window_resized",
+        pygame.QUIT: "on_exit",
         constants.MUSIC_END: 'on_music_end'
     }
 
@@ -270,13 +275,22 @@ class PGTurboGame:
         finally:
             pygame.display.quit()
             pygame.mixer.quit()
+            # This is here to make sure the on_exit hook is called even if
+            # the program terminates from an Exception, but only once in case
+            # it's not from an Exception.
+            if self.handlers.get(pygame.QUIT) and not self.exit_hook_called:
+                e = pygame.event.Event(pygame.QUIT)
+                # Giving the event this attribute prevents the exit_cb from
+                # calling sys.exit(). Necessary since we want errors to
+                # propagate and be displayed.
+                e.dont_call_sys_exit = None
+                self.handlers[pygame.QUIT](e)
 
     def inject_global_handlers(self):
         """Inject handlers provide by the Pygame Turbo system.
 
         Some of these wrap user handlers so must be injected later.
         """
-        self.handlers[pygame.QUIT] = lambda e: sys.exit(0)
         self.handlers[pygame.VIDEOEXPOSE] = lambda e: None
 
         user_key_down = self.handlers.get(pygame.KEYDOWN)
@@ -290,11 +304,15 @@ class PGTurboGame:
         user_joy_added = self.handlers.get(pygame.JOYDEVICEADDED)
         user_joy_removed = self.handlers.get(pygame.JOYDEVICEREMOVED)
         user_window_resized = self.handlers.get(pygame.WINDOWRESIZED)
+        user_exit_cb = self.handlers.get(pygame.QUIT)
 
         def key_down(event):
             if event.key == pygame.K_q and \
                     event.mod & (pygame.KMOD_CTRL | pygame.KMOD_META):
-                sys.exit(0)
+                # We manually trigger a QUIT event so that user defined
+                # on_exit() is run.
+                e = pygame.event.Event(pygame.QUIT)
+                pygame.event.post(e)
             # Default key for screenshots is F12.
             if event.key == pygame.K_F12:
                 try:
@@ -409,6 +427,21 @@ class PGTurboGame:
             if user_window_resized:
                 return user_window_resized(event)
 
+        def exit_cb(event):
+            if user_exit_cb:
+                # This single user callback doesn't return its result since
+                # we close the game directly after calling it anyways and
+                # return would prevent sys.exit(0) from being executed.
+                user_exit_cb(event)
+                self.exit_hook_called = True
+            # Performance cost of hasattr() is irrelevant since we are exiting
+            # anyways and this check will only be performed once.
+            # Using an attr that calls or doesn't call sys.exit() based on
+            # its value doesn't work since we don't control QUIT events posted
+            # when the window X is clicked.
+            if not hasattr(event, "dont_call_sys_exit"):
+                sys.exit(0)
+
         self.handlers[pygame.KEYDOWN] = key_down
         self.handlers[pygame.KEYUP] = key_up
         self.handlers[pygame.MOUSEBUTTONDOWN] = mouse_down
@@ -421,6 +454,7 @@ class PGTurboGame:
         self.handlers[pygame.JOYDEVICEADDED] = joy_added
         self.handlers[pygame.JOYDEVICEREMOVED] = joy_removed
         self.handlers[pygame.WINDOWRESIZED] = window_resized
+        self.handlers[pygame.QUIT] = exit_cb
 
     def handle_events(self, dt, update) -> bool:
         """Handle all events for the current frame.
