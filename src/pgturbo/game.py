@@ -267,19 +267,18 @@ class PGTurboGame:
         """Invoke the main loop, and then clean up."""
         try:
             self.mainloop()
-        # We catch SystemExit here to prevent its traceback being printed if
-        # the user put arguments in their on_exit() definition, which raises
-        # the below TypeError and could thus confuse them.
-        except SystemExit:
-            pass
         finally:
             # Get the on_exit() callback function if it is defined and call it.
             exit_cb = getattr(self.mod, "on_exit", None)
             if exit_cb:
                 if exit_cb.__code__.co_argcount != 0:
+                    # Since the game exits via sys.exit(), it's likely there
+                    # is a traceback above the TypeError that could confuse
+                    # users. Because of this, we assure them it's fine.
                     raise TypeError(
                         "The on_exit() event hook function does not take any "
-                        "arguments."
+                        "arguments. NOTE: If there is a SystemExit traceback "
+                        "above this one, you can safely ignore it."
                     )
                 exit_cb()
             pygame.display.quit()
