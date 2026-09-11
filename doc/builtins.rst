@@ -108,6 +108,91 @@ draw images to the screen ("blit" them).
     All of the colours can be specified as ``(r, g, b)`` tuples, or by
     name, using one of :doc:`Pygame's colour names <colors_ref>`
 
+
+.. _game_window:
+
+Game window
+'''''''''''
+
+As noted before, the ``screen`` object is basically a Pygame surface to draw
+on, not a representation of the game window itself. The game window doesn't
+have its own builtin object. Instead you control it by setting some
+predetermined global variables::
+
+    WIDTH = 600
+    HEIGHT = 400
+    TITLE = "My own game"
+    ICON = "imagename"
+    FULLSCREEN = False
+    RESIZABLE = True
+
+The above are all the provided options to customize the game window. It is
+normal to set the basic options for your game at the start of your main file,
+but changing these variables while the game is running will change the game
+window in turn. This means you can for example change the fullscreen mode while
+the game is running::
+
+    def on_key_down(key):
+        global FULLSCREEN
+        if key == keys.SPACE:
+            FULLSCREEN = not FULLSCREEN
+
+*Note:* Because these variables are global, they have to be declared so when
+trying to change them from within a function. Without the ``global FULLSCREEN``
+at the start of the function, the above code would not work.
+
+To check any of the current settings, simply get the variable value as you
+would with any other::
+
+    def update():
+        if alien.x > WIDTH:
+            alien.x = 0
+
+Below is a more detailed explanation of each variable:
+
+.. attribute:: WIDTH
+
+    The width of the game window in pixels. Use integer values.
+
+.. attribute:: HEIGHT
+
+    The height of the game window in pixels. Use integer values.
+
+.. attribute:: TITLE
+
+    The text the game window displays as its name. Use string values.
+
+.. attribute:: ICON
+
+    The image to use as a small icon for the game window. Use a string value
+    for the image name as you would when creating an actor (just the name of
+    the file without the file extension text).
+
+    The image file needs to be in the ``images`` directory of your game.
+
+.. attribute:: FULLSCREEN
+
+    Whether the game window should be in fullscreen mode or not. Use ``True``
+    or ``False``.
+
+    When the game is in fullscreen mode, ``WIDTH`` and ``HEIGHT`` stay roughly
+    the same and all the visuals of your game are scaled up to display at
+    fullscreen resolution. This means you can keep your code the same without
+    worrying about how fullscreen mode changes the literal pixel resolution of
+    the game window.
+
+    The game window can't always stay at the exact same resolution as it was
+    when windowed, since displays have a fixed aspect ratio, but Pygame will
+    pick a resolution as close to the same as possible.
+
+.. attribute:: RESIZABLE
+
+    Whether the game window can be resized by dragging its edges with the
+    mouse. Use ``True`` or ``False``. If the game window is in fullscreen mode,
+    ``RESIZABLE`` is ignored, meaning only windows not in fullscreen mode can
+    be resizable.
+
+
 .. _rect:
 
 Rect

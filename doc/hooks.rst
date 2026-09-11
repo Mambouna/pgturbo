@@ -210,6 +210,7 @@ Game controllers also have their own events:
     :param instance_id: An integer identifying the device that was just
                         disconnected.
 
+One can be used when a music track finishes playing:
 
 .. function:: on_music_end()
 
@@ -217,6 +218,20 @@ Game controllers also have their own events:
     with ``music.stop()``.
 
     Note that this will not be called if the track is configured to loop.
+
+Another can be used to react to the size of the game window changing (for
+example because it is set to allow resizing):
+
+.. function:: on_window_resized([width, height])
+
+    Called when the game window has been resized (either by dragging its edges
+    with the mouse or by setting ``WIDTH`` or ``HEIGHT`` from code).
+
+    This function is also called when sizes change due to turning fullscreen
+    mode on or off.
+
+    :param width: The new width of the game window as an integer.
+    :param height: The new height of the game window as an integer.
 
 
 .. _buttons-and-keys:

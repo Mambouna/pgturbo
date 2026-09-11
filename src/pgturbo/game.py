@@ -59,6 +59,8 @@ class PGZeroGame:
         self.screen = None
         self.width = None
         self.height = None
+        self.fullscreen = None
+        self.resizable = None
         self.title = None
         self.icon = None
         self.fps = fps
@@ -70,23 +72,33 @@ class PGZeroGame:
     def reinit_screen(self) -> bool:
         """Reinitialise the window.
 
-        Return True if the dimensions of the screen changed.
+        Return True if the dimensions, fullscreen setting or resizable setting
+        of the screen changed.
 
         """
         global screen
         changed = False
         mod = self.mod
 
-        icon = getattr(self.mod, 'ICON', DEFAULTICON)
-        if icon and icon != self.icon:
-            self.show_icon()
-
         w = getattr(mod, 'WIDTH', 800)
         h = getattr(mod, 'HEIGHT', 600)
-        if w != self.width or h != self.height:
+        # Adds fullscreen flag for the used display if requested.
+        f = getattr(mod, "FULLSCREEN", False)
+        final_display_flags = DISPLAY_FLAGS
+        if f:
+            final_display_flags = final_display_flags | pygame.FULLSCREEN
+        # Adds support for resizable windows. Only allowed if not fullscreen.
+        r = getattr(mod, "RESIZABLE", False)
+        if r:
+            if f:
+                r = False
+            else:
+                final_display_flags = final_display_flags | pygame.RESIZABLE
+        if (w != self.width or h != self.height
+                or f != self.fullscreen or r != self.resizable):
             self.screen = pygame.display.set_mode(
                 (w, h),
-                DISPLAY_FLAGS,
+                final_display_flags,
                 vsync=1
             )
             pgturbo.screen.screen_instance._set_surface(self.screen)
@@ -95,11 +107,19 @@ class PGZeroGame:
             screen = self.screen
             self.width = w
             self.height = h
+            self.fullscreen = f
+            self.resizable = r
 
             # Dimensions changed, request a redraw
             changed = True
 
-        title = getattr(self.mod, 'TITLE', 'Pygame Turbo Game')
+        # Showing the icon had to be moved below window creation as otherwise
+        # setting any icon would crash the program.
+        icon = getattr(mod, 'ICON', DEFAULTICON)
+        if icon and icon != self.icon:
+            self.show_icon()
+
+        title = getattr(mod, 'TITLE', 'Pygame Turbo Game')
         if title != self.title:
             pygame.display.set_caption(title)
             self.title = title
@@ -133,6 +153,7 @@ class PGZeroGame:
         pygame.JOYBUTTONUP: "on_joy_up",
         pygame.JOYDEVICEADDED: "on_joy_added",
         pygame.JOYDEVICEREMOVED: "on_joy_removed",
+        pygame.WINDOWRESIZED: "on_window_resized",
         constants.MUSIC_END: 'on_music_end'
     }
 
@@ -268,6 +289,7 @@ class PGZeroGame:
         user_joy_move = self.handlers.get(pygame.JOYAXISMOTION)
         user_joy_added = self.handlers.get(pygame.JOYDEVICEADDED)
         user_joy_removed = self.handlers.get(pygame.JOYDEVICEREMOVED)
+        user_window_resized = self.handlers.get(pygame.WINDOWRESIZED)
 
         def key_down(event):
             if event.key == pygame.K_q and \
@@ -374,6 +396,19 @@ class PGZeroGame:
             if user_joy_removed:
                 return user_joy_removed(event)
 
+        def window_resized(event):
+            # Update the game's internal state.
+            self.width = event.x
+            self.height = event.y
+            # Update the user facing variables.
+            setattr(self.mod, "WIDTH", event.x)
+            setattr(self.mod, "HEIGHT", event.y)
+            # Setting the values that are translated to the user facing args.
+            event.width = event.x
+            event.height = event.y
+            if user_window_resized:
+                return user_window_resized(event)
+
         self.handlers[pygame.KEYDOWN] = key_down
         self.handlers[pygame.KEYUP] = key_up
         self.handlers[pygame.MOUSEBUTTONDOWN] = mouse_down
@@ -385,6 +420,7 @@ class PGZeroGame:
         self.handlers[pygame.JOYHATMOTION] = joy_hat
         self.handlers[pygame.JOYDEVICEADDED] = joy_added
         self.handlers[pygame.JOYDEVICEREMOVED] = joy_removed
+        self.handlers[pygame.WINDOWRESIZED] = window_resized
 
     def handle_events(self, dt, update) -> bool:
         """Handle all events for the current frame.
