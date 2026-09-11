@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import Mock
-from pgturbo.game import PGZeroGame
+from pgturbo.game import PGTurboGame
 from pgturbo.constants import mouse
 
 
@@ -13,7 +13,7 @@ class Event:
 
 class EventDispatchTest(unittest.TestCase):
     def setUp(self):
-        self.game = PGZeroGame(Mock())
+        self.game = PGTurboGame(Mock())
 
     def test_dispatch_handler(self):
         """The handler dispatch converts a button value to an enum."""

@@ -40,7 +40,7 @@ class DEFAULTICON:
     """Sentinel indicating that we want to use the default icon."""
 
 
-class PGZeroGame:
+class PGTurboGame:
     """The core game loop for Pygame Turbo.
 
     Dispatch events, call update functions, draw. Repeat.
