@@ -252,8 +252,8 @@ Example::
 Images
 ''''''
 
-Pygame Turbo can load images in ``.png``, ``.gif``, and ``.jpg`` formats. PNG is
-recommended: it will allow high quality images with transparency.
+Pygame Turbo can load images in ``.png``, ``.gif``, and ``.jpg`` formats. PNG
+is recommended: it will allow high quality images with transparency.
 
 We need to ensure an images directory is set up. If your project contains the
 following files::
@@ -521,22 +521,22 @@ or the displayed mouse cursor.
     .. attribute:: pressed
 
         Returns a tuple of three booleans for the left, middle and right
-        mouse buttons in order. True means the button is currently pressed.
+        mouse buttons in order. ``True`` means the button is currently pressed.
 
     .. attribute:: pressed_left
 
-        Returns True if the left mouse button is currently pressed,
-        False else.
+        Returns ``True`` if the left mouse button is currently pressed,
+        ``False`` else.
 
     .. attribute:: pressed_middle
 
-        Returns True if the middle mouse button is currently pressed,
-        False else.
+        Returns ``True`` if the middle mouse button is currently pressed,
+        ``False`` else.
 
     .. attribute:: pressed_right
 
-        Returns True if the right mouse button is currently pressed,
-        False else.
+        Returns ``True`` if the right mouse button is currently pressed,
+        ``False`` else.
 
     .. attribute:: pos
 
@@ -1137,6 +1137,8 @@ and the timeout period:
 
     .. method:: schedule(callback, delay, *args, **kwargs)
 
+        .. Comment to disable wrong syntax highlighting.*
+
         Schedule `callback` to be called after the given delay.
 
         Repeated calls will schedule the callback repeatedly.
@@ -1156,6 +1158,8 @@ and the timeout period:
                        be passed on.
 
     .. method:: schedule_unique(callback, delay, *args, **kwargs)
+
+        .. Comment to disable wrong syntax highlighting.**
 
         Schedule `callback` to be called once after the given delay.
 
@@ -1179,6 +1183,8 @@ and the timeout period:
 
     .. method:: schedule_interval(callback, interval, *args, **kwargs)
 
+        .. Comment to disable wrong syntax highlighting.*
+
         Schedule `callback` to be called repeatedly.
 
         Calling with ``absolute=True`` will schedule the callback such that it
@@ -1195,6 +1201,8 @@ and the timeout period:
                        be passed on.
 
     .. method:: unschedule(callback, *args, **kwargs)
+
+        .. Comment to disable wrong syntax highlighting.*
 
         Unschedule only the callback with the given arguments if it has
         been previously scheduled (either because it had been scheduled with
@@ -1282,9 +1290,11 @@ will have to keep a reference to the object.
 
         :param absolute: Boolean of whether to return all the absolute
                          timestamps instead of the ones affected by timescale.
-                         Default is False.
+                         Default is ``False``.
 
     .. method:: track_ready(*args)
+
+        .. Comment to disable wrong syntax highlighting.*
 
         Adds one or multiple ready timers that the clock can return and
         time out. If given one string and one number, a single ready timer is
@@ -1354,9 +1364,9 @@ Actors
 
 Once you have many images moving around in a game it can be convenient to have
 something that holds in one place the image and where it is on screen. We'll
-call each moving image on screen an ``Actor``. You can create an actor by supplying
-at least an image name (from the images folder above). To draw the alien talked
-about above::
+call each moving image on screen an ``Actor``. You can create an actor by
+supplying at least an image name (from the images folder above). To draw the
+alien talked about above::
 
     alien = Actor('alien', (50, 50))
 
@@ -1853,6 +1863,8 @@ learn about all of them in the method reference below.
 
 .. method:: anim.edit(name, **kwargs):
 
+    .. Comment to disable wrong syntax highlighting.**
+
     Edits the settings of an existing animation. You can edit any of the
     optional parameters of an animation: durations, offsets, sound, callback
     and new_base.
@@ -1865,6 +1877,8 @@ learn about all of them in the method reference below.
     :param name: The name of the animation that should be edited.
 
 .. method:: anim.edit_queue(name, **kwargs):
+
+    .. Comment to disable wrong syntax highlighting.**
 
     Edits the settings of an existing queue. You can edit any of the
     optional parameters of a queue: sound, callback and new_base. Additionaly,
@@ -2346,6 +2360,8 @@ screen to the position ``(100, 100)``::
 
 .. function:: animate(object, tween='linear', duration=1, on_finished=None, **targets)
 
+    .. Comment to disable wrong syntax highlighting.**
+
     Animate the attributes on object from their current value to that
     specified in the targets keywords.
 
@@ -2391,7 +2407,7 @@ The ``animate()`` function returns an ``Animation`` instance:
 
     .. attribute:: running
 
-        This will be True if the animation is running. It will be False
+        This will be ``True`` if the animation is running. It will be ``False``
         when the duration has run or the ``stop()`` method was called before
         then.
 
