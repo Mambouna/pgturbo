@@ -216,11 +216,9 @@ class StorageTest(unittest.TestCase):
             json_mock.return_value = ""
             self.storage.setup({"a": "hi"})
         self.assertEqual(self.storage["a"], "hi")
-        # open() should have been called twice, once for load() and once for
-        # save() in setup().
-        self.assertEqual(mock_file.call_count, 2)
-        handle = mock_file()
-        handle.write.assert_called_once_with('{"a": "hi"}')
+        # open() should have been called once to try and load a previously
+        # saved state.
+        mock_file.assert_called_once()
 
     def test_setup_with_data_before(self):
         """We can use setup and it will create new keys but not overwrite
@@ -230,9 +228,7 @@ class StorageTest(unittest.TestCase):
             self.storage.setup({"a": "hi", "b": "c"})
         self.assertEqual(self.storage["a"], "bye")
         self.assertEqual(self.storage["b"], "c")
-        self.assertEqual(mock_file.call_count, 2)
-        handle = mock_file()
-        handle.write.assert_called_once_with('{"a": "bye", "b": "c"}')
+        mock_file.assert_called_once()
 
     def test_overwrite_with_empty_before(self):
         """We can use storage.overwrite() to quickly set all values of

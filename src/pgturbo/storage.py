@@ -61,6 +61,10 @@ class Storage(dict):
                             "the types float, int, string, boolean, list, "
                             "tuple, dict or None, not of type {}."
                             .format(type(value)))
+        # If the value is the same as before, we return early (preventing
+        # unnecessary autosaving).
+        if key in self and value == self[key]:
+            return
         # Make the actual change to the dict.
         super().__setitem__(key, value)
         # Then, only if automatic saves are enabled, we save to file.
@@ -184,7 +188,7 @@ class Storage(dict):
 
     def setup(self, defaults):
         """Function to use for initial setup of storage for a game. Loads
-        storage, sets all given defaults, then saves."""
+        storage and then sets all given defaults."""
         prev_autosave_setting = self._autosave
         self._autosave = False
         self.load()
@@ -198,7 +202,6 @@ class Storage(dict):
         for key, value in defaults.items():
             self.setdefault(key, value)
 
-        self._save(False)
         self._autosave = prev_autosave_setting
 
     def overwrite(self, new_state):
