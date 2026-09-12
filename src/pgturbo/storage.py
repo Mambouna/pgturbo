@@ -52,6 +52,36 @@ class Storage(dict):
         self.loaded = False
         self._save_file = filename
         self.storages.append(self)
+        self._autosave = False
+
+    def __setitem__(self, key, value):
+        """We override this to allow automatically saving after any change."""
+        if not isinstance(value, self.ALL_JSON_SERIALIZABLES):
+            raise TypeError("The storage builtin can only contain values of "
+                            "the types float, int, string, boolean, list, "
+                            "tuple, dict or None, not of type {}."
+                            .format(type(value)))
+        # If the value is the same as before, we return early (preventing
+        # unnecessary autosaving).
+        if key in self and value == self[key]:
+            return
+        # Make the actual change to the dict.
+        super().__setitem__(key, value)
+        # Then, only if automatic saves are enabled, we save to file.
+        if self._autosave:
+            self._save(False)
+
+    @property
+    def autosave(self):
+        return self._autosave
+
+    @autosave.setter
+    def autosave(self, value):
+        if value in (True, False, 0, 1):
+            self._autosave = value
+        else:
+            raise TypeError("storage.autosave must be one of True, False, 0 "
+                            "or 1.")
 
     @classmethod
     def save_all(cls):
@@ -118,7 +148,7 @@ class Storage(dict):
             self.update(data)
             self.loaded = True
 
-    def save(self):
+    def _save(self, print_save_info):
         """Save data to disk."""
         if not self and not self.loaded:
             return
@@ -148,12 +178,55 @@ class Storage(dict):
             path = self.path
             with open(path, 'w+') as f:
                 f.write(data)
-            print("Saved storage to", path)
+            if print_save_info:
+                print("Saved storage to", path)
+
+    def save(self):
+        """User facing save function. Just calls the internal one with the
+        arg to print a save indication."""
+        self._save(True)
+
+    def setup(self, defaults):
+        """Function to use for initial setup of storage for a game. Loads
+        storage and then sets all given defaults."""
+        prev_autosave_setting = self._autosave
+        self._autosave = False
+        self.load()
+
+        if not isinstance(defaults, dict):
+            raise TypeError("storage.setup() takes a single dictionary with "
+                            "key value pairs to put into storage as defaults, "
+                            "not a {}.".format(type(defaults)))
+
+        # Going through all defaults in the given dict and setting them.
+        for key, value in defaults.items():
+            self.setdefault(key, value)
+
+        self._autosave = prev_autosave_setting
+
+    def overwrite(self, new_state):
+        """Used to completely overwrite storage with the given dictionary.
+        Can be used to reset storage to an initial state, for example when
+        starting a new game or similar."""
+        prev_autosave_setting = self._autosave
+        self._autosave = False
+        self.clear()
+
+        if not isinstance(new_state, dict):
+            raise TypeError("storage.reset() takes a single dictionary with "
+                            "key value pairs to overwrite storage with, "
+                            "not a {}.".format(type(new_state)))
+
+        self.update(new_state)
+
+        self._autosave = prev_autosave_setting
 
     # Constants for use with isinstance in _get_json_error_keys()
     JSON_PRIMITIVES = (float, int, str, bool, type(None))
     JSON_SEQ = (list, tuple)
     JSON_MAPPING = dict
+
+    ALL_JSON_SERIALIZABLES = JSON_PRIMITIVES + JSON_SEQ + (JSON_MAPPING, )
 
     @classmethod
     def _get_json_error_keys(cls, obj, json_path='storage'):

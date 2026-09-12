@@ -252,8 +252,8 @@ Example::
 Images
 ''''''
 
-Pygame Turbo can load images in ``.png``, ``.gif``, and ``.jpg`` formats. PNG is
-recommended: it will allow high quality images with transparency.
+Pygame Turbo can load images in ``.png``, ``.gif``, and ``.jpg`` formats. PNG
+is recommended: it will allow high quality images with transparency.
 
 We need to ensure an images directory is set up. If your project contains the
 following files::
@@ -521,22 +521,22 @@ or the displayed mouse cursor.
     .. attribute:: pressed
 
         Returns a tuple of three booleans for the left, middle and right
-        mouse buttons in order. True means the button is currently pressed.
+        mouse buttons in order. ``True`` means the button is currently pressed.
 
     .. attribute:: pressed_left
 
-        Returns True if the left mouse button is currently pressed,
-        False else.
+        Returns ``True`` if the left mouse button is currently pressed,
+        ``False`` else.
 
     .. attribute:: pressed_middle
 
-        Returns True if the middle mouse button is currently pressed,
-        False else.
+        Returns ``True`` if the middle mouse button is currently pressed,
+        ``False`` else.
 
     .. attribute:: pressed_right
 
-        Returns True if the right mouse button is currently pressed,
-        False else.
+        Returns ``True`` if the right mouse button is currently pressed,
+        ``False`` else.
 
     .. attribute:: pos
 
@@ -1137,6 +1137,8 @@ and the timeout period:
 
     .. method:: schedule(callback, delay, *args, **kwargs)
 
+        .. Comment to disable wrong syntax highlighting.*
+
         Schedule `callback` to be called after the given delay.
 
         Repeated calls will schedule the callback repeatedly.
@@ -1156,6 +1158,8 @@ and the timeout period:
                        be passed on.
 
     .. method:: schedule_unique(callback, delay, *args, **kwargs)
+
+        .. Comment to disable wrong syntax highlighting.**
 
         Schedule `callback` to be called once after the given delay.
 
@@ -1179,6 +1183,8 @@ and the timeout period:
 
     .. method:: schedule_interval(callback, interval, *args, **kwargs)
 
+        .. Comment to disable wrong syntax highlighting.*
+
         Schedule `callback` to be called repeatedly.
 
         Calling with ``absolute=True`` will schedule the callback such that it
@@ -1195,6 +1201,8 @@ and the timeout period:
                        be passed on.
 
     .. method:: unschedule(callback, *args, **kwargs)
+
+        .. Comment to disable wrong syntax highlighting.*
 
         Unschedule only the callback with the given arguments if it has
         been previously scheduled (either because it had been scheduled with
@@ -1282,9 +1290,11 @@ will have to keep a reference to the object.
 
         :param absolute: Boolean of whether to return all the absolute
                          timestamps instead of the ones affected by timescale.
-                         Default is False.
+                         Default is ``False``.
 
     .. method:: track_ready(*args)
+
+        .. Comment to disable wrong syntax highlighting.*
 
         Adds one or multiple ready timers that the clock can return and
         time out. If given one string and one number, a single ready timer is
@@ -1354,9 +1364,9 @@ Actors
 
 Once you have many images moving around in a game it can be convenient to have
 something that holds in one place the image and where it is on screen. We'll
-call each moving image on screen an ``Actor``. You can create an actor by supplying
-at least an image name (from the images folder above). To draw the alien talked
-about above::
+call each moving image on screen an ``Actor``. You can create an actor by
+supplying at least an image name (from the images folder above). To draw the
+alien talked about above::
 
     alien = Actor('alien', (50, 50))
 
@@ -1853,6 +1863,8 @@ learn about all of them in the method reference below.
 
 .. method:: anim.edit(name, **kwargs):
 
+    .. Comment to disable wrong syntax highlighting.**
+
     Edits the settings of an existing animation. You can edit any of the
     optional parameters of an animation: durations, offsets, sound, callback
     and new_base.
@@ -1865,6 +1877,8 @@ learn about all of them in the method reference below.
     :param name: The name of the animation that should be edited.
 
 .. method:: anim.edit_queue(name, **kwargs):
+
+    .. Comment to disable wrong syntax highlighting.**
 
     Edits the settings of an existing queue. You can edit any of the
     optional parameters of a queue: sound, callback and new_base. Additionaly,
@@ -2346,6 +2360,8 @@ screen to the position ``(100, 100)``::
 
 .. function:: animate(object, tween='linear', duration=1, on_finished=None, **targets)
 
+    .. Comment to disable wrong syntax highlighting.**
+
     Animate the attributes on object from their current value to that
     specified in the targets keywords.
 
@@ -2391,7 +2407,7 @@ The ``animate()`` function returns an ``Animation`` instance:
 
     .. attribute:: running
 
-        This will be True if the animation is running. It will be False
+        This will be ``True`` if the animation is running. It will be ``False``
         when the duration has run or the ``stop()`` method was called before
         then.
 
@@ -2449,96 +2465,222 @@ This could be used in a Pygame Turbo program like this::
 Data Storage
 ------------
 
-The ``storage`` object behaves just like a Python dictionary but its contents
-are preserved across game sessions. The values you assign to storage will be
-saved as JSON_, which means you can only store certain types of objects in it:
-``list``/``tuple``, ``dict``, ``str``, ``float``/``int``, ``bool``, and
-``None``.
+The ``storage`` builtin behaves just like a Python dictionary but its contents
+can be preserved across game sessions by saving them to a file. The values you
+assign to storage will be saved as JSON_, which means you can only store
+certain types of objects in it: ``list``/``tuple``, ``dict``, ``str``,
+``float``/``int``, ``bool``, and ``None``.
 
 .. _JSON: https://en.wikipedia.org/wiki/JSON
 
-The ``storage`` for a game is initially empty. Your code will need to handle
-the case that values are loaded as well as the case that no values are found.
 
-A tip is to use ``setdefault()``, which inserts a default if there is no value
-for the key, but does nothing if there is.
+Setting up storage
+''''''''''''''''''
 
-For example, we could write::
+The ``storage`` for a game is initially empty. So first, you will want to see
+if there is any data that can be loaded from disk::
 
-    storage.setdefault('highscore', 0)
+    storage.load()
 
-After this line is executed, ``storage['highscore']`` will contain a value -
-``0`` if there was no value loaded, or the loaded value otherwise. You could
-add all of your ``setdefault`` lines towards the top of your game, before
-anything else looks at ``storage``::
+This will check if there a saved data file associated with your game and if
+there is, it will load its contents into the ``storage`` builtin.
 
-    storage.setdefault('level', 1)
-    storage.setdefault('player_name', 'Anonymous')
-    storage.setdefault('inventory', [])
+If a file was loaded and none of the keys have changed, this is everything you
+need. But what if there was no file? You don't want to have to check whether
+a key is in storage every time you need to access something in your game.
 
-Now, during gameplay we can update some values::
+To help with this, you can use ``storage.setdefault(key, value)``. This method
+checks if ``key`` is already in ``storage``. If yes, it does nothing. Only if
+the key doesn't exist yet, ``setdefault()`` will put it in ``storage`` and save
+the associated ``value`` for that key.
+
+To make sure we can always access a score from ``storage`` for example, we
+could put the following code at the start of our game program::
+
+    storage.load()
+    storage.setdefault("highscore", 0)
+
+First, we load from disk. If there was a file storing a previous highscore, it
+is now loaded and won't be overwritten by ``setdefault()``. But if there was
+no file before, we now have ``highscore`` with the value ``0`` in ``storage``
+and can safely access ``storage["highscore"]`` anywhere in our game.
+
+To setup your game's persistent data, you could use ``setdefault()`` multiple
+times, once for each key and value that should be stored::
+
+    storage.load()
+    storage.setdefault("highscore", 0)
+    storage.setdefault("player_name", "Unnamed")
+    storage.setdefault("last_scores", [])
+
+This is a good way to initialize your ``storage``, but since it can be a lot of
+typing, there is a simpler way::
+
+    storage.setup({
+        "highscore": 0,
+        "player_name": "Unnamed",
+        "last_scores": [],
+    })
+
+``storage.setup(defaults)`` is a convenience method that just makes the process
+of loading and then using ``setdefault()`` multiple times above a bit easier.
+It takes a dictionary of keys and values as an argument, loads from disk and
+then just runs ``setdefault()`` once for each key value pair in the dictionary.
+
+
+Manipulating and reading storage
+''''''''''''''''''''''''''''''''
+
+After ``storage`` is properly initialized, it's used just like a dictionary
+as mentioned above. For example, we can easily update some values::
 
     if player.colliderect(mushroom):
         score += 5
-        if score > storage['highscore']:
-            storage['highscore'] = score
+        if score > storage["highscore"]:
+            storage["highscore"] = score
 
-You can read them back at any time::
+Reading the current value of some item in storage is just as easy::
 
     def draw():
-        ...
-        screen.draw.text('Highscore: ' + storage['highscore'], ...)
+        # ...
+        screen.draw.text("Highscore: " + str(storage["highscore"]), ...)
 
-...and of course, they'll be preserved when the game next launches.
 
-These are some of the most useful methods of ``storage``:
+Saving to disk
+''''''''''''''
+
+At a checkpoint or based on some other factor in the game, you'll want to save
+the current state of the ``storage`` dict back to disk::
+
+    storage.save()
+
+That's it, simple as could be.
+
+In many cases, it's fine to save manually, but sometimes you might want to
+save any change to disk immediately. For this, you can enable autosave mode for
+``storage``::
+
+    storage.autosave = True
+
+This is best done at the start of the program, for example directly before or
+after ``storage.setup()``. When ``storage.autosave`` is ``True``, whenever a
+value is set with ``storage[key] = value``, a save is automatically triggered
+right afterwards.
+
+
+Setting a specific storage state
+''''''''''''''''''''''''''''''''
+
+We know how to load, setup, change and save ``storage``, but what if we need
+to set all its contents to a specific state? For example, a new game was
+started so everything should go back to a starting point.
+
+We can't use ``setup()`` or ``setdefault()`` for this, since they won't change
+values that already exist in ``storage``. Instead, we can use another method::
+
+    storage.overwrite({
+        "highscore": 0,
+        "player_name": "Unknown",
+        "last_scores": [],
+    })
+
+This looks very similar to using ``setup()`` above. The difference is that
+``storage.overwrite(new_state)`` erases everything that was previously in
+``storage`` and then fills it with the data from the dictionary argument given.
+
+* For getting everything ready at the start of the game: ``storage.setup()``.
+* For resetting the state of ``storage`` to a specific point while deleting
+  everything previously saved: ``storage.overwrite()``.
+
+If you ever get the state of ``storage`` mixed up in some way with old keys
+and values hanging around or are otherwise stumped, you can always completely
+erase everything with ``storage.clear()``. Note this does not save
+automatically, so if you want to reset the file on disk as well you'll need to
+do the following::
+
+    storage.clear()
+    storage.save()
+
+Below are all the methods of ``storage``:
 
 .. class:: Storage(dict)
 
     .. method:: storage[key] = value
 
-        Set a value in the storage.
+        Set the value of `key` in the storage to `value`.
+
+        If ``storage.autosave`` is ``True``, this will trigger saving to disk.
 
     .. method:: storage[key]
 
-        Get a value from the storage. Raise KeyError if there is no such key
-        in the storage.
-
-    .. method:: setdefault(key, default)
-
-        Insert a default value into the storage, only if no value already
-        exists for this key.
-
-    .. method:: get(key, default=None)
-
-        Get a value from the storage. If there is no such key, return default,
-        or None if no default was given.
-
-    .. method:: clear()
-
-        Remove all stored values. Use this if you get into a bad state.
-
-    .. method:: save()
-
-        Saves the data to disk now. You don't usually need to call this, unless
-        you're planning on using ``load()`` to reload a checkpoint, for
-        example.
+        Get a value from the storage. Raise ``KeyError`` if there is no such
+        `key` in the storage.
 
     .. method:: load()
 
-        Reload the contents of the storage with data from the save file. This
-        will replace any existing data in the storage.
+        Loads the data from a file on disk and into the ``storage`` dictionary.
+
+        Note this erases any data that was in ``storage`` before.
+
+    .. method:: save()
+
+        Saves the data in ``storage`` to disk.
+
+    .. method:: setdefault(key, value)
+
+        Insert a default `value` into the storage, only if no value already
+        exists for this `key`.
+
+    .. method:: setup(defaults)
+
+        Loads the data saved on disk into ``storage`` and then runs
+        ``setdefault()`` for every key value pair in the given `defaults`
+        dictionary.
+
+        This means existing key value pairs are left alone while new ones
+        are inserted into ``storage`` from the provided key value pairs.
+
+        Use this as a shorthand for the following::
+
+            storage.load()
+            storage.setdefault(key1, value1)
+            storage.setdefault(key2, value2)
+            # ...
+
+    .. method:: overwrite(new_state)
+
+        Erases all data in ``storage`` and then fills it with the key value
+        pairs from the given `new_state` dictionary.
+
+        The difference to ``setup()`` is that this will not leave existing
+        key value pairs alone but instead forces the ``storage`` data to be
+        exactly the same as that of `new_state` after being run.
+
+    .. method:: clear()
+
+        Remove all stored values. Use this if you get into a bad state somehow.
+
+        Note you still have to save after using ``clear()`` if you want the
+        bad state to be removed from the file on disk as well.
+
+    .. method:: get(key, [default])
+
+        Get a value from the storage. If there is no such `key`, return
+        the value of `default` or ``None`` if no default was given.
+
+        If you set up your storage well at the start of the program, this
+        method should not usually be needed.
 
     .. attribute:: path
 
-        The actual path to which the save data will be written.
+        Returns the actual path to which the save data will be written on disk.
 
 
 .. caution::
 
     As you make changes to your game, ``storage`` could contain values that
     don't work with your current code. You can either check for this, or call
-    ``.clear()`` to remove all old values, or delete the save game file.
+    ``storage.clear()`` to remove all old values, or delete the save game file.
 
 
 .. tip::
