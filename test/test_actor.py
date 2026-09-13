@@ -1022,7 +1022,7 @@ class ActorTest(unittest.TestCase):
         # reflect rotation.
         a2._build_transformed_surf()
         # Collision is detected.
-        self.assertIsNotNone(a1.collidemask(a2))
+        self.assertTrue(a1.collidemask(a2))
 
     def test_mask_no_collision(self):
         """Even if rects overlap, masks correctly report no collision if no
@@ -1034,7 +1034,31 @@ class ActorTest(unittest.TestCase):
         a2._build_transformed_surf()
         a2.pos = (10, 87)
         # No collision is detected.
-        self.assertIsNone(a1.collidemask(a2))
+        self.assertFalse(a1.collidemask(a2))
+
+    def test_mask_wrong_arg_errors(self):
+        """If given a bad argument, a descriptive error is thrown."""
+        a = Actor("alien")
+        with self.assertRaises(TypeError):
+            a.collidemask("fourteen")
+
+    def test_mask_point_collision(self):
+        """Collisions with masks are also available for points."""
+        a = Actor("alien", topleft=(0,0))
+        self.assertTrue(a.collidemask((10, 10)))
+
+    def test_mask_point_no_collision(self):
+        """If the point is not a set bit on the mask, no collision is
+        reported."""
+        a = Actor("alien", topleft=(0,0))
+        self.assertFalse(a.collidemask((5, 5)))
+
+    def test_mask_point_wrong_arg_errors(self):
+        """Even if given a tuple, the position is still properly checked and
+        an error thrown if invalid."""
+        a = Actor("alien")
+        with self.assertRaises(TypeError):
+            a.collidemask((10, 10, 10))
 
     @patch("pgturbo.clock.ReadyTimerSystem")
     def test_ready_timer_calls_passed_on(self, rts_mock):
