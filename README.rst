@@ -65,6 +65,8 @@ New features
   tracking if triggerable thing or cooldown is ready far easier.
 * Take screenshots with F12 in the game window or manually from code with
   ``screen.screenshot()``.
+* An ``on_exit()`` event hook that runs before the PGTurbo game quits, be it on
+  purpose or from an error.
 
 
 Feature enhancements
@@ -95,6 +97,10 @@ Feature enhancements
   ``clock.timescale``.
 * Aligned usage of ``music`` builtin with the other resource loaders for less
   friction in use.
+* New ``FULLSCREEN`` and ``RESIZABLE`` global variables that control game
+  window properties like ``WIDTH`` and ``HEIGHT`` do.
+* Enhancements of the ``storage`` builtin: an autosaving mode, and ``setup()``
+  and ``overwrite()`` methods that make working with persistent data easier.
 
 
 Bug fixes
@@ -105,6 +111,10 @@ Bug fixes
   ``pgtrun`` and using ``pgtrun.go()`` at the end of the game file led to a
   crash because no display was initialized when image operations are performed
   by PGTurbo.
+* Fixed a bug where ``storage`` would not correctly ensure its target directory
+  and file existed when trying to load and save.
+* Fixed a bug where generated tones played for the wrong duration.
+* Fixed a bug where mouse wheel input could crash the program.
 
 
 Dependencies

@@ -114,6 +114,8 @@ draw images to the screen ("blit" them).
 Game window
 '''''''''''
 
+.. versionchanged:: 1.13
+
 As noted before, the ``screen`` object is basically a Pygame surface to draw
 on, not a representation of the game window itself. The game window doesn't
 have its own builtin object. Instead you control it by setting some
@@ -2295,6 +2297,10 @@ the actors, you can still do so just like with a normal Actor construction::
 On screen or not
 ''''''''''''''''
 
+.. versionadded:: 1.3
+
+.. versionchanged:: 1.13
+
 There is a simple function to check whether an Actor is visible on the screen:
 
 .. method:: Actor.is_onscreen([margin, margin_y])
@@ -2424,6 +2430,8 @@ Tone Generator
 
 .. versionadded:: 1.2
 
+.. versionchanged:: 1.13
+
 Pygame Turbo can play tones using a built-in synthesizer.
 
 .. function:: tone.play(tone, duration, [volume])
@@ -2504,6 +2512,8 @@ This could be used in a Pygame Turbo program like this::
 
 Data Storage
 ------------
+
+.. versionchanged:: 1.13
 
 The ``storage`` builtin behaves just like a Python dictionary but its contents
 can be preserved across game sessions by saving them to a file. The values you

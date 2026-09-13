@@ -233,6 +233,8 @@ example because it is set to allow resizing):
     :param width: The new width of the game window as an integer.
     :param height: The new height of the game window as an integer.
 
+.. versionadded:: 1.13
+
 The following event hook allows you to run code before the game exits (for
 example to save progress or similar).
 
