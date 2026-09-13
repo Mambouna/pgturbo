@@ -27,7 +27,12 @@ CHROMAS = {"C": 261.63, "C#": 277.18, "Db": 277.18, "D": 293.66, "D#": 311.13,
            "Eb": 311.13, "E": 329.63, "F": 349.23, "F#": 369.99, "Gb": 369.99,
            "G": 392, "G#": 415.3, "Ab": 415.3, "A": 440.0, "A#": 466.16,
            "Bb": 466.16, "B": 493.88}
-SAMPLERATE = 22050
+# Note this must always match the sample rate with which the pygame mixer is
+# initialized in runner.py.
+SAMPLERATE = 44100
+# Max value the generated sine waves reach. Effectively the volume cap for
+# generated tones, as full volume of the pygame Sound will match this value.
+AMPLITUDE = 4096
 
 
 # Custom note string validation as that came from pyfxr before.
@@ -90,14 +95,15 @@ def _play_thread():
         note.play()
 
 
-def create(*args, **kwargs):
+def create(tone, duration, volume=0.75):
     """Create a tone of a given duration at the given pitch.
 
     Return a Sound which can be played later.
 
     """
-    params = _convert_args(*args, **kwargs)
+    params = _convert_args(tone, duration, volume)
     with cache_lock:
+        pygame.mixer.init()
         return _create(params)
 
 
@@ -107,20 +113,21 @@ def _create(params):
     # Import numpy here so it doesn't hog resources if it's not used.
     import numpy
     # Numpy magic to generate a sine wave with the right parameters.
-    mono_tone = numpy.array([
-        4096 * numpy.sin(2.0 * numpy.pi * params.hz * x / SAMPLERATE)
-        for x in range(0, SAMPLERATE)
-    ]).astype(numpy.int16)
+    base_array = numpy.linspace(
+            0, params.duration, int(SAMPLERATE * params.duration), False
+    )
+    mono_tone_array = numpy.sin(base_array * params.hz * 2 * numpy.pi)
+    mono_tone_array = (mono_tone_array * AMPLITUDE).astype(numpy.int16)
     # The wave is mono but the next call expects stereo audio so we just
     # put the same wave on both channels.
-    stereo_tone = numpy.c_[mono_tone, mono_tone]
+    stereo_tone = numpy.c_[mono_tone_array, mono_tone_array]
     # This generates the actual sound object from the waveform.
     sound = pygame.sndarray.make_sound(stereo_tone)
     sound.set_volume(params.volume)
     return sound
 
 
-def _convert_args(pitch, duration, *, volume=0.8):
+def _convert_args(pitch, duration, volume):
     """Convert the given arguments to _create parameters."""
     if duration > MAX_DURATION:
         raise ValueError(
@@ -135,7 +142,7 @@ def _convert_args(pitch, duration, *, volume=0.8):
     return ToneParams(pitch, duration, volume)
 
 
-def play(*args, **kwargs):
+def play(tone, duration, volume=0.75):
     """Plays a tone of a certain length from a note or frequency in hertz.
 
     Tones have a maximum duration of 4 seconds. This limitation is imposed to
@@ -147,7 +154,7 @@ def play(*args, **kwargs):
 
     """
     global player_thread
-    params = _convert_args(*args, **kwargs)
+    params = _convert_args(tone, duration, volume)
     if not player_thread or not player_thread.is_alive():
         pygame.mixer.init()
         player_thread = Thread(target=_play_thread, daemon=True)

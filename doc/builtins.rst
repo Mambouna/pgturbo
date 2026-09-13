@@ -2426,31 +2426,39 @@ Tone Generator
 
 Pygame Turbo can play tones using a built-in synthesizer.
 
-.. function:: tone.play(pitch, duration)
+.. function:: tone.play(tone, duration, [volume])
 
-    Play a note at the given pitch for the given duration.
+    Play a note with a certain pitch for the given `duration` in seconds.
 
-    Duration is in seconds.
+    The `tone` can be specified as a number in which case it is the frequency
+    of the note in hertz (the literal pitch).
 
-    The `pitch` can be specified as a number in which case it is the frequency
-    of the note in hertz.
-
-    Alternatively, the pitch can be specified as a string representing a note
+    Alternatively, the `tone` can be specified as a string representing a note
     name and octave. For example:
 
     * ``'E4'`` would be E in octave 4.
     * ``'A#5'`` would be A-sharp in octave 5.
     * ``'Bb3'`` would be B-flat in octave 3.
 
+    In this case, the actual pitch is computed from the given string.
+
+    `volume` is a float between ``0.0`` and ``1.0`` and sets how loud the tone
+    will be played. The default for `volume` if not provided is ``0.75``.
+
+    Note that sound loudness is not perceived linearly by humans, so a
+    `volume` value half that of another will not sound half as loud to
+    your ears. Experiment to see what values work best for you.
+
+
 Creating notes, particularly long notes, takes time - up to several
 milliseconds. You can create your notes ahead of time so that this doesn't slow
 your game down while it is running:
 
-.. function:: tone.create(pitch, duration)
+.. function:: tone.create(tone, duration, [volume])
 
-    Create and return a Sound object.
+    Create and return a ``Sound`` object.
 
-    The arguments are as for play(), above.
+    The arguments are the same as for ``tone.play()`` above.
 
 This could be used in a Pygame Turbo program like this::
 
@@ -2458,6 +2466,38 @@ This could be used in a Pygame Turbo program like this::
 
     def on_mouse_down():
         beep.play()
+
+``Sound`` objects have a few function for you to use:
+
+.. method:: Sound.play()
+
+    Plays the sound.
+
+.. method:: Sound.stop()
+
+    Stops playback of the sound if it was running.
+
+.. method:: Sound.get_length()
+
+    Returns the length of the sound as a float in seconds.
+
+.. method:: Sound.get_volume()
+
+    Returns the volume the sound is set to.
+
+    *Note:* The returned value might be slightly different from the one you
+    set when creating the sound. This is because pygame internally represents
+    the volume with a value that has less precision than the float you used
+    creating it.
+
+    A sound created with ``0.6`` as the volume for example might return
+    ``0.59375`` when using ``.get_volume()``.
+
+.. method:: Sound.set_volume(value)
+
+    Sets the volume of the sound to a float between ``0.0`` and ``1.0``.
+
+    The same note about volume value precision as above applies here too.
 
 
 .. _data-storage:
