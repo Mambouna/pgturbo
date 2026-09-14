@@ -1034,6 +1034,10 @@ class Actor:
         return self._mask.overlap(target._mask, (x_offset, y_offset))
 
     def unload_image(self):
+        """NOT TO BE INCLUDED IN DOCS!
+
+        This method is misleadingly named and doesn't do what it implies.
+        It remains part of the codebase only for backward compatibility."""
         loaders.images.unload(self._image_name)
 
     def track_ready(self, *args):
