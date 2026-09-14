@@ -1044,13 +1044,13 @@ class ActorTest(unittest.TestCase):
 
     def test_mask_point_collision(self):
         """Collisions with masks are also available for points."""
-        a = Actor("alien", topleft=(0,0))
+        a = Actor("alien", topleft=(0, 0))
         self.assertTrue(a.collidemask((10, 10)))
 
     def test_mask_point_no_collision(self):
         """If the point is not a set bit on the mask, no collision is
         reported."""
-        a = Actor("alien", topleft=(0,0))
+        a = Actor("alien", topleft=(0, 0))
         self.assertFalse(a.collidemask((5, 5)))
 
     def test_mask_point_wrong_arg_errors(self):
