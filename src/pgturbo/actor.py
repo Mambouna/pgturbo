@@ -1033,9 +1033,6 @@ class Actor:
         # Check for pixel perfect collision
         return self._mask.overlap(target._mask, (x_offset, y_offset))
 
-    def unload_image(self):
-        loaders.images.unload(self._image_name)
-
     def track_ready(self, *args):
         """The following methods all simply pass on calls to the ready timer
         system. This is so the calls can be made to clock directly."""

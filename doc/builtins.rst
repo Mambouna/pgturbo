@@ -250,6 +250,22 @@ Example::
     loader.images.unload('cow')  # clears the cache of cow.png
     loader.images.unload_all()  # clears all cached image files
 
+Note that this will just remove the loaded resource from the loader builtin
+like ``images`` or ``sounds``. It will not remove the underlying sound or image
+entirely. For example, after unloading the ``cow.png`` image above from the
+loader, the actor still has the image loaded (because an actor without an image
+cannot exist and would crash the program).
+
+To actually free up the memory a resource file consumes in the program, the
+resource must be unloaded from the resource loader AND any other references to
+it must be removed. For actors, this could mean changing their image with
+``cow.image = "other_cow_img"`` or deleting the actor entirely with
+``del cow``.
+
+All of this is rather advanced though, so unless you are really getting in
+trouble from unavoidable memory consumption problems, it's usually best not to
+worry about and just leave everything in the resource loaders alone.
+
 
 Images
 ''''''
