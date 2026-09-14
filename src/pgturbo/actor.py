@@ -1007,14 +1007,36 @@ class Actor:
         else:
             self._mask = pygame.mask.from_surface(self._surface_cache[-1])
 
+    def _collidemask_point(self, target):
+        """Internal method that collidemask redirects to if target is a
+        position tuple. Checks whether the point is on the actor mask."""
+        validate_position_tuple(target)
+
+        if not self.collidepoint(target):
+            return False
+
+        if not self._mask:
+            self._create_mask()
+
+        x_offset = int(target[0] - self.left)
+        y_offset = int(target[1] - self.top)
+
+        return bool(self._mask.get_at((x_offset, y_offset)))
+
     def collidemask(self, target):
-        """Returns True if the actor's mask is colliding with the targets'.
+        """Returns True if the actor's mask is colliding with the target. The
+        target can be another actor or a position tuple.
+
         Masks are only created and checked when necessary."""
+
+        if isinstance(target, (tuple, list)):
+            return self._collidemask_point(target)
+
         # Check if the target is an actor and thus suitable.
         if not isinstance(target, Actor):
-            raise TypeError("collidemask() can only be used with other actors,"
-                            "not with a value of type '{}'."
-                            .format(type(target)))
+            raise TypeError("collidemask() can only be used with other actors "
+                            "or a position tuple like (X, Y), not with a "
+                            "value of type '{}'.".format(type(target)))
 
         # If the rects don't collide, exit early.
         if not self.colliderect(target):
@@ -1031,7 +1053,10 @@ class Actor:
         y_offset = int(target.top - self.top)
 
         # Check for pixel perfect collision
-        return self._mask.overlap(target._mask, (x_offset, y_offset))
+        if self._mask.overlap(target._mask, (x_offset, y_offset)):
+            return True
+        else:
+            return False
 
     def unload_image(self):
         loaders.images.unload(self._image_name)
