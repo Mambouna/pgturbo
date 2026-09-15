@@ -557,7 +557,7 @@ class JoystickManager:
     @property
     def ids(self):
         """Returns the currently available ids for joystick access."""
-        return tuple(self._sticks.keys())
+        return tuple(self._sticks)
 
     @property
     def last_used(self):

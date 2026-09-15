@@ -162,7 +162,7 @@ To handle mouse drags, use code such as the following::
 
 Game controllers also have their own events:
 
-.. _joystick-hooks:
+.. _joystick_hooks:
 
 .. function:: on_joy_down([joybtn], [instance_id])
 
