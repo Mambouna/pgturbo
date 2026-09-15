@@ -868,19 +868,19 @@ It automatically tracks connected devices and their inputs, so the only thing
 you need to think about it accessing the right controller. This works the
 following way::
 
-    if len(joysticks) >= 2:
-        cons = joysticks.keys()
-        player_1_con = joysticks[cons[0]]
-        player_2_con = joysticks[cons[1]]
+    if joysticks.num >= 2:
+        controller_ids = joysticks.ids
+        player_1_con = joysticks[controller_ids[0]]
+        player_2_con = joysticks[controller_ids[1]]
 
-Because ``joysticks`` works like a dictionary, you can get the number of
-connected devices with ``len(joysticks)``. ``joysticks.keys()`` gives you
-all IDs of the connected controllers. Since the IDs are the key for the
+``joysticks.num`` gives you the number of connected devices (although
+``len(joysticks)`` works just as well). ``joysticks.ids`` gives you all
+IDs of the connected controllers. Since the IDs are the key for the
 ``joysticks`` dictionary, you can get any Joystick object with
-``joysticks[instance_id]``. In this case, we assign the first two connected
-devices to player 1 and player 2 as their controllers. We save them in
-variables to have easier access to them later and if a device is disconnected,
-we can assign a different controller to that player.
+``joysticks[instance_id]``. In this case, we assign the first two
+connected devices to player 1 and player 2 as their controllers. We save
+them in variables to have easier access to them later and if a device is
+disconnected, we can assign a different controller to that player.
 
 Using specific joysticks works exactly the same as using ``joy``. Here's an
 example of how to differentiate controls between joysticks::
@@ -905,7 +905,7 @@ If a device is disconnected, an event is triggered that can be reacted
 to by defining an ``on_joy_removed()`` function. Here, we could assign
 ``player_1_con`` to a different joystick object, if the previous one is
 disconnected. More information on this can be found in the section on
-:ref:`joystick event hooks <joystick-hooks>`.
+:ref:`joystick event hooks <joystick_hooks>`.
 
 It's common to assign controllers based on which one was last used. To
 make this possible, ``joysticks.last_used`` returns the Joystick object
