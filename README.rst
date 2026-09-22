@@ -72,8 +72,8 @@ New features
 Feature enhancements
 ''''''''''''''''''''
 
-* Pixel perfect collision check between two actors via
-  ``actor1.collidemask(actor2)``.
+* Pixel perfect collision check between two actors or an actor and a point via
+  ``actor1.collidemask(target)``.
 * Scaling actors and flipping their images both independently for X and Y.
 * ``width`` and ``height`` are now proper gettable and settable properties for
   actors. Alternative properties allow reading the dimensions of the actors

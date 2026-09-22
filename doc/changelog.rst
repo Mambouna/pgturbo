@@ -36,8 +36,8 @@ New features
 Feature enhancements
 ''''''''''''''''''''
 
-* Pixel perfect collision check between two actors via
-  ``actor1.collidemask(actor2)``.
+* Pixel perfect collision check between two actors or an actor and a point via
+  ``actor1.collidemask(target)``.
 * Scaling actors and flipping their images both independently for X and Y.
 * ``width`` and ``height`` are now proper gettable and settable properties for
   actors. Alternative properties allow reading the dimensions of the actors
@@ -90,8 +90,15 @@ Dependencies
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
 
 
+1.14.0 - 2026-09-22
+-------------------
+
+Added support for a position tuple argument for mask-based collision method for
+actrs as well as minor documentation improvements.
+
+
 1.13.0 - 2026-09-13
---------------------
+-------------------
 
 - Added margin arguments for ``Actor.is_onscreen()``.
 - Added ``FULLSCREEN`` and ``RESIZABLE`` global variables to control game
@@ -106,7 +113,7 @@ Dependencies
 
 
 1.12.1 - 2026-07-04
---------------------
+-------------------
 
 Fixed an oversight in the documentation for adding sprite animations and queues
 for actors.

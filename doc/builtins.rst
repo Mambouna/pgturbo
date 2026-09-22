@@ -1419,6 +1419,8 @@ a lot more precise but also more work to check for. If coarse detection
 is fine, always use ``.colliderect()``. If you need high precision, use
 ``.collidemask()`` only where it is necessary.
 
+.. versionadded:: 1.14
+
 Instead of another actor, you can also give ``Actor.collidemask()`` a position
 tuple as an argument and it will check whether the position is on the actor
 mask. This might be useful for precisely checking if a mouse click hit an actor
