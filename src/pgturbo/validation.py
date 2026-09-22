@@ -4,7 +4,7 @@ def validate_position_tuple(value):
                  "used: ")
     try:
         x, y = value
-    except TypeError:
+    except (TypeError, ValueError):
         raise TypeError(error_msg + str(value))
     if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
         raise TypeError(error_msg + str(value))
