@@ -2387,7 +2387,7 @@ screen to the position ``(100, 100)``::
 
     animate(alien, pos=(100, 100))
 
-.. function:: animate(object, tween='linear', duration=1, on_finished=None, **targets)
+.. function:: animate(object, tween='linear', duration=1, on_finished=None, absolute=False, **targets)
 
     .. Comment to disable wrong syntax highlighting.**
 
@@ -2397,6 +2397,9 @@ screen to the position ``(100, 100)``::
     :param tween: The type of *tweening* to use.
     :param duration: The duration of the animation, in seconds.
     :param on_finished: Function called when the animation finishes.
+    :param absolute: Whether the property animation should ignore
+                     ``clock.timescale``. Default is ``False``, meaning that
+                     animate() will follow timescale.
     :param targets: The target values for the attributes to animate.
 
 The tween argument can be one of the following:

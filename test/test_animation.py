@@ -4,7 +4,7 @@ import gc
 import weakref
 
 from pgturbo.animation import animate
-from pgturbo import clock
+from pgturbo.clock import clock
 
 
 class TestObject:
@@ -12,6 +12,10 @@ class TestObject:
 
 
 class AnimationTest(TestCase):
+    def setUp(self):
+        clock.clear()
+        clock._timescale = 1.0
+
     def test_basic_animation(self):
         """Test that animation works"""
         obj = SimpleNamespace()
@@ -292,3 +296,49 @@ class AnimationTest(TestCase):
         # Ensure animation stopped and attr as expected.
         self.assertFalse(anim.running)
         self.assertEqual(test_obj.attr, expected_attr_val)
+
+    def test_animate_respects_timescale(self):
+        """Property animations follow clock.timescale."""
+        attr_start_val = 0
+        attr_finish_val = 1
+        anim_duration = 4.0
+        tick_duration = 3.0
+        test_obj = SimpleNamespace(attr=attr_start_val)
+        anim = animate(test_obj, duration=anim_duration, attr=attr_finish_val)
+        # At half timescale, it should take three ticks instead of two before
+        # the animation is finished.
+        clock.timescale = 0.5
+        clock.tick(tick_duration)
+        self.assertTrue(anim.running)
+        # The change in attribute value should also be slower.
+        self.assertEqual(test_obj.attr, 0.375)
+        clock.tick(tick_duration)
+        # The change in attribute value should also be slower.
+        self.assertEqual(test_obj.attr, 0.75)
+        self.assertTrue(anim.running)
+        clock.tick(tick_duration)
+        # Now it should have finished.
+        self.assertFalse(anim.running)
+        self.assertEqual(test_obj.attr, 1.0)
+
+    def test_animate_absolute_time(self):
+        """animate() can also be used in a way that is independent from
+        timescale."""
+        attr_start_val = 0
+        attr_finish_val = 1
+        anim_duration = 4.0
+        tick_duration = 3.0
+        test_obj = SimpleNamespace(attr=attr_start_val)
+        anim = animate(test_obj, duration=anim_duration, absolute=True,
+                       attr=attr_finish_val)
+        # We change time scale, but in this test it shouldn't change the
+        # property animation speed.
+        clock.timescale = 0.5
+        clock.tick(tick_duration)
+        self.assertTrue(anim.running)
+        # The change in attribute value should also be slower.
+        self.assertEqual(test_obj.attr, 0.75)
+        clock.tick(tick_duration)
+        # The change in attribute value should also be slower.
+        self.assertEqual(test_obj.attr, 1.0)
+        self.assertFalse(anim.running)

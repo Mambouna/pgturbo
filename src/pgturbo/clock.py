@@ -212,6 +212,7 @@ class Clock:
         self.events = []
         self.events_absolute = []
         self._each_tick = []
+        self._each_tick_absolute = []
         self._marks = {}
         self._ready_timer_system = ReadyTimerSystem()
         self._timescale = 1.0
@@ -301,6 +302,7 @@ class Clock:
         self._marks = {}
         self._ready_timer_system._clear()
         self._each_tick.clear()
+        self._each_tick_absolute.clear()
 
     def schedule(self, callback, delay, *args, **kwargs):
         """Schedule callback to be called once, at `delay` seconds from now.
@@ -375,6 +377,9 @@ class Clock:
         heapq.heapify(event_list)
 
         self._each_tick = [e for e in self._each_tick if e() != callback]
+        self._each_tick_absolute = [
+            e for e in self._each_tick_absolute if e() != callback
+        ]
 
     def unschedule(self, callback, *args, **kwargs):
         """Unschedule a callback with specified arguments."""
@@ -385,18 +390,27 @@ class Clock:
         specified arguments."""
         self._internal_unschedule(callback, False, absolute=absolute)
 
-    def each_tick(self, callback):
-        """Schedule a callback to be called every tick.
+    def each_tick(self, callback, absolute=False):
+        """Schedule a callback to be called every tick, either respecting
+        timescale or not.
 
         Unlike the standard scheduler functions, the callable is passed the
         elapsed clock time since the last call (the same value passed to tick).
 
         """
-        self._each_tick.append(mkref(callback))
+        if absolute:
+            self._each_tick_absolute.append(mkref(callback))
+        else:
+            self._each_tick.append(mkref(callback))
 
-    def _fire_each_tick(self, dt):
+    def _fire_each_tick(self, dt, absolute=False):
         dead = [None]
-        for r in self._each_tick:
+        if absolute:
+            et_list = self._each_tick_absolute
+        else:
+            et_list = self._each_tick
+            dt = dt * self._timescale
+        for r in et_list:
             cb = r()
             if cb is not None:
                 self.fired = True
@@ -406,7 +420,7 @@ class Clock:
                     import traceback
                     traceback.print_exc()
                     dead.append(cb)
-        self._each_tick = [e for e in self._each_tick if e() not in dead]
+        et_list = [e for e in et_list if e() not in dead]
 
     def _work_through_events(self, event_list, absolute):
         """Helper function that iterates through and triggers any necessary
@@ -438,7 +452,10 @@ class Clock:
         self.fired = False
         self._t += float(dt) * self._timescale
         self._absolute_t += float(dt)
+        # This run handles everything while respecting timescale.
         self._fire_each_tick(dt)
+        # This run handles everything that shouldn't use timescale.
+        self._fire_each_tick(dt, True)
 
         self._work_through_events(self.events, False)
         self._work_through_events(self.events_absolute, True)

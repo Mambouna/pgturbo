@@ -152,7 +152,7 @@ class Animation:
     _animation_dict = {}
 
     def __init__(self, object, tween='linear', duration=1, on_finished=None,
-                 **targets):
+                 absolute=False, **targets):
         self.targets = targets
         try:
             self.function = TWEEN_FUNCTIONS[tween]
@@ -167,6 +167,7 @@ class Animation:
                 raise KeyError('No tween called %s found.' % tween)
         self.duration = duration
         self.on_finished = on_finished
+        self.absolute = absolute
         self.t = 0
         self.object = object
         self.initial = {}
@@ -184,7 +185,7 @@ class Animation:
             if previous_animation is not None:
                 previous_animation._remove_target(k)
             self._animation_dict[key] = self
-        each_tick(self.update)
+        each_tick(self.update, self.absolute)
         self.animations.append(self)
 
     @property
