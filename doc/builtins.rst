@@ -2399,7 +2399,7 @@ screen to the position ``(100, 100)``::
     :param on_finished: Function called when the animation finishes.
     :param absolute: Whether the property animation should ignore
                      ``clock.timescale``. Default is ``False``, meaning that
-                     animate() will follow timescale.
+                     ``animate()`` will follow timescale.
     :param targets: The target values for the attributes to animate.
 
 The tween argument can be one of the following:
