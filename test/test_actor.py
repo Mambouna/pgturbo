@@ -866,7 +866,7 @@ class ActorTest(unittest.TestCase):
         self.assertAlmostEqual(a.vx, ((2 ** 0.5) / 2) * 5, delta=0.00001)
         self.assertAlmostEqual(a.vy, -1 * ((2 ** 0.5) / 2) * 5, delta=0.00001)
 
-    def test_velocity_towards_angle(self):
+    def test_velocity_towards_point(self):
         """We can get a scaled vector towards a point."""
         a = Actor("alien", (10, 10))
         a.vel = a.velocity_towards_point((20, 10), 1)
