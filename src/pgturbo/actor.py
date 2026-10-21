@@ -820,15 +820,11 @@ class Actor:
         """Move the actor a certain distance towards a certain
         angle. Does not change the actors angle property.
         All other functions for movement around angles use
-        this basic function."""
-        # Modulo of angle is there to prevent invalid angles leading to
-        # incorrect movement because of wrong radian values messing up
-        # the calculation.
-        rad_angle = radians(angle % 360)
-        move_x = cos(rad_angle) * distance
-        move_y = -1 * sin(rad_angle) * distance
-        self.x += move_x
-        self.y += move_y
+        this basic function. It itself depends on the function that
+        calculates a position change tuple for velocity purposes."""
+        vel = self.velocity_towards_angle(angle, distance)
+        self.x += vel[0]
+        self.y += vel[1]
 
     def move_towards_point(self, target, distance, overshoot=False):
         """Figure out the angle to the given point and then
@@ -891,6 +887,23 @@ class Actor:
                             " float, not {}.".format(type(scale)))
         self.x += self._vx * scale
         self.y += self._vy * scale
+
+    def velocity_towards_angle(self, angle, magnitude):
+        """Returns a velocity tuple of the given magnitude facing towards the
+        given angle. All movement methods finally depend on this."""
+        # Modulo of angle is there to prevent invalid angles leading to
+        # incorrect movement because of wrong radian values messing up
+        # the calculation.
+        rad_angle = radians(angle % 360)
+        vel_x = cos(rad_angle) * magnitude
+        vel_y = -1 * sin(rad_angle) * magnitude
+        return (vel_x, vel_y)
+
+    def velocity_towards_point(self, target, magnitude):
+        """Returns a velocity tuple of the given magnitude facing towards the
+        given target, either a position tuple or an actor."""
+        angle = self.angle_to(target)
+        return self.velocity_towards_angle(angle, magnitude)
 
     def intercept_velocity(self, target, speed):
         """Returns a vector with the given magnitude (movement speed) that will
