@@ -376,10 +376,8 @@ class Clock:
         ]
         heapq.heapify(event_list)
 
-        self._each_tick = [e for e in self._each_tick if e() != callback]
-        self._each_tick_absolute = [
-            e for e in self._each_tick_absolute if e() != callback
-        ]
+        et_list = self._each_tick_absolute if absolute else self._each_tick
+        et_list[:] = [e for e in et_list if e() != callback]
 
     def unschedule(self, callback, *args, **kwargs):
         """Unschedule a callback with specified arguments."""
@@ -420,7 +418,9 @@ class Clock:
                     import traceback
                     traceback.print_exc()
                     dead.append(cb)
-        et_list = [e for e in et_list if e() not in dead]
+        # [:] makes sure we modify the underlying list objects, not just assign
+        # a new one to the local variable et_list.
+        et_list[:] = [e for e in et_list if e() not in dead]
 
     def _work_through_events(self, event_list, absolute):
         """Helper function that iterates through and triggers any necessary
