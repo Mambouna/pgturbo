@@ -2208,6 +2208,21 @@ Once an Actor has a velocity, moving them along it is easy.
     function can be given an optional parameter. ``2.0`` would move twice as
     fast, whereas ``0.1`` would move at 10% of the speed.
 
+If you want to set a certain velocity to point towards another actor or along
+an angle, you can use ``Actor.velocity_towards_angle(angle, magnitude)`` and
+``Actor.velocity_towards_point(target, magnitude)``. These will return a
+velocity tuple that will move the actor the given *magnitude* in distance
+pixels each time ``move_by_vel()`` is used.
+
+For example, let's make an actor move straight towards the player as soon as
+it is created::
+
+    bee = Actor("bee")
+    bee.vel = bee.velocity_towards_point(player, 8)
+
+This will give the bee a velocity moving it 8 pixels distance towards where the
+player was when it was created each frame if ``move_by_vel()`` is used.
+
 Almost as often, we might also want to have an object lead its trajectory
 to intercept some other game object which is also moving. There is also a
 dedicated function for this.
