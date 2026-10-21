@@ -672,10 +672,8 @@ class ActorTest(unittest.TestCase):
         # Pythagoras for necessary distance to reach the target point.
         distance = (50**2 + 50**2)**0.5
         a.move_towards_angle(-45, distance)
-        # After moving we always have to round to match the int target point.
-        # In actual games, having the position be floats is no problem.
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (50, 50))
+        self.assertAlmostEqual(a.x, 50, delta=0.000001)
+        self.assertAlmostEqual(a.y, 50, delta=0.000001)
 
     def test_move_to_point(self):
         """Ensure moving towards a point works."""
@@ -683,8 +681,8 @@ class ActorTest(unittest.TestCase):
         position = (50, 50)
         distance = ((50**2 + 50**2)**0.5)/2
         a.move_towards_point(position, distance)
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (25, 25))
+        self.assertAlmostEqual(a.x, 25, delta=0.000001)
+        self.assertAlmostEqual(a.y, 25, delta=0.000001)
 
     def test_move_to_point_no_overshoot(self):
         """Ensure moving towards point won't overshoot if distance to target
@@ -693,8 +691,8 @@ class ActorTest(unittest.TestCase):
         position = (10, 10)
         distance = ((50**2 + 50**2)**0.5)/2
         a.move_towards_point(position, distance)
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (10, 10))
+        self.assertAlmostEqual(a.x, 10, delta=0.000001)
+        self.assertAlmostEqual(a.y, 10, delta=0.000001)
 
     def test_move_to_point_with_overshoot(self):
         """Ensure position overshoots correctly if given the parameter."""
@@ -702,8 +700,8 @@ class ActorTest(unittest.TestCase):
         position = (10, 10)
         distance = ((50**2 + 50**2)**0.5)/2
         a.move_towards_point(position, distance, overshoot=True)
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (25, 25))
+        self.assertAlmostEqual(a.x, 25, delta=0.000001)
+        self.assertAlmostEqual(a.y, 25, delta=0.000001)
 
     def test_move_forward(self):
         """Test whether moving forward by the actor angle works."""
@@ -711,8 +709,8 @@ class ActorTest(unittest.TestCase):
         a.angle = -45
         distance = (50**2 + 50**2)**0.5
         a.move_forward(distance)
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (50, 50))
+        self.assertAlmostEqual(a.x, 50, delta=0.000001)
+        self.assertAlmostEqual(a.y, 50, delta=0.000001)
 
     def test_move_backward(self):
         """Test whether moving backwards by the actor angle works."""
@@ -720,8 +718,8 @@ class ActorTest(unittest.TestCase):
         a.angle = 135
         distance = (50**2 + 50**2)**0.5
         a.move_backward(distance)
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (50, 50))
+        self.assertAlmostEqual(a.x, 50, delta=0.000001)
+        self.assertAlmostEqual(a.y, 50, delta=0.000001)
 
     def test_move_left(self):
         """Test whether moving left by the actor angle works."""
@@ -729,8 +727,8 @@ class ActorTest(unittest.TestCase):
         a.angle = -135
         distance = (50**2 + 50**2)**0.5
         a.move_left(distance)
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (50, 50))
+        self.assertAlmostEqual(a.x, 50, delta=0.000001)
+        self.assertAlmostEqual(a.y, 50, delta=0.000001)
 
     def test_move_right(self):
         """Test whether moving right by the actor angle works."""
@@ -738,8 +736,8 @@ class ActorTest(unittest.TestCase):
         a.angle = 45
         distance = (50**2 + 50**2)**0.5
         a.move_right(distance)
-        a.pos = (round(a.x), round(a.y))
-        self.assertEqual(a.pos, (50, 50))
+        self.assertAlmostEqual(a.x, 50, delta=0.000001)
+        self.assertAlmostEqual(a.y, 50, delta=0.000001)
 
     def test_actor_square(self):
         """The square image is created correctly and the result is a valid
@@ -816,7 +814,7 @@ class ActorTest(unittest.TestCase):
         )
         self.assertEqual(type(square), Actor)
 
-    def test_velocity_starts_at_Zero(self):
+    def test_velocity_starts_at_zero(self):
         """An Actors velocity starts at zero in both axes."""
         a = Actor("alien")
         self.assertEqual(a.vel, (0, 0))
@@ -844,6 +842,52 @@ class ActorTest(unittest.TestCase):
         a.vel = (15, -5)
         a.move_by_vel()
         self.assertEqual(a.pos, (25, 5))
+
+    def test_velocity_towards_angle(self):
+        """We can get a scaled vector from an angle."""
+        a = Actor("alien", (10, 10))
+        a.vel = a.velocity_towards_angle(0, 1)
+        self.assertAlmostEqual(a.vx, 1, delta=0.00001)
+        self.assertAlmostEqual(a.vy, 0, delta=0.00001)
+        a.vel = a.velocity_towards_angle(180, 1)
+        self.assertAlmostEqual(a.vx, -1, delta=0.00001)
+        self.assertAlmostEqual(a.vy, 0, delta=0.00001)
+        a.vel = a.velocity_towards_angle(90, 1)
+        self.assertAlmostEqual(a.vx, 0, delta=0.00001)
+        self.assertAlmostEqual(a.vy, -1, delta=0.00001)
+        a.vel = a.velocity_towards_angle(-90, 1)
+        self.assertAlmostEqual(a.vx, 0, delta=0.00001)
+        self.assertAlmostEqual(a.vy, 1, delta=0.00001)
+        a.vel = a.velocity_towards_angle(45, 1)
+        self.assertAlmostEqual(a.vx, (2 ** 0.5) / 2, delta=0.00001)
+        self.assertAlmostEqual(a.vy, -1 * (2 ** 0.5) / 2, delta=0.00001)
+        # All of this also works with other magnitudes.
+        a.vel = a.velocity_towards_angle(45, 5)
+        self.assertAlmostEqual(a.vx, ((2 ** 0.5) / 2) * 5, delta=0.00001)
+        self.assertAlmostEqual(a.vy, -1 * ((2 ** 0.5) / 2) * 5, delta=0.00001)
+
+    def test_velocity_towards_point(self):
+        """We can get a scaled vector towards a point."""
+        a = Actor("alien", (10, 10))
+        a.vel = a.velocity_towards_point((20, 10), 1)
+        self.assertAlmostEqual(a.vx, 1, delta=0.00001)
+        self.assertAlmostEqual(a.vy, 0, delta=0.00001)
+        a.vel = a.velocity_towards_point((0, 10), 1)
+        self.assertAlmostEqual(a.vx, -1, delta=0.00001)
+        self.assertAlmostEqual(a.vy, 0, delta=0.00001)
+        a.vel = a.velocity_towards_point((10, 0), 1)
+        self.assertAlmostEqual(a.vx, 0, delta=0.00001)
+        self.assertAlmostEqual(a.vy, -1, delta=0.00001)
+        a.vel = a.velocity_towards_point((10, 20), 1)
+        self.assertAlmostEqual(a.vx, 0, delta=0.00001)
+        self.assertAlmostEqual(a.vy, 1, delta=0.00001)
+        a.vel = a.velocity_towards_point((20, 20), 1)
+        self.assertAlmostEqual(a.vx, (2 ** 0.5) / 2, delta=0.00001)
+        self.assertAlmostEqual(a.vy, (2 ** 0.5) / 2, delta=0.00001)
+        # All of this also works with other magnitudes.
+        a.vel = a.velocity_towards_point((20, 20), 5)
+        self.assertAlmostEqual(a.vx, ((2 ** 0.5) / 2) * 5, delta=0.00001)
+        self.assertAlmostEqual(a.vy, ((2 ** 0.5) / 2) * 5, delta=0.00001)
 
     def test_interception_velocity(self):
         """We can get a valid interception vector from a starting Actor to
