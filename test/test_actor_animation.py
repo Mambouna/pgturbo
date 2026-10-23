@@ -689,6 +689,22 @@ class ActorAnimationUsingTest(unittest.TestCase):
         multitick(0.25, 8)
         self.assertEqual(a.anim.base_animation, "walk_down")
 
+    def test_play_queue_with_some_override_and_other_base_hook(self):
+        """If an override for one option is given, it doesn't prevent the
+        normally set hooks for other options from triggering."""
+        test_func_mock_no_call = Mock()
+        test_func_mock_should_call = Mock()
+        # The set sound should still play even though a different option was
+        # overridden.
+        a.anim.edit_queue("walking_queue", sound=sounds.powerup,
+                          callback=test_func_mock_no_call)
+        # play() overrides the callback with should_call
+        a.anim.play_queue("walking_queue", callback=test_func_mock_should_call)
+        multitick(0.25, 8)
+        sounds_powerup_play.assert_called_once()
+        test_func_mock_should_call.assert_called_once()
+        test_func_mock_no_call.assert_not_called()
+
     def test_start_animation_queue(self):
         """We can play animation queues and calling it again will restart the
         queue."""
