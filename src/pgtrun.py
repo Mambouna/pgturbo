@@ -11,9 +11,21 @@ __main__).
 import sys
 import pygame   # Import needed only to quit the current display.
 from pgturbo.runner import prepare_mod, run_mod
+from pgturbo.game import DEFAULTICON
 
 
 mod = sys.modules['__main__']
+
+# These ensure that game window variables like WIDTH or FULLSCREEN can be
+# read and their values used, even if the developer didn't set them and
+# they remain at their default.
+setattr(mod, "WIDTH", 800)
+setattr(mod, "HEIGHT", 600)
+setattr(mod, "TITLE", "Pygame Turbo Game")
+setattr(mod, "ICON", DEFAULTICON)
+setattr(mod, "FULLSCREEN", False)
+setattr(mod, "RESIZABLE", False)
+
 if not getattr(sys, '_pgtrun', None):
     if not getattr(mod, '__file__', None):
         raise ImportError(

@@ -3,7 +3,7 @@ from . import screen
 from . import clock
 from . import loaders
 from . import __version__
-from .game import PGTurboGame, DISPLAY_FLAGS
+from .game import PGTurboGame, DISPLAY_FLAGS, DEFAULTICON
 from types import ModuleType
 from argparse import ArgumentParser
 import warnings
@@ -165,6 +165,16 @@ You can also run a specific file with:
     mod.__file__ = path
     mod.__name__ = name
     sys.modules[name] = mod
+
+    # These ensure that game window variables like WIDTH or FULLSCREEN can be
+    # read and their values used, even if the developer didn't set them and
+    # they remain at their default.
+    setattr(mod, "WIDTH", 800)
+    setattr(mod, "HEIGHT", 600)
+    setattr(mod, "TITLE", "Pygame Turbo Game")
+    setattr(mod, "ICON", DEFAULTICON)
+    setattr(mod, "FULLSCREEN", False)
+    setattr(mod, "RESIZABLE", False)
 
     # Indicate that we're running with the pgtrun runner
     # This disables the 'import pgtrun' module
