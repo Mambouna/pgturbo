@@ -29,7 +29,10 @@ class ActorAnimationSystem:
         self._base_animation = None
         self._paused = False
         self._pause_info = None
-        self._run_info = None
+        # Has info on whether we are currently running a queue or not and what
+        # overrides might be set for hooks.
+        self._run_info = {"sound": None, "callback": None, "new_base": 0,
+                          "queue": False, "suppress": False}
 
     # Properties are defined to allow reading of values but not setting them.
     # Some of these include aliases for properties to allow easier or more
@@ -92,6 +95,7 @@ class ActorAnimationSystem:
             # Run this animation if base animation was running
             # or no animation was running.
             if swap or not self._current_animation:
+                self._populate_run_info(True, name, None, None, 0, False)
                 self._run(name)
             # Update the base animation.
             self._base_animation = self._animation_pool[name]
@@ -144,7 +148,11 @@ class ActorAnimationSystem:
 
         self._paused = False
         self._pause_info = None
-        self._run_info = None
+        self._run_info["sound"] = None
+        self._run_info["callback"] = None
+        self._run_info["new_base"] = 0
+        self._run_info["queue"] = False
+        self._run_info["suppress"] = False
 
     # Checks whether the given name is actually a key for the animation pool.
     # If not, an error is raised that also lists available animations.
@@ -247,7 +255,7 @@ class ActorAnimationSystem:
 
     # Managing animations in the pool
     def add(self, name, durations=1.0, offsets=(0, 0), sound=None,
-            callback=None, new_base=None):
+            callback=None, new_base=0):
         """Adds a given animation to the animation pool by its name.
 
         :param name: Name of the animation to be added.
@@ -260,7 +268,7 @@ class ActorAnimationSystem:
 
     def add_spritesheet(self, name, frame_width, frame_height, durations=1.0,
                         offsets=(0, 0), sound=None, callback=None,
-                        new_base=None, vertical=False):
+                        new_base=0, vertical=False):
         """Adds a given animation from a spritesheet to the animation pool by
         its name.
 
@@ -274,7 +282,7 @@ class ActorAnimationSystem:
                             new_base)
 
     def add_queue(self, name, animation_names, sound=None, callback=None,
-                  new_base=None):
+                  new_base=0, suppress=False):
         """Adds a new queue to the animation system. All animations that are
         part of the queue must already be valid animations in the system.
 
@@ -309,7 +317,7 @@ class ActorAnimationSystem:
             self._check_animation_name(new_base)
 
         q = ActorAnimationQueue(self, name, tuple(animation_names), sound,
-                                callback, new_base)
+                                callback, new_base, suppress)
         self._queue_pool[name] = q
 
     def edit(self, name, **kwargs):
@@ -360,11 +368,13 @@ class ActorAnimationSystem:
             elif kw == "new_base":
                 self._check_animation_name(value)
                 queue._new_base = value
+            elif kw == "suppress":
+                queue._suppress = value
             else:
                 raise AttributeError("{} is not a valid keyword for editing "
                                      "animation settings. Valid keywords are "
                                      "animation_names, sound, callback, "
-                                     "new_base.".format(kw))
+                                     "new_base, suppress.".format(kw))
 
     # set_base() is a courtesy function to make working with anim easier.
     # Since the user mostly makes something happen with anim through
@@ -442,7 +452,7 @@ class ActorAnimationSystem:
         del self._queue_pool[name]
 
     # Playing animations
-    def _run(self, name, resume=False, override_sound=None):
+    def _run(self, name, resume=False):
         # If an animation is currently running, unschedule its
         # frame advancement.
         if self._current_animation:
@@ -459,17 +469,19 @@ class ActorAnimationSystem:
         # in case they hadn't been already and run it.
         else:
             self._current_animation._reset()
-            if override_sound:
-                override_sound.play()
-            elif self._current_animation._sound:
-                self._current_animation._sound.play()
+            if self._run_info["queue"]:
+                if (not self._run_info["suppress"]
+                        and self._current_animation._sound):
+                    self._current_animation._sound.play()
+            elif self._run_info["sound"]:
+                self._run_info["sound"].play()
             self._current_animation._next_frame()
 
         # Reset pause state.
         self._paused = False
         self._pause_info = None
 
-    def _run_queue(self, name, position, resume=False, override_sound=None):
+    def _run_queue(self, name, position, resume=False):
         # If an animation is currently running, unschedule its
         # frame advancement.
         if self._current_animation:
@@ -507,19 +519,33 @@ class ActorAnimationSystem:
                 # We add here since position is negative in this branch.
                 self._current_queue._animation_index = num_anims + position - 1
             else:
-                # Only if the queue starts from the beginning we play its
-                # associated sound or the relevant override sound.
-                if override_sound:
-                    override_sound.play()
-                elif self._current_queue._sound:
-                    self._current_queue._sound.play()
+                if self._run_info["sound"]:
+                    self._run_info["sound"].play()
             self._current_queue._next_animation()
 
         # Reset pause state.
         self._paused = False
         self._pause_info = None
 
-    def play(self, name, sound=None, callback=None, new_base=None):
+    def _populate_run_info(self, single, name, sound, cb, nbase, suppress):
+        """Sets and fetches the relevant values for a run."""
+        if single:
+            obj = self._animation_pool[name]
+            self._run_info["suppress"] = False
+            self._run_info["queue"] = False
+        else:
+            obj = self._queue_pool[name]
+            if suppress:
+                self._run_info["suppress"] = suppress
+            else:
+                self._run_info["suppress"] = obj._suppress
+            self._run_info["queue"] = True
+
+        self._run_info["sound"] = sound if sound != 0 else obj._sound
+        self._run_info["callback"] = cb if cb != 0 else obj._callback
+        self._run_info["new_base"] = nbase if nbase != 0 else obj._new_base
+
+    def play(self, name, sound=0, callback=0, new_base=0):
         # Check if the animation name is valid.
         self._check_animation_name(name)
 
@@ -527,22 +553,15 @@ class ActorAnimationSystem:
         if self._current_animation and self._current_animation.name == name:
             return
 
-        # If we have any hook overrides, record them in _run_info.
-        if sound or callback or new_base:
-            self._run_info = {"sound": sound, "callback": callback,
-                              "new_base": new_base, "queue": False}
-        # Otherwise, null it so there's nothing left over from a previous
-        # animation play.
-        else:
-            self._run_info = None
+        self._populate_run_info(True, name, sound, callback, new_base, False)
 
         # _record_interruption() itself check whether something needs to
         # be recorded or not so we just always call it.
         self._record_interruption()
-        self._run(name, override_sound=sound)
+        self._run(name)
 
-    def play_queue(self, name, position=0, sound=None, callback=None,
-                   new_base=None):
+    def play_queue(self, name, position=0, sound=0, callback=0, new_base=0,
+                   suppress=None):
         # Check if the queue name is valid.
         self._check_queue_name(name)
 
@@ -550,51 +569,35 @@ class ActorAnimationSystem:
         if self._current_queue and self._current_queue.name == name:
             return
 
-        if sound or callback or new_base:
-            self._run_info = {"sound": sound, "callback": callback,
-                              "new_base": new_base, "queue": True}
-        else:
-            self._run_info = None
+        self._populate_run_info(False, name, sound, callback, new_base,
+                                suppress)
 
         self._record_interruption()
-        self._run_queue(name, position, override_sound=sound)
+        self._run_queue(name, position)
 
-    def start(self, name, sound=None, callback=None, new_base=None):
+    def start(self, name, sound=0, callback=0, new_base=0):
         # Check if the animation name is valid.
         self._check_animation_name(name)
 
-        # If we have any hook overrides, record them in _run_info.
-        if sound or callback or new_base:
-            self._run_info = {"sound": sound, "callback": callback,
-                              "new_base": new_base, "queue": False}
-        # Otherwise, null it so there's nothing left over from a previous
-        # animation play.
-        else:
-            self._run_info = None
+        self._populate_run_info(True, name, sound, callback, new_base, False)
 
         # If something was playing before, check what and all info to be able
         # to resume it later.
         self._record_interruption()
         # Start the given animation, even if it was already running.
-        self._run(name, override_sound=sound)
+        self._run(name)
 
-    def start_queue(self, name, position=0, sound=None, callback=None,
-                    new_base=None):
+    def start_queue(self, name, position=0, sound=0, callback=0, new_base=0,
+                    suppress=None):
         # Check if the queue name is valid.
         self._check_queue_name(name)
 
-        # If we have any hook overrides, record them in _run_info.
-        if sound or callback or new_base:
-            self._run_info = {"sound": sound, "callback": callback,
-                              "new_base": new_base, "queue": True}
-        # Otherwise, null it so there's nothing left over from a previous
-        # animation play.
-        else:
-            self._run_info = None
+        self._populate_run_info(False, name, sound, callback, new_base,
+                                suppress)
 
         self._record_interruption()
         # Start the given queue, even if it was already running.
-        self._run_queue(name, position, override_sound=sound)
+        self._run_queue(name, position)
 
     def _record_interruption(self):
         # If nothing was running, nothing was interrupted either.
@@ -682,23 +685,24 @@ class ActorAnimationSystem:
             self._run(prev_animation_name, True)
 
     def _do_done_run_overrides(self, obj, called_from_single):
-        # Since the queue info block and called_from_single are always bools,
-        # we can use ^ for logical xor.
-        if self._run_info and (self._run_info["queue"] ^ called_from_single):
+        if called_from_single:
+            if self._run_info["queue"]:
+                if not self._run_info["suppress"]:
+                    if obj._callback:
+                        obj._callback()
+                    if obj._new_base != 0:
+                        self.base_animation = obj._new_base
+            else:
+                if self._run_info["callback"]:
+                    self._run_info["callback"]()
+                if self._run_info["new_base"] != 0:
+                    self.base_animation = self._run_info["new_base"]
+        else:
             if self._run_info["callback"]:
                 self._run_info["callback"]()
-            if self._run_info["new_base"]:
-                new_base_name = self._run_info["new_base"]
-                self._base_animation = self._animation_pool[new_base_name]
-            # After going through the hooks, we null run info again so it
-            # doesn't interfere with other playing.
-            self._run_info = None
-        else:
-            if obj._callback:
-                obj._callback()
-            if obj._new_base:
-                new_base_name = obj._new_base
-                self._base_animation = self._animation_pool[new_base_name]
+
+            if self._run_info["new_base"] != 0:
+                self.base_animation = self._run_info["new_base"]
 
     # Ending animations
     def _done(self):
@@ -759,7 +763,7 @@ class ActorAnimationSystem:
 class ActorAnimationQueue:
 
     def __init__(self, anim_system, name, animations, sound, callback,
-                 new_base):
+                 new_base, suppress):
         # Actor the queue is attached to.
         self._anim_system = anim_system
         # Name of the animation queue.
@@ -777,13 +781,24 @@ class ActorAnimationQueue:
         # What function to call when the queue finishes.
         self._callback = callback
         # What to set the actors base animation to once the queue finishes.
+        # For this, 0 means nothing is set since None means set the base
+        # animation to None.
         self._new_base = new_base
+        # Whether the animation queue playing should prevent the hook options
+        # of individual animations in the queue from triggering.
+        self._suppress = suppress
 
     # Function to advance the current animation and schedule the next
     # advancement
     def _next_animation(self):
         if self._animation_index is not None:
             self._animation_index += 1
+            # If a queue is running, the queue takes care to call _done() for
+            # all individual animations since very small timing differences
+            # could otherwise lead to some animation's _done() not being called
+            # since its _next_frame() is unscheduled when a new animation gets
+            # _run() called.
+            self._anim_system._done()
         else:
             self._animation_index = 0
 
@@ -895,7 +910,11 @@ class ActorAnimation:
         # the function telling the animation manager that the animation is done.
         if self._frame_index >= len(self._frames):
             self._frame_index = None
-            self._anim_system._done()
+            # Individual animations only call _done() for themselves if they
+            # aren't part of a queue. In that case, the queue handles giving
+            # them their _done() call.
+            if not self._anim_system._run_info["queue"]:
+                self._anim_system._done()
         # If the animation is not done, schedule the next frame advancement.
         else:
             # Indicates actor.draw() should get the new frame.
