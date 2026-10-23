@@ -2291,6 +2291,69 @@ of transparency:
     through a ghost.
 
 
+.. _data_dictionary:
+
+Tracking custom values with .data
+'''''''''''''''''''''''''''''''''
+
+Actors have many properties useful for manipulating where they are or how they
+look, but how can you track your own game's special values for game mechanics?
+
+In a platformer, maybe your player character is collecting coins. In an
+adventure game, maybe enemies need to track their health points. To allow you
+to save, check and manipulate anything like this on actors, they have the
+``.data`` property.
+
+``.data`` is a dictionary you can fill with whatever you want. For the
+platformer example above, maybe you use it like this::
+
+    player = Actor("ben")
+    player.data["coins"] = 0
+
+    def update():
+        # ... Player movement here ...
+        for coin in coins:
+            if coin.colliderect(player):
+                # ... Removing the coin here ...
+                player.data["coins"] = player.data["coins"] + 1
+
+For the adventure game, something like this::
+
+    def update():
+        # ... Game mechanics here ...
+        for mushroom in mushrooms:
+            if mushroom.colliderect(player_sword):
+                mushroom.data["health"] = mushroom.data["health"] - 5
+
+                if mushroom.data["health"] <= 0:
+                    # ... Remove the mushroom here ...
+
+Since it's a dictionary, you can store as much as you want in ``.data``, all
+with their own name and value. The only thing you have to look out for is that
+if you have actors of different types, they might not all have the same values
+in their ``.data`` property.
+
+In the platformer, only the player character has ``.data["coins"]``, so if you
+try to check ``Actor.data["coins"]`` on any other actor, it will crash the game
+because there is no such value in their data dictionaries.
+
+If you aren't sure what actor might end up with what values in the dictionary,
+you can check if they have a certain one before trying to manipulate it like
+this::
+
+    if "coins" in actor.data:
+        # ... Do something with coins here ...
+
+Checking ``in`` for any string and the ``.data`` property of an actor will
+return ``True`` only if the dictionary holds a value for that name. Otherwise,
+it will return ``False``, allowing you to avoid errors.
+
+If you want to reset an actor's data dictionary to be completely empty again,
+you can do so with ``actor.data.clear()``. Note this doesn't reset values to
+their original value but completely empties the dictionary so there will be no
+values tracked with it anymore.
+
+
 .. _simple-shapes:
 
 Simple shapes

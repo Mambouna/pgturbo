@@ -1054,6 +1054,30 @@ class ActorTest(unittest.TestCase):
             a.left_limit = -20
             a.right_limit = -80
 
+    def test_data_dict_useable(self):
+        a = Actor("alien")
+        a.data["test"] = 4
+        self.assertEqual(a.data["test"], 4)
+        a.data["test"] = "tust"
+        self.assertEqual(a.data["test"], "tust")
+        a.data["other"] = False
+        self.assertFalse(a.data["other"])
+        self.assertTrue("other" in a.data)
+        self.assertFalse("nother" in a.data)
+
+    def test_data_property_not_writeable(self):
+        a = Actor("alien")
+        a.data["test"] = 4
+        self.assertEqual(a.data["test"], 4)
+        # Trying to write to the property itself will error.
+        with self.assertRaises(AttributeError):
+            a.data = 4
+        with self.assertRaises(AttributeError):
+            a.data = {}
+        # Resetting it via .clear() works however.
+        a.data.clear()
+        self.assertEqual(len(a.data), 0)
+
     def test_mask_collision(self):
         """Collisions are detected with masks in use."""
         a1 = Actor("alien")

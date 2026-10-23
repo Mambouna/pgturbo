@@ -196,6 +196,10 @@ class Actor:
         self._top_limit = None
         self._bottom_limit = None
 
+        # Dictionary for the user to put custom variables in that different
+        # actors should track.
+        self._data_dict = {}
+
         self.image = image
         self._init_position(pos, anchor, **kwargs)
         self._vx = 0
@@ -742,6 +746,16 @@ class Actor:
         else:
             raise TypeError("Velocity must be set to a tuple of two numbers,"
                             " not {}.".format(value))
+
+    @property
+    def data(self):
+        return self._data_dict
+
+    @data.setter
+    def data(self, value):
+        raise AttributeError("'data' of an actor cannot be written to directly"
+                             ". Change the values in the dictionary with "
+                             "'Actor.data['value_name'] = ...' instead.")
 
     @property
     def image(self):
