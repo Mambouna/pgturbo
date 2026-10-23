@@ -181,7 +181,7 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
         # Hooks so far are correct after adding the animation.
         self.assertIsNotNone(anim._sound)
         self.assertIsNotNone(anim._callback)
-        self.assertIsNone(anim._new_base)
+        self.assertEqual(anim._new_base, 0)
         # We can remove a former hook and others remain unchanged.
         a.anim.edit("walk_down", sound=None)
         self.assertIsNone(anim._sound)
@@ -233,7 +233,8 @@ class ActorAnimationAddingQueuesTest(unittest.TestCase):
         self.assertEqual(a.anim._queue_pool["walking_queue"]._animations,
                          ("walk_down", "walk_up"))
         self.assertIsNone(a.anim._queue_pool["walking_queue"]._callback)
-        self.assertIsNone(a.anim._queue_pool["walking_queue"]._new_base)
+        self.assertEqual(a.anim._queue_pool["walking_queue"]._new_base, 0)
+        self.assertFalse(a.anim._queue_pool["walking_queue"]._suppress)
 
     def test_add_animation_queue_with_callback(self):
         """We can also add a queue with a callback."""
@@ -259,6 +260,13 @@ class ActorAnimationAddingQueuesTest(unittest.TestCase):
         multitick(0.25, 8)
         self.assertEqual(a.anim.base, "walk_up")
 
+    def test_add_animation_queue_with_suppress(self):
+        """We can add a queue that suppresses hooks from its individual
+        animations."""
+        a.anim.add_queue("walking_queue", ("walk_down", "walk_up"),
+                         suppress=True)
+        self.assertTrue(a.anim._queue_pool["walking_queue"]._suppress)
+
     def test_adding_same_queue_again_errors(self):
         """When the user tries to add two queues with the same name, an error
         is thrown."""
@@ -274,7 +282,7 @@ class ActorAnimationAddingQueuesTest(unittest.TestCase):
         # Hooks so far are correct after adding the queue.
         self.assertIsNotNone(queue._sound)
         self.assertIsNotNone(queue._callback)
-        self.assertIsNone(queue._new_base)
+        self.assertEqual(queue._new_base, 0)
         # We can remove a former hook and others remain unchanged.
         a.anim.edit_queue("walking_queue", sound=None)
         self.assertIsNone(queue._sound)
@@ -451,6 +459,17 @@ class ActorAnimationUsingTest(unittest.TestCase):
         a.anim.play("walk_down", new_base="walk_down")
         multitick(0.25, 4)
         self.assertEqual(a.anim.base_animation, "walk_down")
+
+    def test_play_animation_with_override_leaves_other_hook_alone(self):
+        """If an animation is played with an override for one option, this does
+        not prevent the normal hook of a different option from triggering."""
+        self.assertIsNone(a.anim.base_animation)
+        test_func_mock = Mock()
+        a.anim.edit("walk_down", new_base="walk_up", callback=test_func_mock)
+        a.anim.play("walk_down", new_base="walk_down")
+        multitick(0.25, 4)
+        self.assertEqual(a.anim.base_animation, "walk_down")
+        test_func_mock.assert_called_once()
 
     def test_start_animation(self):
         """We can start playing animations just like before but calling the
@@ -630,6 +649,35 @@ class ActorAnimationUsingTest(unittest.TestCase):
         a.anim.play_queue("walking_queue")
         multitick(0.25, 8)
         self.assertEqual(a.anim.base_animation, "walk_up")
+
+    def test_play_queue_with_no_suppress_triggers_anim_hooks(self):
+        """If an animation queue does not suppress=True, then the hooks of
+        individual animations are still triggered."""
+        self.assertIsNone(a.anim.base_animation)
+        self.assertIsNone(a.anim.current)
+        sounds_powerup_play.assert_not_called()
+        test_func_mock = Mock()
+        a.anim.edit("walk_down", sound=sounds.powerup, new_base="walk_up")
+        a.anim.edit("walk_up", callback=test_func_mock)
+        a.anim.play_queue("walking_queue")
+        multitick(0.25, 8)
+        sounds_powerup_play.assert_called_once()
+        test_func_mock.assert_called_once()
+        self.assertEqual(a.anim.base_animation, "walk_up")
+
+    def test_play_queue_with_suppress(self):
+        """If an animation with suppress=True is played, its individual
+        animations don't trigger their hooks."""
+        self.assertIsNone(a.anim.base_animation)
+        test_func_mock = Mock()
+        a.anim.edit("walk_down", sound=sounds.powerup, new_base="walk_up")
+        a.anim.edit("walk_up", callback=test_func_mock)
+        a.anim.edit_queue("walking_queue", suppress=True)
+        a.anim.play_queue("walking_queue")
+        multitick(0.25, 8)
+        sounds_powerup_play.assert_not_called()
+        test_func_mock.assert_not_called()
+        self.assertIsNone(a.anim.base_animation)
 
     def test_play_queue_with_override_sound(self):
         """If an animation playback is done with overriden sound, the sound

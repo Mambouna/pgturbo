@@ -1871,7 +1871,7 @@ learn about all of them in the method reference below.
                      ``True``, the spritesheet will be read top to bottom
                      instead.
 
-.. method:: anim.add_queue(name, animation_names, [sound, callback, new_base])
+.. method:: anim.add_queue(name, animation_names, [sound, callback, new_base, suppress])
 
     Adds a new animation queue made up of previously loaded animations.
 
@@ -1885,6 +1885,11 @@ learn about all of them in the method reference below.
     :param new_base: An animation name that should be set as the new base
                      animation once the queue has finished playing. Default is
                      ``None``.
+    :param suppress: Boolean of whether the individual animations in the queue
+                     should trigger their `sound`, `callback` and `new_base`
+                     options or not while playing as part of the queue. Default
+                     is ``False``, meaning animations in their queue trigger
+                     their optional hooks like normal.
 
 .. method:: anim.edit(name, **kwargs):
 
@@ -1942,42 +1947,94 @@ learn about all of them in the method reference below.
 
     :param name: The name of the queue to remove.
 
-.. method:: anim.play(name)
+.. method:: anim.play(name[, sound, callback, new_base])
 
     Play a loaded animation. If the same animation is already running, nothing
     is done. This means you can safely keep calling this without restarting the
     same animation over and over again.
 
-    :param name: The name of the animation to play.
+    The optional keyword arguments allow the normal options of the animation
+    to be overridden just for this one run.
 
-.. method:: anim.play_queue(name, [position])
+    :param name: The name of the animation to play.
+    :param sound: An override for the normal `sound` setting of the animation.
+                  If given a value, that will be used instead of the normal
+                  option for this run of the animation.
+    :param callback: An override for the normal `callback` setting of the
+                     animation. If given a value, that will be used instead of
+                     the normal option for this run of the animation.
+    :param new_base: An override for the normal `new_base` setting of the
+                     animation. If given a value, that will be used instead of
+                     the normal option for this run of the animation.
+
+.. method:: anim.play_queue(name, [position, sound, callback, new_base, suppress])
 
     Play a named animation queue. If it is already playing, it won't be
     restarted, just like with anim.play().
+
+    The optional keyword arguments allow the normal options of the queue
+    to be overridden just for this one run.
 
     :param name: The name of the queue to play.
     :param position: From what animation to start playing the queue. Default is
                      0, which is the first animation. The position numbers
                      reflect zero-indexing.
+    :param sound: An override for the normal `sound` setting of the queue.
+                  If given a value, that will be used instead of the normal
+                  option for this run of the queue.
+    :param callback: An override for the normal `callback` setting of the
+                     queue. If given a value, that will be used instead of
+                     the normal option for this run of the queue.
+    :param new_base: An override for the normal `new_base` setting of the
+                     queue. If given a value, that will be used instead of
+                     the normal option for this run of the queue.
+    :param suppress: An override for the normal `suppress` setting of the
+                     queue. If given a value, that will be used instead of
+                     the normal option for this run of the queue.
 
-.. method:: anim.start(name)
+.. method:: anim.start(name[, sound, callback, new_base])
 
     Play a loaded animation. If it is already running, restart the animation.
     This is the important difference to anim.play(). If you want to definitely
     start an animation from the beginning, even if it is already playing, use
     this function.
 
-    :param name: The name of the animation to start playing.
+    Also allows option overrides like ``anim.play()``.
 
-.. method:: anim.start_queue(name, [position])
+    :param name: The name of the animation to start playing.
+    :param sound: An override for the normal `sound` setting of the animation.
+                  If given a value, that will be used instead of the normal
+                  option for this run of the animation.
+    :param callback: An override for the normal `callback` setting of the
+                     animation. If given a value, that will be used instead of
+                     the normal option for this run of the animation.
+    :param new_base: An override for the normal `new_base` setting of the
+                     animation. If given a value, that will be used instead of
+                     the normal option for this run of the animation.
+
+.. method:: anim.start_queue(name, [position, sound, callback, new_base, suppress])
 
     Play a named animation queue. If it is already playing, restart it just
     like anim.start().
+
+    Also allows option overrides like ``anim.play_queue()``.
 
     :param name: The name of the queue to start playing.
     :param position: From what animation to start playing the queue. Default is
                      0, which is the first animation. The position numbers
                      reflect zero-indexing.
+    :param sound: An override for the normal `sound` setting of the queue.
+                  If given a value, that will be used instead of the normal
+                  option for this run of the queue.
+    :param callback: An override for the normal `callback` setting of the
+                     queue. If given a value, that will be used instead of
+                     the normal option for this run of the queue.
+    :param new_base: An override for the normal `new_base` setting of the
+                     queue. If given a value, that will be used instead of
+                     the normal option for this run of the queue.
+    :param suppress: An override for the normal `suppress` setting of the
+                     queue. If given a value, that will be used instead of
+                     the normal option for this run of the queue.
 
 .. method:: anim.pause()
 
