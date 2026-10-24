@@ -535,7 +535,7 @@ class ActorAnimationSystem:
             self._run_info["queue"] = False
         else:
             obj = self._queue_pool[name]
-            if suppress:
+            if suppress is not None:
                 self._run_info["suppress"] = suppress
             else:
                 self._run_info["suppress"] = obj._suppress

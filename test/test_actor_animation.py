@@ -694,11 +694,38 @@ class ActorAnimationUsingTest(unittest.TestCase):
         test_func_mock.assert_called_once()
 
     def test_play_queue_with_override_new_base(self):
-        """If an animation is played with overriden new_base set, it's set
+        """If an animation is played with overridden new_base set, it's set
         after playing out."""
         self.assertIsNone(a.anim.base_animation)
         a.anim.play_queue("walking_queue", new_base="walk_up")
         multitick(0.25, 8)
+        self.assertEqual(a.anim.base_animation, "walk_up")
+
+    def test_play_queue_with_override_suppress_true(self):
+        """If an animation is played with overridden suppress setting set to
+        True, no hooks of animations will trigger."""
+        self.assertIsNone(a.anim.base_animation)
+        test_func_mock = Mock()
+        a.anim.edit("walk_down", sound=sounds.powerup, new_base="walk_up")
+        a.anim.edit("walk_up", callback=test_func_mock)
+        a.anim.play_queue("walking_queue", suppress=True)
+        multitick(0.25, 8)
+        sounds_powerup_play.assert_not_called()
+        test_func_mock.assert_not_called()
+        self.assertIsNone(a.anim.base_animation)
+
+    def test_play_queue_with_override_suppress_false(self):
+        """If an animation is played with overridden suppress setting set to
+        False, hooks of animations will trigger."""
+        self.assertIsNone(a.anim.base_animation)
+        test_func_mock = Mock()
+        a.anim.edit("walk_down", sound=sounds.powerup, new_base="walk_up")
+        a.anim.edit("walk_up", callback=test_func_mock)
+        a.anim.edit_queue("walking_queue", suppress=True)
+        a.anim.play_queue("walking_queue", suppress=False)
+        multitick(0.25, 8)
+        sounds_powerup_play.assert_called_once()
+        test_func_mock.assert_called_once()
         self.assertEqual(a.anim.base_animation, "walk_up")
 
     def test_play_queue_with_override_sound_no_base_sound(self):
