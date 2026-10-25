@@ -38,15 +38,17 @@ def update_bird():
 
     if not bird.data["dead"]:
         if bird.vy < -3:
+            bird.angle = 30
             bird.image = 'bird_up'
         else:
+            bird.angle = 0
             bird.image = 'bird'
 
-    if bird.colliderect(pipe_top) or bird.colliderect(pipe_bottom):
+    if bird.collidemask(pipe_top) or bird.collidemask(pipe_bottom):
         bird.data["dead"] = True
         bird.image = 'bird_dead'
 
-    if bird.y > 720:
+    if bird.top > HEIGHT:
         bird.y = 200
         bird.data["dead"] = False
         bird.data["score"] = 0
