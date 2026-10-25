@@ -44,6 +44,17 @@ SYMBOLIC_POSITIONS = set((
     "center",
 ))
 SYMBOLIC_SIDES = set(("left", "right", "top", "bottom"))
+X_AXIS_ATTRS = set(("x", "left", "right"))
+Y_AXIS_ATTRS = set(("y", "top", "bottom"))
+ALL_POSITIONAL_ATTRS = set(("x", "y")) | SYMBOLIC_POSITIONS | SYMBOLIC_SIDES
+
+INIT_STATE_FORBIDDEN_ATTRS = set(("image", "anim", "data"))
+
+INIT_STATE_ALLOWED_ATTRS = set(("angle", "scale", "scale_x", "scale_y",
+                                "flip_x", "flip_y", "opacity", "vel", "vx",
+                                "vy", "x_limits", "y_limits", "left_limit",
+                                "right_limit", "top_limit", "bottom_limit",
+                                "width", "height")) | ALL_POSITIONAL_ATTRS
 
 # Provides more meaningful default-arguments e.g. for display in IDEs etc.
 POS_TOPLEFT = None
@@ -120,7 +131,7 @@ def _set_opacity(actor, current_surface):
 
 
 class Actor:
-    EXPECTED_INIT_KWARGS = SYMBOLIC_POSITIONS
+    EXPECTED_INIT_KWARGS = INIT_STATE_ALLOWED_ATTRS
     DELEGATED_ATTRIBUTES = [
         a for a in dir(rect.ZRect) if (not a.startswith("_")
                                        and a not in ("width", "height"))
@@ -132,8 +143,8 @@ class Actor:
     _scale_y = 1.0
     _flip_x = False
     _flip_y = False
-    # TODO: Is this solution too ugly? Only needed to correct animation frame
-    # offsets in _calc_anchor() when actor was flipped over the anchor.
+    # Only needed to correct animation frame offsets in _calc_anchor() when
+    # actor was flipped over the anchor.
     _flipped_x_over_anchor = False
     _flipped_y_over_anchor = False
     _angle = 0.0
@@ -165,8 +176,6 @@ class Actor:
         return self._surface_cache[-1]
 
     def __init__(self, image, pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
-        self._handle_unexpected_kwargs(kwargs)
-
         self._surface_cache = []
         self.__dict__["_rect"] = rect.ZRect((0, 0), (0, 0))
         # Initialise it at (0, 0) for size (0, 0).
@@ -201,9 +210,62 @@ class Actor:
         self._data_dict = {}
 
         self.image = image
-        self._init_position(pos, anchor, **kwargs)
         self._vx = 0
         self._vy = 0
+
+        # This goes through all given keyword arguments and applies them as
+        # well as checking for conflicts and erroring if some are found.
+        self._set_initial_state(pos, anchor, **kwargs)
+
+    def _set_initial_state(self, pos, anchor, **kwargs):
+        if anchor is None:
+            anchor = ("center", "center")
+        self.anchor = anchor
+
+        set_pos = False
+        if pos:
+            self.pos = pos
+            set_pos = True
+
+        typo_attrs = []
+
+        symbolics_used = 0
+        x_axis_used = 0
+        y_axis_used = 0
+
+        for key in kwargs:
+            if key in SYMBOLIC_POSITIONS:
+                symbolics_used += 1
+            elif key in X_AXIS_ATTRS:
+                x_axis_used += 1
+            elif key in Y_AXIS_ATTRS:
+                y_axis_used += 1
+
+            if key in INIT_STATE_FORBIDDEN_ATTRS:
+                raise TypeError("Cannot set '{}' property during actor "
+                                "creation with a keyword argument."
+                                .format(key))
+            elif hasattr(self, key):
+                setattr(self, key, kwargs[key])
+            else:
+                typo_attrs.append(key)
+
+        if set_pos and (symbolics_used or x_axis_used or y_axis_used):
+            raise TypeError("Cannot mix position tuple argument with named"
+                            " property position arguments on actor "
+                            "creation.")
+        elif symbolics_used > 1:
+            raise TypeError("Cannot specify more than one symbolic position "
+                            "property on actor creation.")
+        elif x_axis_used > 1:
+            raise TypeError("Cannot specify more than one X axis position "
+                            "property on actor creation.")
+        elif y_axis_used > 1:
+            raise TypeError("Cannot specify more than one Y axis position "
+                            "property on actor creation.")
+
+        if typo_attrs:
+            self._handle_unexpected_kwargs(typo_attrs)
 
     def _clamp_value(self, value, lower_limit, upper_limit):
         if lower_limit and value < lower_limit:
@@ -254,51 +316,12 @@ class Actor:
         return standard_attributes + self.__class__.DELEGATED_ATTRIBUTES
 
     def _handle_unexpected_kwargs(self, kwargs):
-        unexpected_kwargs = set(kwargs.keys()) - self.EXPECTED_INIT_KWARGS
-        if not unexpected_kwargs:
-            return
-
         typos, _ = spellcheck.compare(
-            unexpected_kwargs, self.EXPECTED_INIT_KWARGS)
+            kwargs, self.EXPECTED_INIT_KWARGS)
         for found, suggested in typos:
             raise TypeError(
-                "Unexpected keyword argument '{}' (did you mean '{}'?)".format(
-                    found, suggested))
-
-    def _init_position(self, pos, anchor, **kwargs):
-        if anchor is None:
-            anchor = ("center", "center")
-        self.anchor = anchor
-
-        symbolic_pos_args = {
-            k: kwargs[k] for k in kwargs if k in SYMBOLIC_POSITIONS}
-
-        if not pos and not symbolic_pos_args:
-            # No positional information given, use sensible top-left default
-            self.topleft = (0, 0)
-        elif pos and symbolic_pos_args:
-            raise TypeError(
-                "'pos' argument cannot be mixed with 'topleft', "
-                "'topright' etc. argument."
-            )
-        elif pos:
-            self.pos = pos
-        else:
-            self._set_symbolic_pos(symbolic_pos_args)
-
-    def _set_symbolic_pos(self, symbolic_pos_dict):
-        if len(symbolic_pos_dict) == 0:
-            raise TypeError(
-                "No position-setting keyword arguments ('topleft', "
-                "'topright' etc) found."
-            )
-        if len(symbolic_pos_dict) > 1:
-            raise TypeError(
-                "Only one 'topleft', 'topright' etc. argument is allowed."
-            )
-
-        setter_name, position = symbolic_pos_dict.popitem()
-        setattr(self, setter_name, position)
+                "Unexpected keyword argument '{}' used during actor creation."
+                "Did you mean '{}' instead?".format(found, suggested))
 
     def _update_transform(self, function):
         if function in self.function_order:

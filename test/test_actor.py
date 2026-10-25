@@ -69,13 +69,80 @@ class ActorTest(unittest.TestCase):
         a = Actor("alien", bottomright=(500, 500))
         self.assertEqual(a.bottomright, (500, 500))
 
+    def test_setting_relative_initial_x_pos(self):
+        a = Actor("alien", x=60)
+        self.assertEqual(a.x, 60)
+        self.assertEqual(a.top, 0)
+
+        a = Actor("alien", left=60)
+        self.assertEqual(a.left, 60)
+        self.assertEqual(a.top, 0)
+
+        a = Actor("alien", right=60)
+        self.assertEqual(a.right, 60)
+        self.assertEqual(a.top, 0)
+
+    def test_setting_relative_initial_y_pos(self):
+        a = Actor("alien", y=60)
+        self.assertEqual(a.y, 60)
+        self.assertEqual(a.left, 0)
+
+        a = Actor("alien", top=60)
+        self.assertEqual(a.top, 60)
+        self.assertEqual(a.left, 0)
+
+        a = Actor("alien", bottom=60)
+        self.assertEqual(a.bottom, 60)
+        self.assertEqual(a.left, 0)
+
     def test_setting_absolute_pos_and_relative_raises_typeerror(self):
         with self.assertRaises(TypeError):
             Actor("alien", pos=(0, 0), bottomright=(500, 500))
 
+        with self.assertRaises(TypeError):
+            Actor("alien", pos=(0, 0), left=(500, 500))
+
+        with self.assertRaises(TypeError):
+            Actor("alien", pos=(0, 0), y=(500, 500))
+
     def test_setting_multiple_relative_pos_raises_typeerror(self):
         with self.assertRaises(TypeError):
             Actor("alien", topleft=(500, 500), bottomright=(600, 600))
+
+        with self.assertRaises(TypeError):
+            Actor("alien", topleft=(500, 500), x=(600, 600))
+
+        with self.assertRaises(TypeError):
+            Actor("alien", topleft=(500, 500), bottom=(600, 600))
+
+    def test_setting_multiple_single_axis_raises_typeerror(self):
+        with self.assertRaises(TypeError):
+            Actor("alien", x=60, right=100)
+
+        with self.assertRaises(TypeError):
+            Actor("alien", y=60, top=100)
+
+    def test_setting_non_positional_attrs_on_actor_creation(self):
+        """Any except for a few properties can be set directly on actor
+        creation."""
+        a = Actor("alien", angle=90)
+        self.assertEqual(a.angle, 90)
+        a = Actor("alien", scale=2.0)
+        self.assertEqual(a.scale, (2.0, 2.0))
+        a = Actor("alien", flip_x=True)
+        self.assertTrue(a.flip_x)
+
+    def test_setting_multiple_non_positional_attrs_on_actor_creation(self):
+        a = Actor("alien", angle=90, scale=2.0, flip_x=True)
+        self.assertEqual(a.angle, 90)
+        self.assertEqual(a.scale, (2.0, 2.0))
+        self.assertTrue(a.flip_x)
+
+    def test_setting_attrs_on_actor_creation_order(self):
+        """When multiple keyword arguments alter the same underlying data,
+        the last keyword sets the final value."""
+        a = Actor("alien", scale=2.0, scale_x=0.5)
+        self.assertEqual(a.scale, (0.5, 2.0))
 
     def test_unexpected_kwargs(self):
         with self.assertRaises(TypeError) as cm:
@@ -83,7 +150,18 @@ class ActorTest(unittest.TestCase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected keyword argument 'toplift' (did you mean 'topleft'?)",
+            "Unexpected keyword argument 'toplift' used during actor creation."
+            "Did you mean 'topleft' instead?",
+        )
+
+        # Also works with non positional arguments during actor creation.
+        with self.assertRaises(TypeError) as cm:
+            Actor("alien", angke=90)
+
+        self.assertEqual(
+            cm.exception.args[0],
+            "Unexpected keyword argument 'angke' used during actor creation."
+            "Did you mean 'angle' instead?",
         )
 
     def test_set_pos_relative_to_anchor(self):
