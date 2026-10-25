@@ -569,13 +569,14 @@ class Actor:
                              "between them must be enough room for the actor.")
 
     def _enforce_position_limits(self):
-        if self._left_limit and self.left < self._left_limit:
+        if self._left_limit is not None and self.left < self._left_limit:
             self.left = self._left_limit
-        elif self._right_limit and self.right > self._right_limit:
+        elif self._right_limit is not None and self.right > self._right_limit:
             self.right = self._right_limit
-        if self._top_limit and self.top < self._top_limit:
+        if self._top_limit is not None and self.top < self._top_limit:
             self.top = self._top_limit
-        elif self._bottom_limit and self.bottom > self._bottom_limit:
+        elif (self._bottom_limit is not None
+              and self.bottom > self._bottom_limit):
             self.bottom = self._bottom_limit
 
     @property
