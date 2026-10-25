@@ -1034,6 +1034,50 @@ class ActorTest(unittest.TestCase):
         a.top_limit = 15
         self.assertEqual(a.top, 15)
 
+    def test_x_limits_zero_stops_movement(self):
+        """Setting 0 as a limit value also correctly stops movement."""
+        a = Actor.Rectangle(5, 5, "red", (10, 10))
+        self.assertEqual(a.x_limits, (None, None))
+        a.x_limits = (0, None)
+        a.x = -10
+        self.assertEqual(a.left, 0)
+        a.x = 10
+        a.x_limits = (None, 0)
+        self.assertEqual(a.right, 0)
+        a.x_limits = (None, None)
+        a.x = 10
+
+        # Individual limits also work.
+        a.left_limit = 0
+        a.x = -10
+        self.assertEqual(a.left, 0)
+        a.x = 10
+        a.left_limit = None
+        a.right_limit = 0
+        self.assertEqual(a.right, 0)
+
+    def test_y_limits_zero_stops_movement(self):
+        """Setting 0 as a limit value also correctly stops movement."""
+        a = Actor.Rectangle(5, 5, "red", (10, 10))
+        self.assertEqual(a.y_limits, (None, None))
+        a.y_limits = (0, None)
+        a.y = -10
+        self.assertEqual(a.top, 0)
+        a.y = 10
+        a.y_limits = (None, 0)
+        self.assertEqual(a.bottom, 0)
+        a.y_limits = (None, None)
+        a.y = 10
+
+        # Individual limits also work.
+        a.top_limit = 0
+        a.y = -10
+        self.assertEqual(a.top, 0)
+        a.y = 10
+        a.top_limit = None
+        a.bottom_limit = 0
+        self.assertEqual(a.bottom, 0)
+
     def test_pos_limits_work_with_symbolic_positions(self):
         """Setting position via 'left' or 'bottomright' also limits values."""
         a = Actor.Rectangle(5, 5, "red")
