@@ -16,3 +16,21 @@ def validate_limit_tuple(value):
             and value[1] is None or isinstance(value[1], (int, float))):
         raise TypeError("Limits must be given as a tuple of two ints, "
                         "floats or None, not {}.".format(value))
+
+def validate_color_tuple(value):
+    error_msg = ("Colors must be given either as a string name like 'red' or "
+                 "as a tuple with three numbers between 0 and 255.")
+
+    if not isinstance(value, tuple):
+        raise TypeError(error_msg + " You gave a {}.".format(type(value)))
+    try:
+        a, b, c = value
+        try:
+            if not (0 <= a <= 255 and 0 <= b <= 255 and 0 <= c <= 255):
+                raise TypeError(error_msg + " You had values outside of 0 to"
+                                "255.")
+        except:
+            raise TypeError(error_msg + " You had non number values in the "
+                            "tuple.")
+    except:
+        raise TypeError(error_msg + " Given tuple has {}.".format(len(value)))
