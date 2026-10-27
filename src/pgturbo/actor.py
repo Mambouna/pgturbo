@@ -617,7 +617,6 @@ class Actor:
             self._tint_value = value
             self._update_transform(_set_tint)
 
-
     def _check_limit_sizes(self):
         # If there are limits on both sides of an axis, check that the actor
         # can actually fit inside them.
