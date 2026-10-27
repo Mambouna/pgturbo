@@ -6,7 +6,8 @@ from . import loaders
 from . import rect
 from . import spellcheck
 from .clock import ReadyTimerSystem
-from .validation import validate_position_tuple, validate_limit_tuple
+from .validation import (validate_position_tuple, validate_limit_tuple,
+                         validate_color_tuple)
 from .actor_animation import ActorAnimationSystem
 
 
@@ -101,6 +102,35 @@ def _set_flip(actor, current_surface):
     return pygame.transform.flip(current_surface, actor._flip_x, actor._flip_y)
 
 
+def _set_tint(actor, current_surface):
+    if actor._tint_value == 0.0:
+        return current_surface
+    elif actor._tint_value > 0:
+        flag = pygame.BLEND_RGB_ADD
+        color = pygame.Color(actor._tint_color)
+        mult = actor._tint_value
+    else:
+        flag = pygame.BLEND_RGB_SUB
+        # ~ inverts the color directly since subbing red makes the image less
+        # red if we don't invert the involved color.
+        color = ~pygame.Color(actor._tint_color)
+        mult = actor._tint_value * -1
+
+    color.r = int(color.r * mult)
+    color.g = int(color.g * mult)
+    color.b = int(color.b * mult)
+    color.a = 0
+
+    tint_surf = pygame.Surface(current_surface.get_size(), pygame.SRCALPHA)
+    tint_surf.fill(color)
+
+    # Need a new surface here no matter what since BLEND_RGB_SUB won't work
+    # if the tint surface is the destination and we can't return current_surf.
+    return_surf = current_surface.copy()
+    return_surf.blit(tint_surf, (0, 0), special_flags=flag)
+    return return_surf
+
+
 def _set_opacity(actor, current_surface):
     alpha = int(actor.opacity * MAX_ALPHA + 0.5)  # +0.5 for rounding up.
 
@@ -126,7 +156,7 @@ class Actor:
                                        and a not in ("width", "height"))
     ]
 
-    function_order = [_set_opacity, _set_scale, _set_flip, _set_angle]
+    function_order = [_set_tint, _set_opacity, _set_scale, _set_flip, _set_angle]
     _anchor = _anchor_value = (0, 0)
     _scale_x = 1.0
     _scale_y = 1.0
@@ -204,6 +234,9 @@ class Actor:
         self._init_position(pos, anchor, **kwargs)
         self._vx = 0
         self._vy = 0
+
+        self._tint_color = "darkgray"
+        self._tint_value = 0.0
 
     def _clamp_value(self, value, lower_limit, upper_limit):
         if lower_limit and value < lower_limit:
@@ -556,6 +589,35 @@ class Actor:
         # Clamp the opacity to the allowable range.
         self._opacity = min(1.0, max(0.0, opacity))
         self._update_transform(_set_opacity)
+
+    @property
+    def tint_color(self):
+        return self._tint_color
+
+    @tint_color.setter
+    def tint_color(self, value):
+        if value != self._tint_color:
+            if isinstance(value, str):
+                spellcheck.check_color_name(value)
+            else:
+                validate_color_tuple(value)
+            self._tint_color = value
+            self._update_transform(_set_tint)
+
+    @property
+    def tint_value(self):
+        return self._tint_value
+
+    @tint_value.setter
+    def tint_value(self, value):
+        if not isinstance(value, (float, int)):
+            raise TypeError("Tint value must be given as a float between -1.0 "
+                            "and 1.0, not a {}".format(type(value)))
+        # Clamp values to -1.0 to 1.0
+        value = min(1.0, max(-1.0, value))
+        if value != self._tint_value:
+            self._tint_value = value
+            self._update_transform(_set_tint)
 
     def _check_limit_sizes(self):
         # If there are limits on both sides of an axis, check that the actor

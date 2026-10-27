@@ -2348,6 +2348,62 @@ of transparency:
     through a ghost.
 
 
+.. _tint:
+
+Tint
+''''
+
+Many games feature effects that change the color and brightness of game
+objects. Think of a red flash when the player is getting hit or interactable
+game objects being highlighted when you hover over them with the mouse.
+
+Such simple color and highlight effects can be achieved with the
+``.tint_color`` and ``.tint_value`` properties of actors. ``.tint_color`` is a
+solid color used for the tinting of the actor image. ``.tint_value`` is whether
+tinting should make the image brighter or darker and how strong the effect
+should be.
+
+``.tint_color`` can be any valid color either as a string name or color tuple
+and defaults to ``"darkgray"``. This is because a medium gray allows both
+brightening and darkening of the actor image just with ``.tint_value``.
+
+``.tint_value`` is a number between ``-1.0`` and ``1.0`` and defaults to
+``0.0``. Zero means there is no tinting, no visual effect. Positive numbers
+will increasingly tint the actor image while making it brighter. Negative
+values will tint the image more and more while making it darker.
+
+Here's how that looks at different points for ``.tint_value`` at the default
+color:
+
+.. image:: /_static/tint_darkgray.png
+
+With a gray between black or white, the color balance of the actor image stays
+the same and it just gets brighter or darker. Now let's look at the same
+examples with a ``.tint_color`` of ``"blue"``:
+
+.. image:: /_static/tint_blue.png
+
+As you can see, now everything is made bluish, but the overall look is also
+darker. That is because blue as a solid color of only one channel is not very
+bright to begin with. The brighter the ``.tint_color``, the brighter results
+will be and the same is true for the opposite as well.
+
+Here we can see an extreme example when using fully saturated ``"yellow"`` as
+the ``.tint_color``:
+
+.. image:: /_static/tint_yellow.png
+
+Because the color is already very bright, the brightening effect is strong
+while trying to darken the actor with such a bright color barely works. And
+here is the same again when using a darker yellow (half the values of the last
+one): ``(128, 128, 0)``.
+
+.. image:: /_static/tint_yellow_dark.png
+
+Because the base color is darker, now we can also achieve far more darkening
+through negative values for ``.tint_value``.
+
+
 .. _data_dictionary:
 
 Tracking custom values with .data

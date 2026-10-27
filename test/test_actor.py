@@ -566,6 +566,111 @@ class ActorTest(unittest.TestCase):
 
         self.assertEqual(a.opacity, 1.0)
 
+    def test_tint_color_default(self):
+        """Tint color starts at a dark gray so it can both lighten and darken
+        most actor images when tint value is changed."""
+        a = Actor("alien")
+        self.assertEqual(a.tint_color, "darkgray")
+
+    def test_set_tint_color(self):
+        """The color can be changed either with strings or a color tuple and
+        errors clearly when a wrong value is used."""
+        a = Actor("alien")
+        a.tint_color = "red"
+        self.assertEqual(a.tint_color, "red")
+
+        a.tint_color = (200, 100, 150)
+        self.assertEqual(a.tint_color, (200, 100, 150))
+
+        # Trying to set something invalid will error.
+        with self.assertRaises(TypeError):
+            a.tint_color = 5
+
+    def test_set_tint_color_doesnt_tint_alone(self):
+        """Just by setting a color for eventual tinting won't change the actor
+        image at all."""
+        a = Actor("alien")
+        color_1 = a._build_transformed_surf().get_at((32, 32))
+        a.tint_color = "red"
+        color_2 = a._build_transformed_surf().get_at((32, 32))
+        self.assertEqual(color_1, color_2)
+
+    def test_tint_value_default(self):
+        """Tint value starts at 0.0, meaning there is no visual change to the
+        base actor image."""
+        a = Actor("alien")
+        self.assertEqual(a.tint_value, 0.0)
+
+    def test_set_tint_value(self):
+        """Tint value can be changed between -1.0 and 1.0 and is clamped to
+        that range."""
+        a = Actor("alien")
+        a.tint_value = 0.5
+        self.assertEqual(a.tint_value, 0.5)
+        a.tint_value = -0.5
+        self.assertEqual(a.tint_value, -0.5)
+        a.tint_value = 1.0
+        self.assertEqual(a.tint_value, 1.0)
+        a.tint_value = -1.0
+        self.assertEqual(a.tint_value, -1.0)
+
+        # Values are clamped.
+        a.tint_value = 1.5
+        self.assertEqual(a.tint_value, 1.0)
+        a.tint_value = -1.5
+        self.assertEqual(a.tint_value, -1.0)
+
+        with self.assertRaises(TypeError):
+            a.tint_value = "test"
+
+    def test_tint_surface_changes(self):
+        """Changing tint value and tint color changes the computed surface
+        of actors correctly."""
+        a = Actor.Rectangle(20, 20, "blue")
+        # Adding full white will result in a fully white actor image.
+        a.tint_color = "white"
+        a.tint_value = 1.0
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(255, 255, 255, 255))
+
+        # Subbing full black will result in a fully black actor image.
+        a.tint_color = "black"
+        a.tint_value = -1.0
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(0, 0, 0, 255))
+
+    def test_tint_colors_correctly(self):
+        """Besides changing brightness, tinting will also give the correct
+        coloring."""
+        a = Actor.Rectangle(20, 20, "black")
+        # Adding full blue to black will result in a fully blue actor image.
+        a.tint_color = "blue"
+        a.tint_value = 1.0
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(0, 0, 255, 255))
+
+        # Half strength will give half the result.
+        a.tint_value = 0.5
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(0, 0, 127, 255))
+
+        a = Actor.Rectangle(20, 20, "white")
+        # Subbing full blue from white will result in a fully blue actor image.
+        a.tint_color = "blue"
+        a.tint_value = -1.0
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(0, 0, 255, 255))
+
+        a.tint_value = -0.5
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(128, 128, 255, 255))
+
     def test_dir_correct(self):
         """Everything returned by dir should be indexable as an attribute."""
         a = Actor("alien")
