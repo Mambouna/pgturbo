@@ -596,11 +596,11 @@ class Actor:
 
     @tint_color.setter
     def tint_color(self, value):
-        if isinstance(value, str):
-            spellcheck.check_color_name(value)
-        else:
-            validate_color_tuple(value)
         if value != self._tint_color:
+            if isinstance(value, str):
+                spellcheck.check_color_name(value)
+            else:
+                validate_color_tuple(value)
             self._tint_color = value
             self._update_transform(_set_tint)
 
