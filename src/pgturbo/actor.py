@@ -111,6 +111,8 @@ def _set_tint(actor, current_surface):
         mult = actor._tint_value
     else:
         flag = pygame.BLEND_RGB_SUB
+        # ~ inverts the color directly since subbing red makes the image less
+        # red if we don't invert the involved color.
         color = ~pygame.Color(actor._tint_color)
         mult = actor._tint_value * -1
 

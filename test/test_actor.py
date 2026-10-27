@@ -586,6 +586,15 @@ class ActorTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             a.tint_color = 5
 
+    def test_set_tint_color_doesnt_tint_alone(self):
+        """Just by setting a color for eventual tinting won't change the actor
+        image at all."""
+        a = Actor("alien")
+        color_1 = a._build_transformed_surf().get_at((32, 32))
+        a.tint_color = "red"
+        color_2 = a._build_transformed_surf().get_at((32, 32))
+        self.assertEqual(color_1, color_2)
+
     def test_tint_value_default(self):
         """Tint value starts at 0.0, meaning there is no visual change to the
         base actor image."""
@@ -631,6 +640,36 @@ class ActorTest(unittest.TestCase):
         a._build_transformed_surf()
         self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
                          pygame.Color(0, 0, 0, 255))
+
+    def test_tint_colors_correctly(self):
+        """Besides changing brightness, tinting will also give the correct
+        coloring."""
+        a = Actor.Rectangle(20, 20, "black")
+        # Adding full blue to black will result in a fully blue actor image.
+        a.tint_color = "blue"
+        a.tint_value = 1.0
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(0, 0, 255, 255))
+
+        # Half strength will give half the result.
+        a.tint_value = 0.5
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(0, 0, 127, 255))
+
+        a = Actor.Rectangle(20, 20, "white")
+        # Subbing full blue from white will result in a fully blue actor image.
+        a.tint_color = "blue"
+        a.tint_value = -1.0
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(0, 0, 255, 255))
+
+        a.tint_value = -0.5
+        a._build_transformed_surf()
+        self.assertEqual(a._surface_cache[-1].get_at((0, 0)),
+                         pygame.Color(128, 128, 255, 255))
 
     def test_dir_correct(self):
         """Everything returned by dir should be indexable as an attribute."""
