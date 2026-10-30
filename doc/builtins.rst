@@ -2353,6 +2353,8 @@ of transparency:
 Tint
 ''''
 
+.. versionadded:: 1.15
+
 Many games feature effects that change the color and brightness of game
 objects. Think of a red flash when the player is getting hit or interactable
 game objects being highlighted when you hover over them with the mouse.
@@ -2408,6 +2410,8 @@ through negative values for ``.tint_value``.
 
 Tracking custom values with .data
 '''''''''''''''''''''''''''''''''
+
+.. versionadded:: 1.15
 
 Actors have many properties useful for manipulating where they are or how they
 look, but how can you track your own game's special values for game mechanics?

@@ -47,6 +47,7 @@ Feature enhancements
 * Velocity property and movement function for Actors that only move in
   straigth lines. Also includes an intercept function to calculate necessary
   velocity to meet a target actor that also has a constant velocity.
+* Two more functions for easily getting velocities towards angles or points.
 * Create Actors from simple shapes without needing an image, via
   ``Actor.Rectangle(width, height, color)``,
   ``Actor.Ellipse(width, height, color)`` and
@@ -65,6 +66,10 @@ Feature enhancements
   window properties like ``WIDTH`` and ``HEIGHT`` do.
 * Enhancements of the ``storage`` builtin: an autosaving mode, and ``setup()``
   and ``overwrite()`` methods that make working with persistent data easier.
+* Tint and shade actors with their ``.tint_color`` and ``.tint_value``
+  properties for easy highlight or flash effects.
+* Let actors save any arbitrary values for game mechanics in their ``.data``
+  dictionaries.
 
 
 Bug fixes
@@ -79,6 +84,9 @@ Bug fixes
   and file existed when trying to load and save.
 * Fixed a bug where generated tones played for the wrong duration.
 * Fixed a bug where mouse wheel input could crash the program.
+* ``WIDTH``, ``HEIGHT`` and all other game window variables are now in global
+  scope with their default values even if the user does not set them, meaning
+  there are no crashes when trying to read them.
 
 
 Dependencies
@@ -88,6 +96,30 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.15.0 - 2026-10-30
+-------------------
+
+* New ``velocity_towards_angle()`` and ``velocity_towards_point()`` methods
+  for actors.
+* ``animate()`` property animations now follow timescale by default, can be
+  made absolute with ``absolute=True``.
+* ``WIDTH``, ``HEIGHT`` and other game window variables are now always in
+  global scope even if not set by the user. In that case, they have their
+  default values.
+* Actors have ``.data`` dictionaries to store arbitrary values related to game
+  mechanics the user might wish to track.
+* Fixed a bug where animation option overrides would disable other named
+  options wrongly.
+* Fixed the animation system sometimes dropping on finished hooks under very
+  specific circumstances.
+* Added ``suppress`` option for playing animation queues to stop the individual
+  animations from triggering all their hooks as part of the queue playing.
+* Fixed a bug where actor movement limits of ``0`` were not being enforced.
+* ``.tint_color`` and ``.tint_value`` allow tinting and shading of actor images
+  easily for flash and highlight effects.
+* Updated controller database files.
 
 
 1.14.0 - 2026-09-22
@@ -100,16 +132,16 @@ actrs as well as minor documentation improvements.
 1.13.0 - 2026-09-13
 -------------------
 
-- Added margin arguments for ``Actor.is_onscreen()``.
-- Added ``FULLSCREEN`` and ``RESIZABLE`` global variables to control game
+* Added margin arguments for ``Actor.is_onscreen()``.
+* Added ``FULLSCREEN`` and ``RESIZABLE`` global variables to control game
   window properties.
-- Added ``on_exit()`` event hook.
-- Overhauled the ``storage`` builtin and added an autosave mode,
+* Added ``on_exit()`` event hook.
+* Overhauled the ``storage`` builtin and added an autosave mode,
   ``storage.setup()`` and ``storage.overwrite()``.
-- Varied improvements to documentation for joystick event hook constants,
+* Varied improvements to documentation for joystick event hook constants,
   ``Actor.move_towards_point()``, ``Actor.anchor``, and the ``storage``
   builtin.
-- Fixed a variety of bugs.
+* Fixed a variety of bugs.
 
 
 1.12.1 - 2026-07-04

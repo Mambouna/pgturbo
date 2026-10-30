@@ -83,6 +83,7 @@ Feature enhancements
 * Velocity property and movement function for Actors that only move in
   straigth lines. Also includes an intercept function to calculate necessary
   velocity to meet a target actor that also has a constant velocity.
+* Two more functions for easily getting velocities towards angles or points.
 * Create Actors from simple shapes without needing an image, via
   ``Actor.Rectangle(width, height, color)``,
   ``Actor.Ellipse(width, height, color)`` and
@@ -101,6 +102,10 @@ Feature enhancements
   window properties like ``WIDTH`` and ``HEIGHT`` do.
 * Enhancements of the ``storage`` builtin: an autosaving mode, and ``setup()``
   and ``overwrite()`` methods that make working with persistent data easier.
+* Tint and shade actors with their ``.tint_color`` and ``.tint_value``
+  properties for easy highlight or flash effects.
+* Let actors save any arbitrary values for game mechanics in their ``.data``
+  dictionaries.
 
 
 Bug fixes
@@ -115,6 +120,9 @@ Bug fixes
   and file existed when trying to load and save.
 * Fixed a bug where generated tones played for the wrong duration.
 * Fixed a bug where mouse wheel input could crash the program.
+* ``WIDTH``, ``HEIGHT`` and all other game window variables are now in global
+  scope with their default values even if the user does not set them, meaning
+  there are no crashes when trying to read them.
 
 
 Dependencies
