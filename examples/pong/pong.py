@@ -38,12 +38,10 @@ def computer_reset_start_params():
 computer_reset_start_params()
 
 def update_computer():
-    if state["phase"] == "start":
-        if state["start_paddle"] == computer:
-            computer.y += COMPUTER_SPEED * computer.data["start_direction"]
-            if computer.top <= 20 or computer.bottom >= HEIGHT - 20:
-                computer.data["start_direction"] *= -1
-        ball.y = state["start_paddle"].y
+    if state["phase"] == "start" and state["start_paddle"] == computer:
+        computer.y += COMPUTER_SPEED * computer.data["start_direction"]
+        if computer.top <= 20 or computer.bottom >= HEIGHT - 20:
+            computer.data["start_direction"] *= -1
     elif state["phase"] == "game":
         if (ball.angle + 90) % 360 <= 180:
             computer.move_towards_point((computer.x, HEIGHT / 2),
@@ -70,8 +68,7 @@ def update_player():
 
 # ===================== BALL SETUP =====================
 
-ball = Actor.Ellipse(BALL_DIAMETER, BALL_DIAMETER, MAIN_COLOR,
-                     (WIDTH / 2, HEIGHT / 2))
+ball = Actor.Ellipse(BALL_DIAMETER, BALL_DIAMETER, MAIN_COLOR)
 ball.x = computer.right + BALL_DIAMETER / 2
 
 def ball_scored(paddle):
@@ -113,7 +110,9 @@ def shoot_ball():
 clock.schedule(shoot_ball, computer.data["start_duration"])
 
 def update_ball():
-    if state["phase"] == "game":
+    if state["phase"] == "start":
+        ball.y = state["start_paddle"].y
+    elif state["phase"] == "game":
         if ball.y <= 40 or ball.y >= HEIGHT - 40:
             ball.angle = -1 * ball.angle
 
