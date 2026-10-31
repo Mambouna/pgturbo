@@ -41,10 +41,8 @@ for i in range(COLUMNS * ROWS // 2):
     numbers.append(str(i + 1))
     numbers.append(str(i + 1))
 
-i = 0
-while i < len(cards):
-    cards[i].data["number"] = numbers.pop(random.randint(0, len(numbers) - 1))
-    i = i + 1
+for card in cards:
+    card.data["number"] = numbers.pop(random.randint(0, len(numbers) - 1))
 
 
 # ==================== GENERAL SETUP ====================
