@@ -79,7 +79,7 @@ def check_pair():
     else:
         first.data["text_color"] = FAILURE_COLOR
         second.data["text_color"] = FAILURE_COLOR
-        clock.schedule(unflip_picked_pair, 1.0)
+        clock.schedule(unflip_picked_pair, FAIL_SHOW_TIME)
 
         sounds.failure.play()
 
