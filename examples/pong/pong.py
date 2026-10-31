@@ -179,7 +179,7 @@ def draw():
                      center=(WIDTH / 4, 40), fontsize=48, color=MAIN_COLOR)
     screen.draw.text("Player: {}".format(player.data["score"]),
                      center=(WIDTH * 3/4, 40), fontsize=48, color=MAIN_COLOR)
-    screen.draw.line((WIDTH / 2, 40), (WIDTH / 2, HEIGHT - 40), "yellow")
+    screen.draw.line((WIDTH / 2, 40), (WIDTH / 2, HEIGHT - 40), MAIN_COLOR)
 
     ball.draw()
 
