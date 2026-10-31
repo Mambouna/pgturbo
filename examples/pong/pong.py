@@ -69,7 +69,7 @@ def update_player():
 # ===================== BALL SETUP =====================
 
 ball = Actor.Ellipse(BALL_DIAMETER, BALL_DIAMETER, MAIN_COLOR)
-ball.x = computer.right + BALL_DIAMETER / 2
+ball.pos = (computer.right + BALL_DIAMETER / 2, computer.y)
 
 def ball_scored(paddle):
     paddle.data["score"] += 1
