@@ -107,8 +107,7 @@ def update_segments():
     else:
         next_turn = ("nothing", -1)
 
-    i = 0
-    while i < len(segments):
+    for i in range(len(segments)):
         segment = segments[i]
         segment.image = "snake_straight"
         segment.move_forward(TILE_PX_SIZE)
@@ -127,8 +126,6 @@ def update_segments():
 
         if segment.distance_to(snake) < TILE_PX_SIZE / 2:
             snake.data["alive"] = False
-
-        i = i + 1
 
 
 # ==================== APPLE SETUP ====================
