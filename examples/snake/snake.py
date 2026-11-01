@@ -25,11 +25,11 @@ HEIGHT = TILE_PX_SIZE * VERTICAL_TILES
 # ==================== UTILITY FUNCTION ====================
 
 def grid_from_pos(position):
-    return (position[0] // TILE_PX_SIZE + 1, position[1] // TILE_PX_SIZE + 1)
+    return (position[0] // TILE_PX_SIZE, position[1] // TILE_PX_SIZE)
 
 def pos_from_grid(grid_coords):
-    return ((grid_coords[0] - 1) * TILE_PX_SIZE + TILE_PX_SIZE / 2,
-            (grid_coords[1] - 1) * TILE_PX_SIZE + TILE_PX_SIZE / 2)
+    return ((grid_coords[0]) * TILE_PX_SIZE + TILE_PX_SIZE / 2,
+            (grid_coords[1]) * TILE_PX_SIZE + TILE_PX_SIZE / 2)
 
 
 # ==================== SNAKE / PLAYER SETUP ====================
@@ -59,8 +59,8 @@ def update_snake():
 
     if snake.distance_to(apple) < TILE_PX_SIZE / 2:
         snake.data["score"] += 1
-        apple.pos = pos_from_grid((random.randint(1, HORIZONTAL_TILES),
-                                   random.randint(1, VERTICAL_TILES)))
+        apple.pos = pos_from_grid((random.randint(0, HORIZONTAL_TILES - 1),
+                                   random.randint(0, VERTICAL_TILES - 1)))
         snake.data["spawn_segment"] = True
 
 def increment_turns():
@@ -134,8 +134,8 @@ def update_segments():
 # ==================== APPLE SETUP ====================
 
 apple = Actor("apple", (-100, -100))
-apple.pos = pos_from_grid((random.randint(1, HORIZONTAL_TILES),
-                           random.randint(1, VERTICAL_TILES)))
+apple.pos = pos_from_grid((random.randint(0, HORIZONTAL_TILES - 1),
+                           random.randint(0, VERTICAL_TILES - 1)))
 
 
 # ==================== EVENT HOOKS ====================
