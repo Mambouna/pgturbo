@@ -32,6 +32,10 @@ bird.top_limit = 0
 bird.data["dead"] = False
 bird.data["score"] = 0
 
+def flap_bird():
+    if not bird.data["dead"]:
+        bird.vy = -1 * FLAP_STRENGTH
+
 def update_bird():
     bird.vy += GRAVITY
     bird.move_by_vel()
@@ -83,8 +87,7 @@ def update_pipes():
 # ==================== EVENT HOOKS ====================
 
 def on_key_down():
-    if not bird.data["dead"]:
-        bird.vy = -FLAP_STRENGTH
+    flap_bird()
 
 
 # ==================== GAME LOOP HOOKS ====================
