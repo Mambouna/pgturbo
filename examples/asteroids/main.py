@@ -13,14 +13,15 @@ HEIGHT = 600
 # ==================== GAME MECHANICS CONSTANTS ====================
 
 # General constants
-INVULNERABLE_DURATION = 4.0
 INITIAL_BLOCK_INPUT_DURATION = 1.0
 END_BLOCK_INPUT_DURATION = 2.0
 SOUND_VOLUME = 0.4
-STARS_POSITION = (random.randint(-400, 0), random.randint(-300, 0))
+STARS_POSITION = (random.randint(-1 * WIDTH // 2, 0),
+                  random.randint(-1 * HEIGHT // 2, 0))
 
 # Player constants
 START_LIVES = 3
+INVULNERABLE_DURATION = 4.0
 BLINK_INTERVAL = 0.4
 THRUST = 0.2
 BRAKE = 0.01
@@ -202,12 +203,12 @@ def destroy_asteroid(asteroid):
     sounds.asteroid_explosion.play()
     asteroids.remove(asteroid)
 
-    if asteroid.scale_x > 0.5:
+    if asteroid.data["speed"] != SMALL_SPEED:
         for i in range(3):
             new_asteroid = Actor(random.choice(ASTEROID_IMAGES), asteroid.pos)
             new_asteroid.angle = random.randint(0, 359)
             new_asteroid.scale = asteroid.scale_x - SPLIT_SIZE_REDUCTION
-            if new_asteroid.scale_x > 0.5:
+            if asteroid.data["speed"] == BIG_SPEED:
                 new_asteroid.data["speed"] = MEDIUM_SPEED
             else:
                 new_asteroid.data["speed"] = SMALL_SPEED
@@ -241,6 +242,7 @@ def update_asteroids():
                 destroy_asteroid(asteroid)
                 delete_bullet(bullet)
                 hit = True
+                break
             else:
                 k = k + 1
 
