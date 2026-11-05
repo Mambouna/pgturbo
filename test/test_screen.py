@@ -27,14 +27,14 @@ def assert_screen_match(computed, name):
     """Check that the image on the screen matches the reference image.
 
     If the reference image is missing, raise an exception, unless the
-    environment variable $W2D_SAVE_REF is given; if given, save current output
+    environment variable $PGT_SAVE_REF is given; if given, save current output
     as new reference images. These will need to be checked and committed.
 
     """
     ref_image = ROOT / 'expected-image' / f'{name}.png'
 
     if not ref_image.exists():
-        if os.environ.get('PGZ_SAVE_REF'):
+        if os.environ.get('PGT_SAVE_REF'):
             warnings.warn(
                 f"No reference image exists for {name}; saving new screenshot",
                 UserWarning
@@ -43,7 +43,7 @@ def assert_screen_match(computed, name):
             return
         else:
             raise AssertionError(
-                f"No reference image exists for {name}; set $PGZ_SAVE_REF "
+                f"No reference image exists for {name}; set $PGT_SAVE_REF "
                 "to create."
             )
     else:
@@ -207,10 +207,25 @@ class ScreenTest(unittest.TestCase):
         self.screen.draw.rect(rect=Rect((20, 20), (100, 100)), color=yellow, width=9)
         assert_screen_match(self.surf, 'rect')
 
+    def test_rect_tuple_arg(self):
+        """We can draw a rectangle with suitable tuple argument representing
+        a rect as well."""
+        yellow = (255, 255, 0)
+        self.screen.draw.rect(((20, 20), (100, 100)), color=yellow, width=9)
+        assert_screen_match(self.surf, 'rect')
+
     def test_filled_rect(self):
         yellow = (255, 255, 0)
         """We can draw a filled rectangle."""
-        self.screen.draw.filled_rect(rect=Rect((0, 0), (100, 100)), color=yellow)
+        self.screen.draw.filled_rect(rect=Rect((0, 0), (100, 100)),
+                                     color=yellow)
+        assert_screen_match(self.surf, 'filled_rect')
+
+    def test_filled_rect_tuple_arg(self):
+        """We can draw a filled rectangle with suitable tuple argument
+        representing a rect as well."""
+        yellow = (255, 255, 0)
+        self.screen.draw.filled_rect(((0, 0), (100, 100)), color=yellow)
         assert_screen_match(self.surf, 'filled_rect')
 
     def test_rect_errors(self):
@@ -220,6 +235,40 @@ class ScreenTest(unittest.TestCase):
             self.screen.draw.rect(2, yellow)
         with self.assertRaises(TypeError):
             self.screen.draw.rect([2], yellow)
+        # Malformed tuple arguments for the rect error correctly.
+        with self.assertRaises(TypeError):
+            self.screen.draw.rect((("10", 4), (6, 8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.rect(((4), (6, 8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.rect(((10, 4, 9), (6, 8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.rect((10, 4, 9, 6, 8), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.rect(((10, 4), (8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.rect(((10, 4), (9, 6, 8)), yellow)
+
+    def test_filled_rect_errors(self):
+        """draw.filled_rect also raises errors as expected."""
+        yellow = (255, 255, 0)
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect(2, yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect([2], yellow)
+        # Malformed tuple arguments for the rect error correctly.
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect((("10", 4), (6, 8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect(((4), (6, 8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect(((10, 4, 9), (6, 8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect((10, 4, 9, 6, 8), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect(((10, 4), (8)), yellow)
+        with self.assertRaises(TypeError):
+            self.screen.draw.filled_rect(((10, 4), (9, 6, 8)), yellow)
 
     def test_wrapped_gradient_text(self):
         """We can draw wrapped gradient text.
