@@ -1,87 +1,123 @@
-#
-# TODO: Add sound effects
-#       Ignore clicks after displaying second card until
-#       either hit or miss is reported.
-#       Consider re-casting the data structure as a dict
-#       with two-element tuple keys.
-#       Configure window size according to COLS and ROWS
-#
+import pgtrun
 import random
 
-checkmark = Actor('checkmark')
-steve = Actor('card_back', (50, 50))
-steve.topleft = (0, 0)
 
-COLS = 4
+# ==================== GAME MECHANICS CONSTANTS ====================
+
+COLUMNS = 4
 ROWS = 3
-IMSIZE = 200
-STATUS = []        # cells that have been clicked on
-ignore = []        # cells that have been matches and are no longer in play
+GRID_SIZE = 200
+CARD_SIZE_RATIO = 0.90
 
-# Create two of each card image, then randomize before creating the board
-START_IMAGES = ["im" + str(i + 1) for i in range(COLS * ROWS // 2)] * 2
-random.shuffle(START_IMAGES)
+CARD_COLOR = "lightcoral"
+NORMAL_COLOR = "black"
+SUCCESS_COLOR = "green"
+FAILURE_COLOR = "red"
 
-STATUS = []
-
-board = []                    # initialize the board
-for row in range(ROWS):
-    new_row = []
-    for col in range(COLS):
-        image_name = START_IMAGES.pop()
-        temp = Actor(image_name, (col*IMSIZE, row*IMSIZE))
-        temp.image_name = image_name  # used to verify matches
-        temp.topleft = (col*IMSIZE, row*IMSIZE)
-        new_row.append(temp)
-    board.append(new_row)
+CARD_FLIP_TIME = 0.1
+FAIL_SHOW_TIME = 1.0
 
 
-def draw():                    # draw the board when pygame-zero says to
-    screen.clear()
-    for row in range(ROWS):
-        for col in range(COLS):
-            if (row, col) in ignore:    # already matched
-                checkmark.topleft = IMSIZE*col, IMSIZE*row
-                checkmark.draw()
-            elif (row, col) in STATUS:    # clicked this move: show face
-                board[row][col].draw()
-            else:                        # regular clickable card
-                steve.topleft = IMSIZE*col, IMSIZE*row
-                steve.draw()
+# ==================== GAME WINDOW GLOBALS ====================
+
+TITLE = "Memory"
+WIDTH = COLUMNS * GRID_SIZE
+HEIGHT = ROWS * GRID_SIZE
 
 
-def find_tile(pos):
-    y, x = pos
-    result = x // IMSIZE, y // IMSIZE
-    return result
+# ==================== CARD SETUP ====================
+
+cards = []
+for i in range(COLUMNS):
+    for k in range(ROWS):
+        pos = (GRID_SIZE / 2 + GRID_SIZE * i, GRID_SIZE / 2 + GRID_SIZE * k)
+        card = Actor.Rectangle(GRID_SIZE * CARD_SIZE_RATIO,
+                               GRID_SIZE * CARD_SIZE_RATIO, CARD_COLOR, pos)
+        card.data["text_color"] = NORMAL_COLOR
+        cards.append(card)
+
+numbers = []
+for i in range(COLUMNS * ROWS // 2):
+    numbers.append(str(i + 1))
+    numbers.append(str(i + 1))
+
+for card in cards:
+    card.data["number"] = numbers.pop(random.randint(0, len(numbers) - 1))
 
 
-def show_tile():
-    pass
+# ==================== GENERAL SETUP ====================
+
+state = {"phase": "game", "first_picked": None, "second_picked": None,
+         "pairs_to_find": COLUMNS * ROWS / 2, "tries": 0}
+
+def unflip_picked_pair():
+    state["first_picked"].data["text_color"] = NORMAL_COLOR
+    state["second_picked"].data["text_color"] = NORMAL_COLOR
+    state["first_picked"].scale_x = 1.0
+    state["second_picked"].scale_x = 1.0
+
+    state["first_picked"] = None
+    state["second_picked"] = None
+
+def check_pair():
+    first = state["first_picked"]
+    second = state["second_picked"]
+    state["tries"] += 1
+
+    if first.data["number"] == second.data["number"]:
+        first.data["text_color"] = SUCCESS_COLOR
+        second.data["text_color"] = SUCCESS_COLOR
+        state["pairs_to_find"] -= 1
+
+        if state["pairs_to_find"] == 0:
+            state["phase"] = "won"
+
+        state["first_picked"] = None
+        state["second_picked"] = None
+        
+        sounds.success.play()
+    else:
+        first.data["text_color"] = FAILURE_COLOR
+        second.data["text_color"] = FAILURE_COLOR
+        clock.schedule(unflip_picked_pair, FAIL_SHOW_TIME)
+
+        sounds.failure.play()
 
 
-def on_mouse_down(pos, button):
-    if len(STATUS) == 2:  # ignore until timeout redisplays
+# ==================== EVENT HOOKS ====================
+
+def on_mouse_down(pos):
+    if state["first_picked"] and state["second_picked"]:
         return
-    if pos in ignore:  # has already been matched
-        return
-    if button == mouse.LEFT:
-        coords = find_tile(pos)
-        if coords not in STATUS:
-            STATUS.append(coords)  # now they are
-            if len(STATUS) == 1:  # 1st click - turn not yet over
-                pass
-            elif len(STATUS) == 2:  # 2nd click - check for match
-                (x1, y1), (x2, y2) = STATUS  # an "unpacking assignment"
-                if board[x1][y1].image_name == board[x2][y2].image_name:
-                    print("Success sound")
-                    # add cards to list of non-clickable positions
-                    for pos in STATUS:
-                        ignore.append(pos)
-                else:
-                    print("Failure sound")
-                clock.schedule_unique(next_turn, 2.0)
+
+    for card in cards:
+        if card.collidepoint(pos) and card.scale_x == 1.0:
+            sounds.flip.play()
+            animate(card, duration=CARD_FLIP_TIME, scale_x=0.0)
+            if state["first_picked"]:
+                state["second_picked"] = card
+                check_pair()
+            else:
+                state["first_picked"] = card
 
 
-def next_turn():
-    del STATUS[:]
+# ==================== GAME LOOP ====================
+
+def draw():
+    screen.fill("white")
+    for card in cards:
+        card.draw()
+        if card.scale_x == 0.0:
+            screen.draw.text(card.data["number"],
+                             center=(card.x, card.y + GRID_SIZE / 10),
+                             fontsize=GRID_SIZE, color=card.data["text_color"])
+        else:
+            screen.draw.text("?", center=(card.x, card.y + GRID_SIZE / 10),
+                             fontsize=GRID_SIZE, color=NORMAL_COLOR)
+
+    if state["phase"] == "won":
+        screen.draw.text("SOLVED IN\n{} TRIES".format(state["tries"]),
+                         center=(WIDTH / 2, HEIGHT / 2), color=NORMAL_COLOR,
+                         fontsize=GRID_SIZE*0.6, owidth=0.75, ocolor="white")
+
+pgtrun.go()

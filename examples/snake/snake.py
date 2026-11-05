@@ -1,254 +1,196 @@
+import pgtrun
 import random
-from enum import Enum
-from collections import deque
-from itertools import islice
-
-from pygame.transform import flip, rotate
 
 
-TILE_SIZE = 24
+# ==================== GAME MECHANICS CONSTANTS ====================
 
-TILES_W = 20
-TILES_H = 15
+# Grid
+TILE_PX_SIZE = 24
+HORIZONTAL_TILES = 20
+VERTICAL_TILES = 15
 
-WIDTH = TILE_SIZE * TILES_W
-HEIGHT = TILE_SIZE * TILES_H
-
-
-def screen_rect(tile_pos):
-    """Get the screen rectangle for the given tile coordinate."""
-    x, y = tile_pos
-    return Rect(TILE_SIZE * x, TILE_SIZE * y, TILE_SIZE, TILE_SIZE)
+# Game speed
+INITIAL_UPDATE_INTERVAL = 0.4
+UPDATE_INTERVAL_DIVISOR = 80
 
 
-class Direction(Enum):
-    RIGHT = (1, 0)
-    UP = (0, -1)
-    LEFT = (-1, 0)
-    DOWN = (0, 1)
+# ==================== GAME WINDOW VARIABLES ====================
 
-    def opposite(self):
-        x, y = self.value
-        return Direction((-x, -y))
+TITLE = "Snake"
+ICON = "snake_head"
+WIDTH = TILE_PX_SIZE * HORIZONTAL_TILES
+HEIGHT = TILE_PX_SIZE * VERTICAL_TILES
 
 
-class Crashed(Exception):
-    """The snake has crashed into itself."""
+# ==================== UTILITY FUNCTION ====================
+
+def grid_from_pos(position):
+    return (position[0] // TILE_PX_SIZE, position[1] // TILE_PX_SIZE)
+
+def pos_from_grid(grid_coords):
+    return ((grid_coords[0]) * TILE_PX_SIZE + TILE_PX_SIZE / 2,
+            (grid_coords[1]) * TILE_PX_SIZE + TILE_PX_SIZE / 2)
 
 
-class Snake:
-    def __init__(self, pos=(TILES_W // 2, TILES_H // 2)):
-        self.pos = pos
-        self.dir = Direction.LEFT
-        self.length = 4
-        self.tail = deque(maxlen=self.length)
+# ==================== SNAKE / PLAYER SETUP ====================
 
-        x, y = pos
-        for i in range(self.length):
-            p = (x + i, y)
-            segment = p, self.dir
-            self.tail.append(segment)
+snake = Actor("snake_head")
+snake.pos = pos_from_grid(grid_from_pos((WIDTH / 2, HEIGHT / 2)))
+snake.angle = 90
+snake.data["alive"] = True
+snake.data["next_move"] = "straight"
+snake.data["spawn_segment"] = False
+snake.data["turns"] = []
+snake.data["score"] = 0
 
-    @property
-    def lastdir(self):
-        return self.tail[0][1]
+def update_snake():
+    if snake.data["next_move"] == "turn_left":
+        snake.angle += 90
+        snake.data["turns"].insert(0, ("left", 0))
+    elif snake.data["next_move"] == "turn_right":
+        snake.angle -= 90
+        snake.data["turns"].insert(0, ("right", 0))
+    snake.data["next_move"] = "straight"
 
-    def move(self):
-        dx, dy = self.dir.value
-        px, py = self.pos
-        px = (px + dx) % TILES_W
-        py = (py + dy) % TILES_H
+    snake.move_forward(TILE_PX_SIZE)
 
-        self.pos = px, py
-        segment = self.pos, self.dir
-        self.tail.appendleft(segment)
-        for t, d in islice(self.tail, 1, None):
-            if t == self.pos:
-                raise Crashed(t)
+    if not snake.is_onscreen(-1):
+        snake.data["alive"] = False
 
-    def __len__(self):
-        return self.length
+    if snake.distance_to(apple) < TILE_PX_SIZE / 2:
+        snake.data["score"] += 1
+        apple.pos = pos_from_grid((random.randint(0, HORIZONTAL_TILES - 1),
+                                   random.randint(0, VERTICAL_TILES - 1)))
+        snake.data["spawn_segment"] = True
 
-    def __contains__(self, pos):
-        return any(p == pos for p, d in self.tail)
+def increment_turns():
+    k = 0
+    while k < len(snake.data["turns"]):
+        current_turn = snake.data["turns"][k]
+        snake.data["turns"][k] = (current_turn[0], current_turn[1] + 1)
 
-    def grow(self):
-        self.length += 1
-        self.tail = deque(self.tail, maxlen=self.length)
+        k = k + 1
 
-    def draw(self):
-        for pos in self.tail:
-            screen.draw.filled_rect(screen_rect(pos), 'green')
+    if snake.data["turns"] and snake.data["turns"][-1][1] > len(segments):
+        snake.data["turns"].pop(-1)
 
 
-class SnakePainter:
-    def __init__(self):
-        right, up, left, down = (d.value for d in Direction)
-        straight = images.snake_straight
-        corner = images.snake_corner
-        corner2 = flip(corner, True, False)
-        self.tiles = {
-            # Straight sections in each direction
-            (right, right): straight,
-            (up, up): rotate(straight, 90),
-            (left, left): rotate(straight, 180),
-            (down, down): rotate(straight, 270),
+# ==================== TAIL SETUP ====================
 
-            # Corner sections in the anticlockwise direction
-            (right, up): corner,
-            (up, left): rotate(corner, 90),
-            (left, down): rotate(corner, 180),
-            (down, right): rotate(corner, 270),
+segments = []
+for i in range(3):
+    segment = Actor("snake_straight")
+    segment.x = snake.x
+    segment.y = snake.y + TILE_PX_SIZE * (i + 1)
+    segment.angle = 90
+    segments.append(segment)
 
-            # Corner sections in the clockwise direction
-            (left, up): corner2,
-            (up, right): rotate(corner2, -90),
-            (right, down): rotate(corner2, -180),
-            (down, left): rotate(corner2, -270),
-        }
+segments[-1].image = "snake_tail"
 
-        head = images.snake_head
-        self.heads = {
-            right: head,
-            up: rotate(head, 90),
-            left: rotate(head, 180),
-            down: rotate(head, 270),
-        }
+def spawn_segment():
+    new_segment = Actor("snake_straight")
+    if segments[-1].image == "snake_straight":
+        new_segment.angle = segments[-1].angle
+    elif segments[-1].image == "snake_turn_left":
+        new_segment.angle = segments[-1].angle - 90
+    else:
+        new_segment.angle = segments[-1].angle + 90
+    new_segment.pos = segments[-1].pos
+    new_segment.move_backward(TILE_PX_SIZE)
+    segments.append(new_segment)
+    snake.data["spawn_segment"] = False
 
-        tail = images.snake_tail
-        self.tails = {
-            right: tail,
-            up: rotate(tail, 90),
-            left: rotate(tail, 180),
-            down: rotate(tail, 270),
-        }
+def update_segments():
+    turn_index = 0
+    if len(snake.data["turns"]) > 0:
+        next_turn = snake.data["turns"][turn_index]
+    else:
+        next_turn = ("nothing", -1)
 
-    def draw(self, snake):
-        for i, (pos, dir) in enumerate(snake.tail):
-            if not i:
-                # draw head
-                tile = self.heads[snake.dir.value]
-            elif i >= len(snake.tail) - 1:
-                # draw tail
-                nextdir = snake.tail[i - 1][1]
-                tile = self.tails[nextdir.value]
+    for i in range(len(segments)):
+        segment = segments[i]
+        segment.image = "snake_straight"
+        segment.move_forward(TILE_PX_SIZE)
+
+        if i == next_turn[1]:
+            if next_turn[0] == "left":
+                segment.angle += 90
+                segment.image = "snake_turn_left"
             else:
-                nextdir = snake.tail[i - 1][1]
-                key = dir.value, nextdir.value
-                try:
-                    tile = self.tiles[key]
-                except KeyError:
-                    tile = self.tiles[dir.value, dir.value]
+                segment.angle -= 90
+                segment.image = "snake_turn_right"
+            
+            turn_index += 1
+            if turn_index < len(snake.data["turns"]):
+                next_turn = snake.data["turns"][turn_index]
 
-            r = screen_rect(pos)
-            screen.blit(tile, r)
-
-
-class Apple:
-    def __init__(self):
-        self.pos = 0, 0
-
-    def draw(self):
-        screen.blit(images.apple, screen_rect(self.pos))
+        if segment.distance_to(snake) < TILE_PX_SIZE / 2:
+            snake.data["alive"] = False
 
 
-KEYBINDINGS = {
-    keys.LEFT: Direction.LEFT,
-    keys.RIGHT: Direction.RIGHT,
-    keys.UP: Direction.UP,
-    keys.DOWN: Direction.DOWN,
-}
+# ==================== APPLE SETUP ====================
+
+apple = Actor("apple", (-100, -100))
+apple.pos = pos_from_grid((random.randint(0, HORIZONTAL_TILES - 1),
+                           random.randint(0, VERTICAL_TILES - 1)))
 
 
-snake = Snake()
-snake.alive = True
-
-snake_painter = SnakePainter()
-
-apple = Apple()
-
-
-def place_apple():
-    """Randomly place the apple somewhere that isn't currently occupied.
-
-    We will generate coordinates at random until we find some that are not on
-    top of the snake.
-
-    """
-    if len(snake) == TILES_W * TILES_H:
-        raise ValueError("No empty spaces!")
-
-    while True:
-        pos = (
-            random.randrange(TILES_W),
-            random.randrange(TILES_H)
-        )
-
-        if pos not in snake:
-            apple.pos = pos
-            return
-
+# ==================== EVENT HOOKS ====================
 
 def on_key_down(key):
-    if not snake.alive:
+    if key == keys.LEFT:
+        snake.data["next_move"] = "turn_left"
+    elif key == keys.RIGHT:
+        snake.data["next_move"] = "turn_right"
+
+
+# ==================== CUSTOM UPDATE FUNCTION ====================
+
+def update_interval():
+    if not snake.data["alive"]:
         return
 
-    dir = KEYBINDINGS.get(key)
-    if dir and dir != snake.lastdir.opposite():
-        snake.dir = dir
-        return
+    update_snake()
+
+    update_segments()
+
+    increment_turns()
+
+    if snake.data["spawn_segment"]:
+        spawn_segment()
+
+    segments[-1].image = "snake_tail"
+
+    new_interval = (INITIAL_UPDATE_INTERVAL
+                    / (1 + snake.data["score"] / UPDATE_INTERVAL_DIVISOR))
+
+    clock.schedule(update_interval, new_interval)
+    
+# We have to start the custom update cycle manually here.
+clock.schedule(update_interval, INITIAL_UPDATE_INTERVAL)
 
 
-def tick():
-    if not snake.alive:
-        return
-
-    try:
-        snake.move()
-    except Crashed:
-        snake.alive = False
-        stop()
-    else:
-        if snake.pos == apple.pos:
-            snake.grow()
-            start()
-            place_apple()
-
-
-def start():
-    """Set/update the tick interval.
-
-    This is called whenever the snake grows to make the game run faster.
-
-    """
-    interval = max(0.1, 0.4 - 0.03 * (len(snake) - 3))
-    clock.unschedule(tick)
-    clock.schedule_interval(tick, interval)
-
-
-def stop():
-    """Stop the game from updating."""
-    clock.unschedule(tick)
-
+# ==================== GAME LOOP HOOKS ====================
 
 def draw():
     screen.clear()
-    snake_painter.draw(snake)
+
+    for segment in segments:
+        segment.draw()
+
     apple.draw()
 
-    screen.draw.text(
-        'Score: %d' % len(snake),
-        color='white',
-        topright=(WIDTH - 5, 5)
-    )
+    snake.draw()
 
-    if not snake.alive:
-        screen.draw.text(
-            "You died!",
-            color='white',
-            center=(WIDTH/2, HEIGHT/2)
-        )
+    score_text = "Score: {}".format(snake.data["score"])
+
+    if snake.data["alive"]:
+        screen.draw.text(score_text, topright=(WIDTH - 5, 5))
+
+    else:
+        screen.draw.text("YOU DIED", center=(WIDTH / 2, HEIGHT / 2),
+                         fontsize=42)
+        screen.draw.text(score_text, center=(WIDTH / 2, HEIGHT / 2 + 40))
 
 
-place_apple()
-start()
+pgtrun.go()

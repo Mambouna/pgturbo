@@ -1,249 +1,323 @@
-from enum import Enum
-import operator
+import pgtrun
+import random
 
-from pygame.math import Vector2
 
-from space import create_star_scape
-from actors import Player, Asteroid
+# ==================== GAME WINDOW VARIABLES ====================
 
-ICON = 'player'
+TITLE = "ASTEROIDS"
+ICON = "player"
 WIDTH = 800
 HEIGHT = 600
 
 
-class GameStage(Enum):
-    start = 0
-    game = 1
-    level_complete = 2
-    game_over = 3
-    leader_board = 4
+# ==================== GAME MECHANICS CONSTANTS ====================
+
+# General constants
+INITIAL_BLOCK_INPUT_DURATION = 1.0
+END_BLOCK_INPUT_DURATION = 2.0
+SOUND_VOLUME = 0.4
+STARS_POSITION = (random.randint(-1 * WIDTH // 2, 0),
+                  random.randint(-1 * HEIGHT // 2, 0))
+
+# Player constants
+START_LIVES = 3
+INVULNERABLE_DURATION = 4.0
+BLINK_INTERVAL = 0.4
+THRUST = 0.2
+BRAKE = 0.01
+TURN_SPEED = 4
+
+# Bullet constants
+BULLET_SIZE = 4
+BULLET_SPEED = 10
+BULLET_STAY_DURATION = 1.5
+
+# Asteroid constants
+ASTEROID_IMAGES = ("asteroid_1", "asteroid_2", "asteroid_3")
+SPLIT_SIZE_REDUCTION = 0.4
+BIG_SPEED = 1
+MEDIUM_SPEED = 2
+SMALL_SPEED = 3
+BIG_SCORE = 120
+MEDIUM_SCORE = 60
+SMALL_SCORE = 30
 
 
-class GameState():
-    stage = GameStage.start
-    bullets = []
-    asteroids = []
-    initials = ''
-    level = 1
-    score = 0
-    lives = 3
-    player = None
-    leader_board = {}
+# ==================== GENERAL SETUP ====================
+
+sounds.asteroid_explosion.set_volume(SOUND_VOLUME - 0.1)
+sounds.player_explosion.set_volume(SOUND_VOLUME)
+sounds.fire.set_volume(SOUND_VOLUME)
+
+storage.load()
+storage.setdefault("highscore", 0)
+
+state = {"phase": "start", "level": 1, "input_blocked": True,
+         "got_highscore": False}
+
+def unblock_input():
+    state["input_blocked"] = False
+
+# Since we start with blocked input, we immediately schedule changing that.
+clock.schedule(unblock_input, INITIAL_BLOCK_INPUT_DURATION)
+
+def edge_swap_actor(actor):
+    """Teleport the actor so if it left the screen left it reappears at the
+    right and same for top and bottom."""
+    if actor.right < 0:
+        actor.left = WIDTH
+    elif actor.left > WIDTH:
+        actor.right = 0
+
+    if actor.bottom < 0:
+        actor.top = HEIGHT
+    elif actor.top > HEIGHT:
+        actor.bottom = 0
+
+def start_game(restart):
+    player.pos = (WIDTH / 2, HEIGHT / 2)
+    player.angle = 90
+    player.vel = (0, 0)
+    player.data["lives"] = START_LIVES
+    make_invulnerable()
+
+    if restart:
+        state["level"] = 1
+        player.data["score"] = 0
+
+    bullets.clear()
+
+    asteroids.clear()
+    spawn_asteroids(state["level"])
+
+    state["phase"] = "game"
+    state["got_highscore"] = False
+    clock.mark_time("level_start")
+
+def end_game(result):
+    state["phase"] = result
+    if result == "win":
+        state["level"] += 1
+    state["input_blocked"] = True
+    clock.schedule(unblock_input, END_BLOCK_INPUT_DURATION)
+
+    if player.data["score"] > storage["highscore"]:
+        state["got_highscore"] = True
+        storage["highscore"] = player.data["score"]
+        storage.save()
+
+def get_time_adjusted_score(base_add):
+    """Adjust a base score from destroying an asteroid to be lower the later it
+    happens."""
+    seconds = clock.time_since_mark("level_start")
+    return round(base_add / (1 + seconds / 100))
 
 
-game = GameState()
-game.player = Player(pos=(WIDTH / 2, HEIGHT / 2))
-stars = create_star_scape(WIDTH, HEIGHT)
-max_distance = min(WIDTH, HEIGHT) * .95
+# ==================== PLAYER SETUP ====================
 
-life_pos = 10
-life_icons = []
-for _ in range(3):
-    icon = Actor('player', topleft=(life_pos, 10))
-    life_pos += 32
-    life_icons.append(icon)
-
-
-def create_asteroids():
-    game.asteroids = []
-    for i in range(2 + game.level):
-        game.asteroids.append(Asteroid((WIDTH, HEIGHT)))
-
+player = Actor("player_horizontal", (WIDTH / 2, HEIGHT / 2))
+player.angle = 90
+player.data["invulnerable"] = True
+player.data["lives"] = START_LIVES
+player.data["score"] = 0
 
 def make_vulnerable():
-    game.player.invulnerable = False
-    clock.unschedule(blink)
-    game.player.show = True
-
+    player.data["invulnerable"] = False
+    player.opacity = 1.0
+    clock.unschedule(blink_player)
 
 def make_invulnerable():
-    game.player.invulnerable = True
-    clock.schedule_unique(make_vulnerable, 3.0)
-    game.player.show = True
-    clock.schedule_interval(blink, 0.2)
+    player.data["invulnerable"] = True
+    clock.schedule(blink_player, BLINK_INTERVAL)
+    clock.schedule(make_vulnerable, INVULNERABLE_DURATION)
+
+def blink_player():
+    if player.opacity == 0.0:
+        player.opacity = 1.0
+    else:
+        player.opacity = 0.0
+    clock.schedule(blink_player, BLINK_INTERVAL)
+
+def lose_life():
+    sounds.player_explosion.play()
+    player.data["lives"] -= 1
+    if player.data["lives"] == 0:
+        end_game("dead")
+    else:
+        player.opacity = 0.0
+        make_invulnerable()
+
+def update_player():
+    if keyboard.up:
+        add_vel = player.velocity_towards_angle(player.angle, THRUST)
+        player.vx += add_vel[0]
+        player.vy += add_vel[1]
+    else:
+        player.vx *= 1.0 - BRAKE
+        player.vy *= 1.0 - BRAKE
+
+    if keyboard.left:
+        player.angle += TURN_SPEED
+    elif keyboard.right:
+        player.angle -= TURN_SPEED
+
+    player.move_by_vel()
+    edge_swap_actor(player)
 
 
-def update(dt):
-    for asteroid in game.asteroids:
-        asteroid.move(dt)
+# ==================== BULLET SETUP ====================
 
-    for bullet in game.bullets:
-        bullet.exact_pos = bullet.exact_pos - (bullet.velocity * dt)
-        c = bullet.collidelist(game.asteroids)
-        if c > -1:
-            sounds.asteroid_explosion.play()
-            game.bullets.remove(bullet)
-            asteroid = game.asteroids.pop(c)
-            game.score += 120.0 / asteroid.mass
-            chunks = asteroid.destroy()
-            game.asteroids.extend(chunks)
-            if len(game.asteroids) == 0:
-                game.stage = GameStage.level_complete
-                clock.schedule(next_level, 3.0)
-                return
-            continue
-        if bullet.exact_pos.distance_to(bullet.start_pos) > max_distance:
-            game.bullets.remove(bullet)
-        bullet.pos = bullet.exact_pos.x % WIDTH, bullet.exact_pos.y % HEIGHT
+bullets = []
 
-    if game.stage is GameStage.game:
-        if not game.player.frozen:
-            game.player.move(dt, (WIDTH, HEIGHT))
+def delete_bullet(bullet):
+    bullets.remove(bullet)
+    clock.unschedule(delete_bullet, bullet)
 
-        if game.lives and not game.player.invulnerable \
-                and game.player.collidelist(game.asteroids) > -1:
-            sounds.player_explosion.play()
-            game.lives -= 1
-            game.player.destroy((WIDTH / 2, HEIGHT / 2))
-            game.player.show = False
-            game.player.invulnerable = True
-            game.player.frozen = True
-            clock.schedule_unique(respawn, 2.0)
+def shoot_bullet():
+    sounds.fire.play()
+    bullet = Actor.Ellipse(BULLET_SIZE, BULLET_SIZE, "white", player.pos)
+    bullet.vel = bullet.velocity_towards_angle(player.angle, BULLET_SPEED)
+    bullets.append(bullet)
+    clock.schedule(delete_bullet, BULLET_STAY_DURATION, bullet)
 
-        if not game.lives:
-            game.player.frozen = True
-            game.stage = GameStage.game_over
-
-    if game.stage is GameStage.leader_board and not game.leader_board:
-        leader_board = storage.setdefault("leader_board", [])
-        max_leaders = {}
-        for initial, score in leader_board:
-            max_leaders[initial] = max(score, max_leaders.get(initial, 0))
-
-        game.leader_board['max_leaders'] = sorted(
-            max_leaders.items(),
-            key=operator.itemgetter(1),
-            reverse=True
-        )[:15]
-        game.leader_board['leader_board'] = sorted(
-            leader_board,
-            key=operator.itemgetter(1),
-            reverse=True
-        )[:15]
+def update_bullets():
+    for bullet in bullets:
+        bullet.move_by_vel()
+        edge_swap_actor(bullet)
 
 
-def respawn():
-    game.player.show = True
-    game.player.frozen = False
-    make_invulnerable()
+# ==================== ASTEROID SETUP ====================
+
+asteroids = []
+
+def spawn_asteroids(level):
+    for i in range(2 + level):
+        new_asteroid = Actor(random.choice(ASTEROID_IMAGES))
+        new_asteroid.x = random.randint(100, WIDTH - 100)
+        new_asteroid.y = random.randint(100, HEIGHT - 100)
+        new_asteroid.angle = random.randint(0, 359)
+        new_asteroid.data["speed"] = BIG_SPEED
+        asteroids.append(new_asteroid)
+
+def destroy_asteroid(asteroid):
+    sounds.asteroid_explosion.play()
+    asteroids.remove(asteroid)
+
+    if asteroid.data["speed"] != SMALL_SPEED:
+        for i in range(3):
+            new_asteroid = Actor(random.choice(ASTEROID_IMAGES), asteroid.pos)
+            new_asteroid.angle = random.randint(0, 359)
+            new_asteroid.scale = asteroid.scale_x - SPLIT_SIZE_REDUCTION
+            if asteroid.data["speed"] == BIG_SPEED:
+                new_asteroid.data["speed"] = MEDIUM_SPEED
+            else:
+                new_asteroid.data["speed"] = SMALL_SPEED
+            asteroids.append(new_asteroid)
+
+    if asteroid.data["speed"] == BIG_SPEED:
+        player.data["score"] += get_time_adjusted_score(BIG_SCORE)
+    elif asteroid.data["speed"] == MEDIUM_SPEED:
+        player.data["score"] += get_time_adjusted_score(MEDIUM_SCORE)
+    else:
+        player.data["score"] += get_time_adjusted_score(SMALL_SCORE)
+
+    if len(asteroids) == 0:
+        end_game("win")
+
+def update_asteroids():
+    i = 0
+    while i < len(asteroids):
+        asteroid = asteroids[i]
+        asteroid.move_forward(asteroid.data["speed"])
+        edge_swap_actor(asteroid)
+
+        if not player.data["invulnerable"] and asteroid.colliderect(player):
+            lose_life()
+
+        hit = False
+        k = 0
+        while k < len(bullets):
+            bullet = bullets[k]
+            if asteroid.colliderect(bullet):
+                destroy_asteroid(asteroid)
+                delete_bullet(bullet)
+                hit = True
+                break
+            else:
+                k = k + 1
+
+        if not hit:
+            i = i + 1
 
 
-def next_level():
-    game.level += 1
-    start_game(restart_game=False)
-
-
-def blink():
-    game.player.show = not game.player.show
-
+# ==================== EVENT HOOKS ====================
 
 def on_key_down(key):
-    if game.stage is GameStage.start:
-        if key == keys.SPACE:
-            start_game()
-    elif game.stage is GameStage.game:
-        if key == keys.UP:
-            game.player.thrust = True
-        if key == keys.LEFT:
-            game.player.turn += 1
-        if key == keys.RIGHT:
-            game.player.turn -= 1
-        if key == keys.SPACE and not game.player.frozen:
-            sounds.fire.play()
-            game.bullets.append(game.player.fire())
-    elif game.stage is GameStage.game_over:
-        if key == keys.BACKSPACE:
-            game.initials = game.initials[:-1]
-        elif key == keys.RETURN and game.initials:
-            leader_board = storage.setdefault("leader_board", [])
-            leader_board.append((game.initials, game.score))
-            game.leader_board = {}
-            game.stage = GameStage.leader_board
-        elif len(game.initials) < 3 and keys.A <= key <= keys.Z:
-            game.initials += chr(key).upper()
-    elif game.stage is GameStage.leader_board:
-        if key == keys.SPACE:
-            game.stage = GameStage.start
+    if state["input_blocked"] or key != keys.SPACE:
+        return
+
+    if state["phase"] == "game":
+        if not player.data["invulnerable"]:
+            shoot_bullet()
+    elif state["phase"] == "win":
+        start_game(False)
+    else:
+        start_game(True)
 
 
-def on_key_up(key):
-    if game.stage is GameStage.game:
-        if key == keys.UP:
-            game.player.thrust = False
-        if key == keys.LEFT:
-            game.player.turn -= 1
-        if key == keys.RIGHT:
-            game.player.turn += 1
+# ==================== GAME LOOP HOOKS ====================
 
-
-def start_game(restart_game=True):
-    if restart_game:
-        game.level = 1
-        game.score = 0
-        game.initials = ''
-    create_asteroids()
-    game.lives = 3
-    game.player.thrust = False
-    game.player.turn = 0
-    game.player.angle = 0.0
-    game.player.velocity = Vector2(0, 0)
-    game.player.pos = (WIDTH / 2, HEIGHT / 2)
-    game.player.exact_pos = Vector2(game.player.center)
-    game.stage = GameStage.game
-    make_invulnerable()
-
+def update():
+    if state["phase"] == "game":
+        update_player()
+        update_bullets()
+        update_asteroids()
 
 def draw():
     screen.clear()
-    screen.blit(stars, (0, 0))
-    if game.stage is GameStage.start:
-        screen.draw.text(
-            'Press SPACE to start',
-            center=(WIDTH / 2, HEIGHT / 2),
-            color='white'
-        )
-    elif game.stage is GameStage.game:
-        if game.player.show:
-            game.player.draw()
-        for i in range(game.lives):
-            life_icons[i].draw()
-        screen.draw.text(str(round(game.score)), midtop=(WIDTH / 2, 10))
-    elif game.stage is GameStage.level_complete:
-        screen.draw.text(
-            f'LEVEL {game.level} COMPLETE!',
-            midbottom=(WIDTH / 2, HEIGHT / 2),
-            fontsize=60
-        )
-        screen.draw.text(str(round(game.score)), midtop=(WIDTH / 2, 10))
-        screen.draw.text('Next level in 3.. 2.. 1..', midtop=(WIDTH / 2, HEIGHT / 2))
-    elif game.stage is GameStage.game_over:
-        screen.draw.text('GAME OVER!', midbottom=(WIDTH / 2, HEIGHT / 2), fontsize=60)
-        screen.draw.text(str(round(game.score)), midtop=(WIDTH / 2, 10))
-        screen.draw.text('Enter Initials:', midtop=(WIDTH / 2, HEIGHT / 2))
-        screen.draw.text(game.initials, midtop=(WIDTH / 2, (HEIGHT / 2) + 24))
-    elif game.stage is GameStage.leader_board:
-        top = 60
-        screen.draw.text('High Scores', midtop=(WIDTH / 2, top), fontsize=40)
-        if game.leader_board:
-            top += 40
-            max_top = top
-            for initial, score in game.leader_board['leader_board']:
-                screen.draw.text(
-                    f'{initial} {round(score)}',
-                    midtop=((WIDTH / 2) - 60, top)
-                )
-                top += 24
+    screen.blit("stars", STARS_POSITION)
 
-            for initial, score in game.leader_board['max_leaders']:
-                screen.draw.text(
-                    f'{initial} {round(score)}',
-                    midtop=((WIDTH / 2) + 60, max_top)
-                )
-                max_top += 24
-
-        screen.draw.text('Press SPACE to restart', midtop=(WIDTH / 2, top + 40))
-
-    for bullet in game.bullets:
+    for bullet in bullets:
         bullet.draw()
-    for asteroid in game.asteroids:
+
+    for asteroid in asteroids:
         asteroid.draw()
+
+    player.draw()
+
+    if state["phase"] == "start":
+        screen.draw.text("PRESS SPACE TO START",
+                         center=(WIDTH / 2, HEIGHT / 2 - 80), fontsize=48)
+
+    elif state["phase"] == "game":
+        for i in range(player.data["lives"]):
+            screen.blit("player", (5 + 30 * i, 5))
+
+        screen.draw.text("Level: {}    Score: {}".format(state["level"],
+                                                         player.data["score"]),
+                         midtop=(WIDTH / 2, 10), fontsize=32)
+        screen.draw.text("Highscore: {}".format(storage["highscore"]),
+                         topright=(WIDTH - 5, 10), fontsize=32)
+
+    else:
+        if state["phase"] == "dead":
+            main_text = "YOU DIED"
+            start_text = "Press SPACE to restart"
+        else:
+            main_text = "YOU CLEARED LEVEL {}".format(state["level"] - 1)
+            start_text = "Press SPACE to start the next level"
+
+        screen.draw.text(main_text, center=(WIDTH / 2, HEIGHT / 2 - 40),
+                         fontsize=48)
+        screen.draw.text("Score: {}".format(player.data["score"]),
+                         center=(WIDTH / 2, HEIGHT / 2 + 40), fontsize=36)
+
+        if state["got_highscore"]:
+            screen.draw.text("New Highscore!",
+                             center=(WIDTH / 2, HEIGHT / 2 + 80), fontsize=36)
+
+        if not state["input_blocked"]:
+            screen.draw.text(start_text, center=(WIDTH / 2, HEIGHT / 2 + 120),
+                             fontsize=36)
+
+pgtrun.go()
