@@ -298,7 +298,7 @@ class UnsupportedFormat(Exception):
 class AnimationLoader(ResourceLoader):
     # Extensions are the same as for ImageLoader as animations are made
     # up of individual images.
-    EXTNS = ['png', 'gif', 'jpg', 'jpeg', 'bmp']
+    EXTNS = ['png', 'gif', 'jpg', 'jpeg', 'bmp', 'webp']
     TYPE = 'animation'
 
     def _load(self, path):
@@ -317,7 +317,7 @@ class AnimationLoader(ResourceLoader):
 
 
 class SpritesheetLoader(ResourceLoader):
-    EXTNS = ['png', 'gif', 'jpg', 'jpeg', 'bmp']
+    EXTNS = ['png', 'gif', 'jpg', 'jpeg', 'bmp', 'webp']
     TYPE = 'spritesheet'
 
     def _load(self, path, vertical, width, height):
