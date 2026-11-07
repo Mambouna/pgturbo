@@ -64,4 +64,7 @@ Any other files or folders inside animation resource folders are ignored.
 Changelog
 ---------
 
+* **1.16:** Added ``.webp`` format for animation resource frame images and
+  spritesheets. Also fixed a bug where other files and directories present in
+  an animation folder would cause warnings or errors.
 * **1.4:** First release of PGTurbo after fork from PGZero.

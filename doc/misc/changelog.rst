@@ -70,6 +70,11 @@ Feature enhancements
   properties for easy highlight or flash effects.
 * Let actors save any arbitrary values for game mechanics in their ``.data``
   dictionaries.
+* Allow tuple `rect` arguments for ``screen.draw.rect()`` and
+  ``.filled_rect()``.
+* Ported example game projects to PGTurbo: Asteroids, Flappybird, Memory, Pong
+  and Snake.
+* Fully overhauled the documentation of the project.
 
 
 Bug fixes
@@ -87,6 +92,8 @@ Bug fixes
 * ``WIDTH``, ``HEIGHT`` and all other game window variables are now in global
   scope with their default values even if the user does not set them, meaning
   there are no crashes when trying to read them.
+* Fixed drawn rects to conform to how base Pygame does it to stay within the
+  given `rect` bounds.
 
 
 Dependencies
@@ -96,6 +103,20 @@ Dependencies
   developed more actively and causes fewer installation problems.
 * Removed the dependency on ``pyfxr`` for tone synthesis. The same
   functionality is now provided with ``numpy`` and ``pygame`` themselves.
+
+
+1.16.0 - 2026-11-07
+-------------------
+
+* Fully overhauled the project documentation.
+* Ported example game projects to PGTurbo: Asteroids, Flappybird, Memory, Pong
+  and Snake.
+* Aligned how rects are drawn in PGTurbo to base Pygame.
+* Added tuple `rect` possible argument to ``screen.draw.rect()`` and
+  ``.filled_rect()``.
+* Added ``.webp`` support for animation frames and spritesheets.
+* Fixed a bug where unrelated files or directories in animation folders would
+  cause warnings or errors. Now these are all simply ignored.
 
 
 1.15.0 - 2026-10-30

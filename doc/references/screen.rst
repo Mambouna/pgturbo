@@ -278,5 +278,7 @@ Keyword arguments for text drawing
 Changelog
 ---------
 
+* **1.16:** Allow tuple `rect` argument for ``draw.rect()`` and
+  ``draw.filled_rect()``. Also aligned the way rects are drawn to base Pygame.
 * **1.8:** Added screenshot functionality.
 * **1.4:** First release of PGTurbo after fork from PGZero.

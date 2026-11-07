@@ -10,12 +10,6 @@ https://pgturbo.readthedocs.io/
 The code repository for Pygame Turbo is found here:
 https://github.com/Mambouna/pgturbo
 
-The documentation for Pygame Zero is found here:
-https://pygame-zero.readthedocs.io/en/stable/index.html
-
-The GitHub of Pygame Zero is found here: 
-https://github.com/lordmauve/pgzero
-
 
 Switching to Pygame Turbo
 -------------------------
@@ -106,6 +100,11 @@ Feature enhancements
   properties for easy highlight or flash effects.
 * Let actors save any arbitrary values for game mechanics in their ``.data``
   dictionaries.
+* Allow tuple `rect` arguments for ``screen.draw.rect()`` and
+  ``.filled_rect()``.
+* Ported example game projects to PGTurbo: Asteroids, Flappybird, Memory, Pong
+  and Snake.
+* Fully overhauled the documentation of the project.
 
 
 Bug fixes
@@ -123,6 +122,8 @@ Bug fixes
 * ``WIDTH``, ``HEIGHT`` and all other game window variables are now in global
   scope with their default values even if the user does not set them, meaning
   there are no crashes when trying to read them.
+* Fixed drawn rects to conform to how base Pygame does it to stay within the
+  given `rect` bounds.
 
 
 Dependencies
