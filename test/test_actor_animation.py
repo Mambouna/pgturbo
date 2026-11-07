@@ -43,6 +43,19 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
     def test_missing_animation_errors(self):
         with self.assertRaises(KeyError):
             a.anim.add("nonsense")
+    
+    def test_animation_folder_with_other_dir_doesnt_error(self):
+        """A directory present in an animation folder does not cause issues."""
+        a.anim.add("anim_with_other_dir")
+
+        self.assertEqual(a.anim.animation_pool, ("anim_with_other_dir",))
+
+    def test_animation_folder_with_other_files_doesnt_error(self):
+        """Non-image files present in an animation folder do not cause
+        issues."""
+        a.anim.add("anim_with_other_files")
+
+        self.assertEqual(a.anim.animation_pool, ("anim_with_other_files",))
 
     def test_add_animation_from_folder_with_defaults(self):
         """We can add animations from folders and defaults are correclty
@@ -61,6 +74,10 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
 
     def test_add_animation_from_spritesheet_horizontal(self):
         """We can add animations from horizontally arranged spritesheets."""
+        # Note: There are .DS_Store and Thumbs.db files present in the
+        # animations directory to simulate other files. An error here could
+        # indicate they cause problems. No errors here indicate they are
+        # correctly ignored.
         a.anim.add_spritesheet("walk_down", 64, 64)
 
         self.assertEqual(a.anim.animation_pool, ("walk_down",))
