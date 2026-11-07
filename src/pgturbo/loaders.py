@@ -85,7 +85,6 @@ def validate_animation_paths(path):
 
     dirname = os.path.basename(path)
     warned_dirname = False
-    warned_directory = False
     warned_filenames = False
     warned_numbering = False
     warned_no_numbers = False
@@ -98,47 +97,50 @@ def validate_animation_paths(path):
     last_number = None
     last_extension = None
     for f in files:
-        # Ignore directories present and give a warning if so.
-        if not os.path.isfile(os.path.join(path, f)):
-            if not warned_directory:
-                print("WARNING: Directory {} found instead of file. Directories in "
-                      "animation folders are ignored.".format(f))
-                warned_directory = True
+        f_path = os.path.join(path, f)
+        f_name, f_ext = os.path.splitext(f)
+        # splitext() leaves us with .png for example but loaders just store
+        # png as a valid extension, so we need to get rid of the dot.
+        f_ext = f_ext[1:]
+        # Ignore directories and non-image or non-supported image files.
+        if not os.path.isfile(f_path) or f_ext not in AnimationLoader.EXTNS:
             continue
 
-        # Split the filename into its parts and examine them individually.
-        basename, extension = f.split(".")
         # Warn if not all files have the same file type.
-        if last_extension and last_extension != extension and not warned_extension:
-            print("WARNING: Extension of file {} does not match last extension {}. "
-                  "Having different file types in one animation is strongly "
-                  "discouraged.".format(f, last_extension))
+        if last_extension and last_extension != f_ext and not warned_extension:
+            print("WARNING: Extension of file {} does not match previous "
+                  "extension {}. Having different file types in one animation "
+                  "is strongly discouraged.".format(f, last_extension))
             warned_extension = True
 
-        if "_" in basename:
-            anim_name, text_number = basename.rsplit("_", 1)
+        if "_" in f_name:
+            anim_name, text_number = f_name.rsplit("_", 1)
             # Warn if not all files have the same name before numbering.
-            if last_anim_name and last_anim_name != anim_name and not warned_filenames:
-                print("WARNING: Filename before numbering {} does not match last "
-                      "filename without numbering {}. Consider naming files "
-                      "consistently.".format(anim_name, last_anim_name))
+            if (last_anim_name and last_anim_name != anim_name
+                    and not warned_filenames):
+                print("WARNING: Filename before numbering {} does not match "
+                      "last filename without numbering {}. Consider naming "
+                      "files consistently.".format(anim_name, last_anim_name))
                 warned_filenames = True
+
             # Check if the filename ends in a number and warn if not.
             try:
-                # If there is a number, check if the sorting of files has produced
-                # the correct order of frames.
+                # If there is a number, check if the sorting of files has
+                # produced the correct order of frames.
                 number = int(text_number)
-                if last_number and number != last_number + 1 and not warned_numbering:
-                    print("WARNING: Number of current file ({}) does not follow "
-                          "number of last file ({}). Animation frames could be "
-                          "missing or with more than 10 frames, numbering could "
-                          "produce wrong file order.".format(number, last_number))
+                if (last_number and number != last_number + 1
+                        and not warned_numbering):
+                    print("WARNING: Number of current file ({}) does not "
+                          "follow number of last file ({}). Animation frames "
+                          "could be missing or with more than 10 frames, "
+                          "numbering could produce wrong file order."
+                          .format(number, last_number))
                     warned_numbering = True
             except ValueError:
                 number = None
                 if not warned_no_numbers:
-                    print("WARNING: Filename {} does not end in a number. Order "
-                          "of frames could be wrong.".format(basename))
+                    print("WARNING: Filename {} does not end in a number. "
+                          "Order of frames could be wrong.".format(f_name))
                     warned_no_numbers = True
             # Check if the filename matches the directory name.
             if anim_name != dirname and not warned_dirname:
@@ -152,14 +154,14 @@ def validate_animation_paths(path):
                 last_number = number
 
         # Update last extension.
-        last_extension = extension
+        last_extension = f_ext
         # Validate like any other image file.
-        validate_compatible_path(os.path.join(path, f))
+        validate_compatible_path(f_path)
 
     # If any specific warning was given, also give general best practis for
     # naming animation frames.
-    if any((warned_dirname, warned_directory, warned_filenames,
-            warned_numbering, warned_no_numbers, warned_extension)):
+    if any((warned_dirname, warned_filenames, warned_numbering,
+            warned_no_numbers, warned_extension)):
         print("WARNING SUMMARY: Checking the animation directory revealed "
               "problems that could interfere with correct ingest of animation "
               "frames.\nThe following is suggested best practise:\n\t- Name "
@@ -240,11 +242,8 @@ class ResourceLoader:
                             name=name
                         )
                     )
-
-            # Validation of the directory has already occurred in
-            # validate_animation_paths() so it's not necessary to
-            # call validate_compatible_path() again here.
             validate_compatible_path(p)
+
         res = self._cache[key] = self._load(p, *args, **kwargs)
         return res
 
@@ -302,10 +301,16 @@ class AnimationLoader(ResourceLoader):
     TYPE = 'animation'
 
     def _load(self, path):
-        # Get paths to all files in the directory
-        files = sorted([f_path for f in os.listdir(path)
-                        if os.path.isfile(
-                        (f_path := os.path.join(path, f)))])
+        # Get paths to all valid image files in the directory
+        files = []
+        for f in os.listdir(path):
+            f_path = os.path.join(path, f)
+            f_ext = os.path.splitext(f)[1][1:]
+            # Here, directories and non-image / non-supported image files are
+            # ignored.
+            if os.path.isfile(f_path) and f_ext in self.EXTNS:
+                files.append(f_path)
+        files.sort()
         # Load all images as Pygame surfaces and return a tuple of frames.
         frames = []
         for f in files:
