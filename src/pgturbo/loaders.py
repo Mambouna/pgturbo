@@ -103,7 +103,7 @@ def validate_animation_paths(path):
         # png as a valid extension, so we need to get rid of the dot.
         f_ext = f_ext[1:]
         # Ignore directories and non-image or non-supported image files.
-        if not os.path.isfile(f_path) or not f_ext in AnimationLoader.EXTNS:
+        if not os.path.isfile(f_path) or f_ext not in AnimationLoader.EXTNS:
             continue
 
         # Warn if not all files have the same file type.
@@ -140,7 +140,7 @@ def validate_animation_paths(path):
                 number = None
                 if not warned_no_numbers:
                     print("WARNING: Filename {} does not end in a number. "
-                          "Order of frames could be wrong.".format(basename))
+                          "Order of frames could be wrong.".format(f_name))
                     warned_no_numbers = True
             # Check if the filename matches the directory name.
             if anim_name != dirname and not warned_dirname:
