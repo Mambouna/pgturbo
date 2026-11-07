@@ -43,7 +43,7 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
     def test_missing_animation_errors(self):
         with self.assertRaises(KeyError):
             a.anim.add("nonsense")
-    
+
     def test_animation_folder_with_other_dir_doesnt_error(self):
         """A directory present in an animation folder does not cause issues."""
         a.anim.add("anim_with_other_dir")
