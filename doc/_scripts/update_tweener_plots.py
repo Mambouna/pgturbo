@@ -5,6 +5,10 @@ import numpy as np
 
 from pgturbo import animation
 
+from pathlib import Path
+
+OUT_DIR = Path(__file__).parent.resolve() / ".." / "_static" / "animate_plots"
+
 IMAGE_SIZE = 64, 64
 
 
@@ -22,5 +26,6 @@ def plot(f, filename):
 
 if __name__ == '__main__':
     for name, f in animation.TWEEN_FUNCTIONS.items():
-        filename = 'images/{}.png'.format(name)
-        plot(f, filename)
+        filepath = OUT_DIR / "{}.png".format(name)
+        #filename = '_static/animate_plots/{}.png'.format(name)
+        plot(f, filepath)

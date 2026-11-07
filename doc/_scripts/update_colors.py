@@ -3,7 +3,10 @@ from pygame.colordict import THECOLORS
 import colorsys
 import numpy as np
 
-OUT = 'colors_ref.rst'
+from pathlib import Path
+
+
+OUT = Path(__file__).parent.resolve() / ".." / "references" / "colors_ref.rst"
 
 
 def color_key(color_pair):
@@ -116,19 +119,18 @@ def gen_table(f):
 if __name__ == '__main__':
     with open(OUT, 'w') as f:
         print("""\
-:orphan:
+.. _reference_colors:
 
-Pygame Colors
-=============
+Reference: Pygame Colors
+========================
 
-Below is a list of the {} colour names supported in Pygame [1]_ .
+Below is a list of the {} general color names supported in Pygame.
 
-""".format(len(SIMPLE_COLORS)), file=f)
+.. note::
+
+    There are additional fine variations for many colors with numbers appended
+    to their name, for example ``{}``. These are not listed
+    individually as the color differences are small.
+
+""".format(len(SIMPLE_COLORS), some_color), file=f)
         gen_table(f)
-        print("""\
-
-.. [1] In fact, many of these names have additional fine variations with
-       digits appended, eg. ``{}``. Because the differences are small, and
-       there are so many colours without these, these variants have been
-       omitted here.
-""".format(some_color), file=f)

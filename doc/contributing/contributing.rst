@@ -1,0 +1,192 @@
+Contributing to Pygame Turbo
+============================
+
+.. highlight:: none
+
+The Pygame Turbo project is hosted on GitHub:
+
+    https://github.com/Mambouna/pgturbo
+
+.. _report-issue:
+
+Reporting an bug or request
+---------------------------
+
+You can report bugs, or request features that you think should be in Pygame
+Turbo, using the `Github issue tracker`_.
+
+Here are some things to bear in mind before you do this:
+
+* It might not just be you! You should check if someone has already reported
+  the issue by searching through the existing issues - both open and closed.
+
+* The developers need to know what version of Pygame Turbo you are using, and
+  what operating system you are running (Windows, Mac, Linux, etc.) and version
+  (Windows 10, Ubuntu 16.04, etc.).
+
+
+.. _`Github issue tracker`: https://github.com/Mambouna/pgturbo/issues
+
+
+How to do a pull request
+------------------------
+
+You can make changes to Pygame Turbo by creating a pull request.
+
+It's a good idea to :ref:`report an issue <report-issue>` first, so that we can
+discuss whether your change makes sense.
+
+Github has `help on how to create a pull request`__, but here's the quick
+version:
+
+.. __: https://help.github.com/articles/creating-a-pull-request/
+
+#. Make sure you are logged into Github.
+#. Go to the `Github page for Pygame Turbo`_.
+#. Click "Fork" to create your own fork of the repository.
+#. Clone this fork to your own computer::
+
+        git clone git@github.com:yourusername/pgturbo.git
+
+   Remember to change ``yourusername`` to your Github username.
+
+#. Create a branch in which to do your changes. Make sure you are on the
+   ``main`` branch before invoking the command to create a new one. Pick a
+   branch name that describes the change you want to make. ::
+
+        git checkout main
+        git branch my_new_branch
+        git checkout my_new_branch
+
+   The first command makes sure you are on the ``main`` branch. The second
+   creates the new branch. The third checks out the new branch so you can work
+   on it.
+
+#. Make the changes you want.
+#. Add the files that you want to commit. In the example below, we add the file
+   that defines how actors work. ::
+
+        git add src/pgturbo/actor.py
+
+#. Commit the changes with a clear commit message::
+
+        git commit -m "Fixed issue #42 by renaming parameters"
+
+   You can do steps 6 to 8 as many times as you want until you're happy.
+
+#. Push the commit back to your fork. ::
+
+        git push --set-upstream origin my_new_branch
+
+#. Go to the Github page for your fork, and click on the "Create pull request"
+   button.
+
+
+.. _`Github page for Pygame Turbo`: https://github.com/Mambouna/pgturbo
+
+
+Development installation
+------------------------
+
+It's possible to create a locally-editable install using pip. This allows you
+to work on changes and then directly check how they are working in PGTurbo
+projects on your machine.
+
+From the root directory of the checked out source, run::
+
+    pip install --editable .
+
+The installed version will now reflect any local changes you make.
+
+Alternatively, if you don't want to install it at all, it may be run with::
+
+   python -m pgturbo <name of pgturbo script>
+
+For example::
+
+   python -m pgturbo examples/basic/demo1.py
+
+
+How to run tests
+----------------
+
+PGTurbo has a large suite of unittests. If you didn't know yet, unittests are
+small individual tests where each test checks whether an assumption about how
+the code should work is actually true.
+
+For example, one of the many many tests in PGTurbo checks whether setting
+``.scale = 2.0`` on an actor actually increases their displayed dimensions and
+whether the change is proportionally the same in both axes.
+
+This test might seem useless if you just wrote the code that changes those
+dimensions, but in large codebases it's very important to check whether each
+small part does what it should correctly, and if a test fails it's a handy sign
+that allows you to have an idea where to start looking for the problem.
+
+To run the tests, navigate to the root directory of the git repository and
+run the following command::
+
+    python -m unittest
+
+
+.. _translating:
+
+Helping to translate the documentation
+--------------------------------------
+
+Pygame Turbo's APIs will always be English, but we can bring Pygame Turbo to more
+users around the world if the documentation is available in their language.
+
+If you are fluent in another language, please consider contributing by
+translating all or part of the documentation.
+
+The documentation is written in reStructuredText_, which is a text-based markup
+language for technical documentation. As much as possible, the existing
+formatting should be preserved. reStructuredText isn't too difficult once you
+get used to it.
+
+Creating a translation is done by creating a separate repository on Github with
+a copy of the documentation, rewritten (at least in part) into the language you
+would like to support. One advantage of this is that you can work on
+translations at your own pace, without having to submit pull requests back to
+the ``pgturbo`` project itself. Please see the `translation guide`_ on Read The
+Docs for details.
+
+If this sounds like something you could tackle, here's how you might go about
+it:
+
+1. First, open an issue on the `pgturbo issue tracker`_. You should search for
+   an existing issue covering the translation you want to do, before opening a
+   new one. This will help ensure that you don't do translation work that has
+   already been done by someone else (perhaps you can collaborate instead).
+2. Create a new Github repository under your user, called pgturbo-*language*,
+   eg. ``pgturbo-spanish`` if you're going to translate into Spanish.
+3. Clone the repository to your own computer.
+4. Download the Pygame Turbo ``doc/`` directory and commit it in your project.
+   You can do this by extracting them from `repository ZIP file`_. You only
+   need the ``doc/`` directory from the ZIP file. You can delete the other
+   files.
+5. Now, work through the .rst files in the docs directory, translating, using
+   your preferred editor. You should commit regularly, and push your commits to
+   Github.
+6. Post a link to your repository as a comment in the Github issue you created
+   in step 1. You can do this as soon as you have some progress to show; this
+   will help people collaborate with you on the translation if they are
+   interested.
+7. `Set up the documentation to build on Read The Docs`__. Again, post a
+   comment on the Github issue when you have this working.
+8. We can then link up the new, translated documentation with the Pygame Turbo
+   documentation.
+
+.. _reStructuredText: http://www.sphinx-doc.org/en/master/rest.html
+.. _`translation guide`: https://docs.readthedocs.io/en/latest
+                         /localization.html#project-with-multiple-translations
+.. _`pgturbo issue tracker`: https://github.com/Mambouna/pgturbo/issues/new
+.. _`repository ZIP file`: https://github.com/Mambouna/pgturbo/archive/main.zip
+
+.. __: https://docs.readthedocs.io/en/latest/getting_started.html#import-your-docs
+
+Note that Pygame Turbo will have updates, and the documentation will be changed
+accordingly. Using Git it is possible to see a diff of what changed in the
+English documentation, so that you can make corresponding changes in the
+translated documentation.
