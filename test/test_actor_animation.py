@@ -72,6 +72,64 @@ class ActorAnimationAddingAnimsTest(unittest.TestCase):
         self.assertTrue(all(off == (0, 0) for off in added_anim.offsets))
         self.assertIsNone(added_anim.callback)
 
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_add_animation_from_folder_warning_file_types(self, sys_out_mock):
+        """Adding an animation with different file types for frames will print
+        a warning."""
+        # Before adding, nothing has been printed.
+        self.assertEqual(len(sys_out_mock.getvalue()), 0)
+
+        a.anim.add("warning_extensions")
+        self.assertEqual(a.anim.animation_pool, ("warning_extensions",))
+
+        # After adding the animation with problems in the folder, something
+        # was printed.
+        self.assertNotEqual(len(sys_out_mock.getvalue()), 0)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_add_animation_from_folder_warning_file_names(self, sys_out_mock):
+        """Adding an animation with different filenames for frames will print
+        a warning."""
+        self.assertEqual(len(sys_out_mock.getvalue()), 0)
+
+        a.anim.add("warning_filenames")
+        self.assertEqual(a.anim.animation_pool, ("warning_filenames",))
+
+        self.assertNotEqual(len(sys_out_mock.getvalue()), 0)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_add_animation_from_folder_warning_file_nums(self, sys_out_mock):
+        """Adding an animation with different file numbers for frames will
+        print a warning."""
+        self.assertEqual(len(sys_out_mock.getvalue()), 0)
+
+        a.anim.add("warning_filenums")
+        self.assertEqual(a.anim.animation_pool, ("warning_filenums",))
+
+        self.assertNotEqual(len(sys_out_mock.getvalue()), 0)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_add_animation_from_folder_warning_no_nums(self, sys_out_mock):
+        """Adding an animation with no file numbers for frames will
+        print a warning."""
+        self.assertEqual(len(sys_out_mock.getvalue()), 0)
+
+        a.anim.add("warning_no_nums")
+        self.assertEqual(a.anim.animation_pool, ("warning_no_nums",))
+
+        self.assertNotEqual(len(sys_out_mock.getvalue()), 0)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_add_animation_from_folder_warning_dirname(self, sys_out_mock):
+        """Adding an animation with files that aren't named the same as the
+        containing folder will print a warning."""
+        self.assertEqual(len(sys_out_mock.getvalue()), 0)
+
+        a.anim.add("warning_dirname")
+        self.assertEqual(a.anim.animation_pool, ("warning_dirname",))
+
+        self.assertNotEqual(len(sys_out_mock.getvalue()), 0)
+
     def test_add_animation_from_spritesheet_horizontal(self):
         """We can add animations from horizontally arranged spritesheets."""
         # Note: There are .DS_Store and Thumbs.db files present in the
